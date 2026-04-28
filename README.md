@@ -5,7 +5,8 @@ A Docker-first starter project for a construction-domain DCAT extension backed b
 ## Stack
 - LinkML schema in `schemas/construct_dcat.yaml`
 - FastAPI backend in `backend/`
-- Plain HTML/CSS/JS frontend served by FastAPI (no npm required)
+- React + TypeScript visual schema editor in `frontend/`
+- React Flow canvas, Zustand schema state, Monaco YAML preview, and `js-yaml` serialization
 - Docker Compose for local development
 
 ## Quick start
@@ -20,10 +21,22 @@ Then open:
 - Health: http://localhost:8000/health
 
 ## What it does
-- Lets users fill in a simple Construct-DCAT onboarding form
+- Lets users visually edit Construct-DCAT / DCAT-style classes, properties, inheritance, and enums
+- Generates LinkML YAML from schema state in real time
+- Saves YAML back to `schemas/construct_dcat.yaml`
 - Validates JSON against the generated JSON Schema
 - Exports JSON-LD and Turtle
 - Keeps the schema as the single source of truth
+
+## Frontend development
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Run the FastAPI app on port 8000 at the same time; Vite proxies API calls to it.
 
 ## Generate artifacts locally
 
@@ -40,6 +53,7 @@ Generated files go to:
 ```text
 construct-dcat-docker/
   backend/
+  frontend/
   schemas/
   scripts/
   examples/
