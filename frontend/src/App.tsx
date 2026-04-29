@@ -139,14 +139,37 @@ export default function App() {
     setStatus(`${label} exported`);
   }, []);
 
+  const importSchema = useCallback(
+    async (file: File) => {
+      setStatus(`Importing ${file.name}...`);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/schema/import', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        const detail = await res.text();
+        setStatus(`Import failed: ${detail}`);
+        return;
+      }
+
+      const schema = await res.json();
+      loadSchema(schema);
+      setStatus(`Imported ${file.name}. Review the diagram, then Save to persist YAML.`);
+    },
+    [loadSchema],
+  );
+
   const provider = useMemo(
     () => (
       <ReactFlowProvider>
-        <Toolbar onExport={exportSchema} onSave={saveSchema} status={status} />
+        <Toolbar onExport={exportSchema} onImport={importSchema} onSave={saveSchema} status={status} />
         <EditorCanvas />
       </ReactFlowProvider>
     ),
-    [exportSchema, saveSchema, status],
+    [exportSchema, importSchema, saveSchema, status],
   );
 
   return provider;

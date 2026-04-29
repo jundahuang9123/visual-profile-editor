@@ -6,6 +6,7 @@ export type SchemaModel = {
   imports?: string[];
   default_prefix?: string;
   default_range?: string;
+  types?: Record<string, unknown>;
   classes: Record<string, SchemaClass>;
   slots: Record<string, Slot>;
   enums: Record<string, SchemaEnum>;

@@ -37,7 +37,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   positions: {},
   selected: null,
 
-  loadSchema: (schema) => set({ schema: normalizeSchema(schema), selected: null }),
+  loadSchema: (schema) => set({ schema: normalizeSchema(schema), positions: {}, selected: null }),
   setSelected: (selected) => set({ selected }),
   getFlow: () => schemaToFlow(get().schema, get().positions),
 

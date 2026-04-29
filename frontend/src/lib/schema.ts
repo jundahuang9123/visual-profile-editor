@@ -15,6 +15,7 @@ export function emptySchema(): SchemaModel {
     },
     imports: ['dcat_ap_base'],
     default_prefix: 'cx',
+    default_range: 'string',
     classes: {},
     slots: {},
     enums: {},
@@ -47,17 +48,21 @@ export function serializeConstructSchema(schema: SchemaModel): string {
     ]),
   );
 
-  const doc = {
+  const doc: Record<string, unknown> = {
     id: schema.id,
     name: schema.name,
     title: schema.title,
     prefixes: schema.prefixes,
     imports: schema.imports,
     default_prefix: schema.default_prefix,
+    default_range: schema.default_range,
     classes: schema.classes,
     slots: schema.slots,
     enums: cleanEnums,
   };
+  if (schema.types) {
+    doc.types = schema.types;
+  }
 
   return yaml.dump(doc, {
     lineWidth: 100,

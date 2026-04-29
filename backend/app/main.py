@@ -9,12 +9,14 @@ import yaml
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from jsonschema import Draft202012Validator
 from rdflib import Graph, Literal, Namespace, RDF, URIRef
+
+from app.schema_importer import import_rdf_schema
 
 BASE_DIR = Path('/app') if Path('/app').exists() else Path(__file__).resolve().parents[2]
 SCHEMA_PATH = BASE_DIR / 'generated' / 'jsonschema' / 'construct_dcat.schema.json'
@@ -145,6 +147,34 @@ def save_schema_linkml(payload: dict[str, str]) -> JSONResponse:
 
     CONSTRUCT_SCHEMA_PATH.write_text(yaml.safe_dump(parsed, sort_keys=False), encoding='utf-8')
     return JSONResponse({'status': 'ok'})
+
+
+@app.post('/api/schema/import')
+async def import_schema(file: UploadFile = File(...)) -> JSONResponse:
+    content = await file.read()
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=400, detail='Uploaded RDF/SHACL file must be UTF-8 text') from exc
+
+    defaults = {
+        'id': 'https://example.org/linkml/imported-profile',
+        'name': 'imported_profile',
+        'prefixes': {
+            'linkml': 'https://w3id.org/linkml/',
+            'cx': 'https://example.org/construct-dcat/',
+            'dcat': 'http://www.w3.org/ns/dcat#',
+        },
+        'imports': ['dcat_ap_base'],
+        'default_prefix': 'cx',
+    }
+
+    try:
+        schema = import_rdf_schema(text, file.filename or 'uploaded.ttl', defaults)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return JSONResponse(schema)
 
 
 @app.post('/validate')
