@@ -12,7 +12,7 @@ import Editor from '@monaco-editor/react';
 import '@xyflow/react/dist/style.css';
 import { ClassNode } from './components/ClassNode';
 import { Inspector } from './components/Inspector';
-import { Toolbar } from './components/Toolbar';
+import { Toolbar, type ExportKind } from './components/Toolbar';
 import { useEditorStore } from './store';
 import './styles.css';
 
@@ -118,14 +118,35 @@ export default function App() {
     setStatus('Saved to schemas/construct_dcat.yaml');
   }, [yaml]);
 
+  const exportSchema = useCallback(async (kind: ExportKind) => {
+    const label = kind === 'rdf' ? 'RDF' : 'SHACL';
+    setStatus(`Exporting ${label}...`);
+    const res = await fetch(`/schema/export/${kind}`);
+    if (!res.ok) {
+      const detail = await res.text();
+      setStatus(`${label} export failed: ${detail}`);
+      return;
+    }
+
+    const text = await res.text();
+    const blob = new Blob([text], { type: 'text/turtle' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = kind === 'rdf' ? 'construct_dcat.rdf.ttl' : 'construct_dcat.shacl.ttl';
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus(`${label} exported`);
+  }, []);
+
   const provider = useMemo(
     () => (
       <ReactFlowProvider>
-        <Toolbar onSave={saveSchema} status={status} />
+        <Toolbar onExport={exportSchema} onSave={saveSchema} status={status} />
         <EditorCanvas />
       </ReactFlowProvider>
     ),
-    [saveSchema, status],
+    [exportSchema, saveSchema, status],
   );
 
   return provider;

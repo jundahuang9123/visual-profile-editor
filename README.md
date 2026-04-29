@@ -58,6 +58,7 @@ The app lets you edit classes, properties, enums, and relationships in a React F
     ```text
     schemas/construct_dcat.yaml
     ```
+11. Click `RDF` or `SHACL` to download Turtle exports from the current schema.
 
 ## Generate Schema Artifacts
 
@@ -100,6 +101,8 @@ After saving schema changes, regenerate derived artifacts:
 3. Health check: `http://localhost:8000/health`
 4. JSON Schema: `http://localhost:8000/schema`
 5. Schema model API: `http://localhost:8000/api/schema/model`
+6. RDF export: `http://localhost:8000/schema/export/rdf`
+7. SHACL export: `http://localhost:8000/schema/export/shacl`
 
 ## Developer Frontend Workflow
 

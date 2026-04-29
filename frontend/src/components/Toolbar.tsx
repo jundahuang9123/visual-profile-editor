@@ -1,12 +1,15 @@
-import { Download, Plus, Save, Tags } from 'lucide-react';
+import { Download, FileDown, Plus, Save, Tags } from 'lucide-react';
 import { useEditorStore } from '../store';
 
+export type ExportKind = 'rdf' | 'shacl';
+
 type ToolbarProps = {
+  onExport: (kind: ExportKind) => Promise<void>;
   onSave: () => Promise<void>;
   status: string;
 };
 
-export function Toolbar({ onSave, status }: ToolbarProps) {
+export function Toolbar({ onExport, onSave, status }: ToolbarProps) {
   const addClass = useEditorStore((state) => state.addClass);
   const addEnum = useEditorStore((state) => state.addEnum);
   const yaml = useEditorStore((state) => state.yaml());
@@ -39,6 +42,14 @@ export function Toolbar({ onSave, status }: ToolbarProps) {
         <button onClick={downloadYaml} title="Download YAML">
           <Download size={16} />
           YAML
+        </button>
+        <button onClick={() => onExport('rdf')} title="Export RDF Turtle">
+          <FileDown size={16} />
+          RDF
+        </button>
+        <button onClick={() => onExport('shacl')} title="Export SHACL Turtle">
+          <FileDown size={16} />
+          SHACL
         </button>
         <button className="primary" onClick={onSave} title="Save YAML">
           <Save size={16} />
