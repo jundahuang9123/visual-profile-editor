@@ -9,16 +9,20 @@ import yaml
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from jsonschema import Draft202012Validator
 from rdflib import Graph, Literal, Namespace, RDF, URIRef
 
+from app.schema_importer import import_rdf_schema
+
 BASE_DIR = Path('/app') if Path('/app').exists() else Path(__file__).resolve().parents[2]
 SCHEMA_PATH = BASE_DIR / 'generated' / 'jsonschema' / 'construct_dcat.schema.json'
 EXAMPLE_PATH = BASE_DIR / 'examples' / 'dataset_minimal.json'
+FRONTEND_DIST = BASE_DIR / 'frontend-dist'
+CONSTRUCT_SCHEMA_PATH = BASE_DIR / 'schemas' / 'construct_dcat.yaml'
 
 DCAT = Namespace('http://www.w3.org/ns/dcat#')
 DCT = Namespace('http://purl.org/dc/terms/')
@@ -26,6 +30,8 @@ CX = Namespace('https://example.org/construct-dcat/')
 
 app = FastAPI(title='Construct-DCAT Starter')
 app.mount('/static', StaticFiles(directory=str(Path(__file__).parent / 'static')), name='static')
+if (FRONTEND_DIST / 'assets').exists():
+    app.mount('/assets', StaticFiles(directory=str(FRONTEND_DIST / 'assets')), name='assets')
 templates = Jinja2Templates(directory=str(Path(__file__).parent / 'templates'))
 
 
@@ -87,6 +93,9 @@ def payload_to_graph(data: dict[str, Any]) -> Graph:
 
 @app.get('/', response_class=HTMLResponse)
 def index(request: Request):
+    react_index = FRONTEND_DIST / 'index.html'
+    if react_index.exists():
+        return FileResponse(react_index)
     example = {}
     if EXAMPLE_PATH.exists():
         example = json.loads(EXAMPLE_PATH.read_text(encoding='utf-8'))
@@ -101,6 +110,71 @@ def health() -> dict[str, str]:
 @app.get('/schema')
 def schema() -> JSONResponse:
     return JSONResponse(load_schema())
+
+
+@app.get('/api/schema/model')
+def schema_model() -> JSONResponse:
+    return JSONResponse(load_combined_schema())
+
+
+@app.get('/api/schema/linkml')
+def schema_linkml() -> PlainTextResponse:
+    if not CONSTRUCT_SCHEMA_PATH.exists():
+        raise HTTPException(status_code=404, detail='Construct-DCAT schema not found')
+    return PlainTextResponse(
+        CONSTRUCT_SCHEMA_PATH.read_text(encoding='utf-8'),
+        media_type='application/yaml',
+    )
+
+
+@app.put('/api/schema/linkml')
+def save_schema_linkml(payload: dict[str, str]) -> JSONResponse:
+    yaml_text = payload.get('yaml')
+    if not isinstance(yaml_text, str) or not yaml_text.strip():
+        raise HTTPException(status_code=400, detail='Missing yaml payload')
+
+    try:
+        parsed = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as exc:
+        raise HTTPException(status_code=400, detail=f'Invalid YAML: {exc}') from exc
+
+    if not isinstance(parsed, dict):
+        raise HTTPException(status_code=400, detail='Schema YAML must be a mapping')
+
+    for key in ('classes', 'slots'):
+        if key not in parsed or not isinstance(parsed[key], dict):
+            raise HTTPException(status_code=400, detail=f'Schema YAML must include {key}')
+
+    CONSTRUCT_SCHEMA_PATH.write_text(yaml.safe_dump(parsed, sort_keys=False), encoding='utf-8')
+    return JSONResponse({'status': 'ok'})
+
+
+@app.post('/api/schema/import')
+async def import_schema(file: UploadFile = File(...)) -> JSONResponse:
+    content = await file.read()
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError as exc:
+        raise HTTPException(status_code=400, detail='Uploaded RDF/SHACL file must be UTF-8 text') from exc
+
+    defaults = {
+        'id': 'https://example.org/linkml/imported-profile',
+        'name': 'imported_profile',
+        'prefixes': {
+            'linkml': 'https://w3id.org/linkml/',
+            'cx': 'https://example.org/construct-dcat/',
+            'dcat': 'http://www.w3.org/ns/dcat#',
+        },
+        'imports': ['dcat_ap_base'],
+        'default_prefix': 'cx',
+    }
+
+    try:
+        schema = import_rdf_schema(text, file.filename or 'uploaded.ttl', defaults)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return JSONResponse(schema)
 
 
 @app.post('/validate')
