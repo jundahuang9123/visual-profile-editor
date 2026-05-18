@@ -1,0 +1,21 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix cx: <https://w3id.org/cx#> .
+@prefix ifc: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2_TC1/OWL#> .
+
+<https://example.org/datasets/office-bim-package>
+  a dcat:Dataset, cx:ConstructionDataset ;
+  dcterms:title "Office building BIM package" ;
+  dcterms:description "A sample construction-domain dataset entry with BIM and AAS semantic anchors." ;
+  dcat:keyword "bim", "ifc", "construction" ;
+  cx:hasRepresentationType "ifc" ;
+  cx:hasLifecyclePhase "design" ;
+  cx:semanticAnchor [
+    a cx:SemanticAnchor ;
+    cx:hasIFCEntity ifc:IfcBuilding
+  ] ;
+  dcat:distribution [
+    a dcat:Distribution ;
+    dcat:accessURL <https://example.org/datasets/office-bim-package> ;
+    dcat:downloadURL <https://example.org/datasets/office-bim-package.ifc>
+  ] .

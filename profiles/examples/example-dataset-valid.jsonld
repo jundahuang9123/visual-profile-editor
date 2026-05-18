@@ -1,0 +1,28 @@
+{
+  "@context": {
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "cx": "https://w3id.org/cx#",
+    "skos": "http://www.w3.org/2004/02/skos/core#"
+  },
+  "@id": "https://example.org/datasets/office-bim-package",
+  "@type": ["dcat:Dataset", "cx:ConstructionDataset"],
+  "dcterms:title": "Office building BIM package",
+  "dcterms:description": "A sample construction-domain dataset entry with BIM and AAS semantic anchors.",
+  "dcat:keyword": ["bim", "ifc", "construction"],
+  "cx:hasRepresentationType": "ifc",
+  "cx:hasLifecyclePhase": "design",
+  "cx:semanticAnchor": [
+    {
+      "@type": "cx:SemanticAnchor",
+      "cx:hasIFCEntity": "https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2_TC1/OWL#IfcBuilding"
+    }
+  ],
+  "dcat:distribution": [
+    {
+      "@type": "dcat:Distribution",
+      "dcat:accessURL": "https://example.org/datasets/office-bim-package",
+      "dcat:downloadURL": "https://example.org/datasets/office-bim-package.ifc"
+    }
+  ]
+}

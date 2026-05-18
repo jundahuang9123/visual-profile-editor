@@ -1,0 +1,27 @@
+id: https://w3id.org/construct-dcat/profile/empty
+name: empty_construct_dcat_profile
+title: Empty Construct-DCAT Profile
+description: Start from an empty LinkML profile with DCAT and construction-domain prefixes.
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: http://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  skos: http://www.w3.org/2004/02/skos/core#
+  prov: http://www.w3.org/ns/prov#
+  foaf: http://xmlns.com/foaf/0.1/
+  aas: https://admin-shell.io/aas/3/0/
+  bot: https://w3id.org/bot#
+  ifc: https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2_TC1/OWL#
+  cx: https://w3id.org/cx#
+  xsd: http://www.w3.org/2001/XMLSchema#
+imports:
+  - linkml:types
+default_prefix: cx
+default_range: string
+types:
+  anyURI:
+    uri: xsd:anyURI
+    base: str
+classes: {}
+slots: {}
+enums: {}

@@ -1,0 +1,147 @@
+id: https://w3id.org/construct-dcat/profile/dcat
+name: dcat_profile
+title: DCAT Profile
+description: Core DCAT classes and properties for dataset catalog metadata.
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: http://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  skos: http://www.w3.org/2004/02/skos/core#
+  foaf: http://xmlns.com/foaf/0.1/
+  xsd: http://www.w3.org/2001/XMLSchema#
+imports:
+  - linkml:types
+default_prefix: dcat
+default_range: string
+types:
+  anyURI:
+    uri: xsd:anyURI
+    base: str
+classes:
+  DcatCatalog:
+    class_uri: dcat:Catalog
+    slots:
+      - title
+      - description
+      - publisher
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+  DcatDataset:
+    class_uri: dcat:Dataset
+    slots:
+      - title
+      - description
+      - publisher
+      - theme
+      - keyword
+      - distribution
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+  DcatDistribution:
+    class_uri: dcat:Distribution
+    slots:
+      - accessURL
+      - downloadURL
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+  DcatDataService:
+    class_uri: dcat:DataService
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+  FoafAgent:
+    class_uri: foaf:Agent
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: foaf
+  SkosConcept:
+    class_uri: skos:Concept
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: skos
+slots:
+  title:
+    slot_uri: dcterms:title
+    range: string
+    required: true
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: mandatory
+  description:
+    slot_uri: dcterms:description
+    range: string
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: recommended
+  publisher:
+    slot_uri: dcterms:publisher
+    range: FoafAgent
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: recommended
+  theme:
+    slot_uri: dcat:theme
+    range: SkosConcept
+    multivalued: true
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: recommended
+  keyword:
+    slot_uri: dcat:keyword
+    range: string
+    multivalued: true
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: recommended
+  distribution:
+    slot_uri: dcat:distribution
+    range: DcatDistribution
+    multivalued: true
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: recommended
+  accessURL:
+    slot_uri: dcat:accessURL
+    range: anyURI
+    required: true
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: mandatory
+  downloadURL:
+    slot_uri: dcat:downloadURL
+    range: anyURI
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: recommended
+enums: {}

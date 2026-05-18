@@ -1,112 +1,119 @@
 from __future__ import annotations
-from fastapi.staticfiles import StaticFiles
-
-from rdflib import BNode, RDFS, XSD
-from rdflib.collection import Collection
 
 import json
-import yaml
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse, PlainTextResponse
 from jsonschema import Draft202012Validator
 from rdflib import Graph, Literal, Namespace, RDF, URIRef
 
+from general_ontology_editor import create_app
+
+from .profile_routes import profile_router
+
 BASE_DIR = Path('/app') if Path('/app').exists() else Path(__file__).resolve().parents[2]
-SCHEMA_PATH = BASE_DIR / 'generated' / 'jsonschema' / 'construct_dcat.schema.json'
+PROFILE_SCHEMA_PATH = BASE_DIR / 'schemas' / 'profile.yaml'
+PROFILE_JSON_SCHEMA_PATH = BASE_DIR / 'generated' / 'jsonschema' / 'profile.schema.json'
+DATASET_SCHEMA_PATH = BASE_DIR / 'generated' / 'jsonschema' / 'construct_dcat.schema.json'
 EXAMPLE_PATH = BASE_DIR / 'examples' / 'dataset_minimal.json'
 
 DCAT = Namespace('http://www.w3.org/ns/dcat#')
-DCT = Namespace('http://purl.org/dc/terms/')
-CX = Namespace('https://example.org/construct-dcat/')
+DCTERMS = Namespace('http://purl.org/dc/terms/')
+CX = Namespace('https://w3id.org/cx#')
 
-app = FastAPI(title='Construct-DCAT Starter')
-app.mount('/static', StaticFiles(directory=str(Path(__file__).parent / 'static')), name='static')
-templates = Jinja2Templates(directory=str(Path(__file__).parent / 'templates'))
+app = create_app(
+    schema_path=PROFILE_SCHEMA_PATH,
+    json_schema_path=PROFILE_JSON_SCHEMA_PATH,
+    frontend_dist=BASE_DIR / 'frontend-dist',
+    product_title='Construct-DCAT Profile Editor',
+    mode='profile',
+    import_defaults={
+        'id': 'https://w3id.org/construct-dcat/imported-profile',
+        'name': 'imported_construct_dcat_profile',
+        'prefixes': {
+            'linkml': 'https://w3id.org/linkml/',
+            'dcat': 'http://www.w3.org/ns/dcat#',
+            'dcterms': 'http://purl.org/dc/terms/',
+            'cx': 'https://w3id.org/cx#',
+        },
+        'imports': ['linkml:types'],
+        'default_prefix': 'cx',
+    },
+    include_validation_route=False,
+)
+app.include_router(profile_router(BASE_DIR))
 
 
-def load_schema() -> dict[str, Any]:
-    if not SCHEMA_PATH.exists():
-        raise FileNotFoundError(f'Missing generated schema: {SCHEMA_PATH}')
-    return json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))
+def load_dataset_json_schema() -> dict[str, Any]:
+    if not DATASET_SCHEMA_PATH.exists():
+        raise FileNotFoundError(f'Missing generated dataset JSON Schema: {DATASET_SCHEMA_PATH}')
+    return json.loads(DATASET_SCHEMA_PATH.read_text(encoding='utf-8'))
 
 
-def get_validator() -> Draft202012Validator:
-    return Draft202012Validator(load_schema())
+def dataset_validator() -> Draft202012Validator:
+    return Draft202012Validator(load_dataset_json_schema())
 
 
 def payload_to_graph(data: dict[str, Any]) -> Graph:
-    g = Graph()
-    g.bind('dcat', DCAT)
-    g.bind('dct', DCT)
-    g.bind('cx', CX)
+    graph = Graph()
+    graph.bind('dcat', DCAT)
+    graph.bind('dcterms', DCTERMS)
+    graph.bind('cx', CX)
 
     dataset_uri = URIRef(f"https://example.org/dataset/{data['identifier']}")
-    g.add((dataset_uri, RDF.type, DCAT.Dataset))
-    g.add((dataset_uri, DCT.identifier, Literal(data['identifier'])))
-    g.add((dataset_uri, DCT.title, Literal(data['title'])))
+    graph.add((dataset_uri, RDF.type, DCAT.Dataset))
+    graph.add((dataset_uri, RDF.type, CX.ConstructionDataset))
+    graph.add((dataset_uri, DCTERMS.identifier, Literal(data['identifier'])))
+    graph.add((dataset_uri, DCTERMS.title, Literal(data['title'])))
 
     if data.get('description'):
-        g.add((dataset_uri, DCT.description, Literal(data['description'])))
+        graph.add((dataset_uri, DCTERMS.description, Literal(data['description'])))
 
-    for kw in data.get('keyword', []):
-        g.add((dataset_uri, DCAT.keyword, Literal(kw)))
+    for keyword in data.get('keyword', []):
+        graph.add((dataset_uri, DCAT.keyword, Literal(keyword)))
 
     if data.get('asset_kind'):
-        g.add((dataset_uri, CX.assetKind, Literal(data['asset_kind'])))
+        graph.add((dataset_uri, CX.describesAssetType, Literal(data['asset_kind'])))
     if data.get('lifecycle_phase'):
-        g.add((dataset_uri, CX.lifecyclePhase, Literal(data['lifecycle_phase'])))
+        graph.add((dataset_uri, CX.hasLifecyclePhase, Literal(data['lifecycle_phase'])))
     if data.get('bim_model_ref'):
-        g.add((dataset_uri, CX.bimModelReference, URIRef(data['bim_model_ref'])))
+        graph.add((dataset_uri, CX.hasIFCEntity, URIRef(data['bim_model_ref'])))
     if data.get('aas_ref'):
-        g.add((dataset_uri, CX.aasReference, URIRef(data['aas_ref'])))
+        graph.add((dataset_uri, CX.hasAASSubmodel, URIRef(data['aas_ref'])))
     if data.get('geometry_format'):
-        g.add((dataset_uri, CX.geometryFormat, Literal(data['geometry_format'])))
+        graph.add((dataset_uri, CX.hasRepresentationType, Literal(data['geometry_format'])))
     if data.get('contact_point'):
-        g.add((dataset_uri, DCAT.contactPoint, Literal(data['contact_point'])))
+        graph.add((dataset_uri, DCAT.contactPoint, Literal(data['contact_point'])))
 
-    for i, dist in enumerate(data.get('distribution', []), start=1):
-        dist_uri = URIRef(f"{dataset_uri}/distribution/{i}")
-        g.add((dist_uri, RDF.type, DCAT.Distribution))
-        g.add((dataset_uri, DCAT.distribution, dist_uri))
-        if dist.get('access_url'):
-            g.add((dist_uri, DCAT.accessURL, URIRef(dist['access_url'])))
-        if dist.get('download_url'):
-            g.add((dist_uri, DCAT.downloadURL, URIRef(dist['download_url'])))
-        if dist.get('media_type'):
-            g.add((dist_uri, DCAT.mediaType, Literal(dist['media_type'])))
-        if dist.get('format'):
-            g.add((dist_uri, DCT.format, Literal(dist['format'])))
+    for index, distribution in enumerate(data.get('distribution', []), start=1):
+        distribution_uri = URIRef(f'{dataset_uri}/distribution/{index}')
+        graph.add((distribution_uri, RDF.type, DCAT.Distribution))
+        graph.add((dataset_uri, DCAT.distribution, distribution_uri))
+        if distribution.get('access_url'):
+            graph.add((distribution_uri, DCAT.accessURL, URIRef(distribution['access_url'])))
+        if distribution.get('download_url'):
+            graph.add((distribution_uri, DCAT.downloadURL, URIRef(distribution['download_url'])))
+        if distribution.get('media_type'):
+            graph.add((distribution_uri, DCAT.mediaType, Literal(distribution['media_type'])))
+        if distribution.get('format'):
+            graph.add((distribution_uri, DCTERMS.format, Literal(distribution['format'])))
 
-    return g
+    return graph
 
 
-@app.get('/', response_class=HTMLResponse)
-def index(request: Request):
-    example = {}
+@app.get('/api/dataset/example')
+def dataset_example() -> JSONResponse:
     if EXAMPLE_PATH.exists():
-        example = json.loads(EXAMPLE_PATH.read_text(encoding='utf-8'))
-    return templates.TemplateResponse('index.html', {'request': request, 'example': example})
-
-
-@app.get('/health')
-def health() -> dict[str, str]:
-    return {'status': 'ok'}
-
-
-@app.get('/schema')
-def schema() -> JSONResponse:
-    return JSONResponse(load_schema())
+        return JSONResponse(json.loads(EXAMPLE_PATH.read_text(encoding='utf-8')))
+    return JSONResponse({})
 
 
 @app.post('/validate')
-def validate(payload: dict[str, Any]) -> JSONResponse:
-    validator = get_validator()
-    errors = sorted(validator.iter_errors(payload), key=lambda e: list(e.path))
+@app.post('/dataset/validate')
+def validate_dataset(payload: dict[str, Any]) -> JSONResponse:
+    errors = sorted(dataset_validator().iter_errors(payload), key=lambda err: list(err.path))
     if errors:
         return JSONResponse(
             status_code=422,
@@ -114,7 +121,7 @@ def validate(payload: dict[str, Any]) -> JSONResponse:
                 'valid': False,
                 'errors': [
                     {
-                        'path': '.'.join(str(x) for x in err.path),
+                        'path': '.'.join(str(part) for part in err.path),
                         'message': err.message,
                     }
                     for err in errors
@@ -125,453 +132,18 @@ def validate(payload: dict[str, Any]) -> JSONResponse:
 
 
 @app.post('/export/jsonld')
-def export_jsonld(payload: dict[str, Any]) -> JSONResponse:
-    validator = get_validator()
-    errors = sorted(validator.iter_errors(payload), key=lambda e: list(e.path))
+@app.post('/dataset/export/jsonld')
+def export_dataset_jsonld(payload: dict[str, Any]) -> JSONResponse:
+    errors = sorted(dataset_validator().iter_errors(payload), key=lambda err: list(err.path))
     if errors:
         raise HTTPException(status_code=422, detail='Payload failed validation')
-    g = payload_to_graph(payload)
-    return JSONResponse(json.loads(g.serialize(format='json-ld', indent=2)))
+    return JSONResponse(json.loads(payload_to_graph(payload).serialize(format='json-ld', indent=2)))
 
 
 @app.post('/export/turtle')
-def export_turtle(payload: dict[str, Any]) -> PlainTextResponse:
-    validator = get_validator()
-    errors = sorted(validator.iter_errors(payload), key=lambda e: list(e.path))
+@app.post('/dataset/export/turtle')
+def export_dataset_turtle(payload: dict[str, Any]) -> PlainTextResponse:
+    errors = sorted(dataset_validator().iter_errors(payload), key=lambda err: list(err.path))
     if errors:
         raise HTTPException(status_code=422, detail='Payload failed validation')
-    g = payload_to_graph(payload)
-    ttl = g.serialize(format='turtle')
-    return PlainTextResponse(ttl, media_type='text/turtle')
-
-@app.get("/schema/options")
-def get_schema_options():
-    base_path = BASE_DIR / "schemas" / "dcat_ap_base.yaml"
-    ext_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(base_path, encoding="utf-8") as f:
-        base_schema = yaml.safe_load(f)
-
-    with open(ext_path, encoding="utf-8") as f:
-        ext_schema = yaml.safe_load(f)
-
-    classes = {}
-    classes.update(base_schema.get("classes", {}))
-    classes.update(ext_schema.get("classes", {}))
-
-    enums = {}
-    enums.update(base_schema.get("enums", {}))
-    enums.update(ext_schema.get("enums", {}))
-
-    return {
-        "classes": sorted(list(classes.keys())),
-        "enums": sorted(list(enums.keys())),
-        "primitives": ["string", "anyURI"]
-    }
-
-
-@app.get("/schema/uml")
-def get_uml():
-    base_path = BASE_DIR / "schemas" / "dcat_ap_base.yaml"
-    ext_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(base_path, encoding="utf-8") as f:
-        base_schema = yaml.safe_load(f)
-
-    with open(ext_path, encoding="utf-8") as f:
-        ext_schema = yaml.safe_load(f)
-
-    classes = {}
-    classes.update(base_schema.get("classes", {}))
-    classes.update(ext_schema.get("classes", {}))
-
-    slots = {}
-    slots.update(base_schema.get("slots", {}))
-    slots.update(ext_schema.get("slots", {}))
-
-    enums = {}
-    enums.update(base_schema.get("enums", {}))
-    enums.update(ext_schema.get("enums", {}))
-
-    def safe_slot_label(slot_name: str, slot_def: dict) -> str:
-        slot_uri = slot_def.get("slot_uri", "")
-        if ":" in slot_uri:
-            prefix, local = slot_uri.split(":", 1)
-            return f"{local} ({prefix})"
-        return slot_name
-
-    uml = "classDiagram\n"
-
-    for cls, content in classes.items():
-        uml += f"  class {cls} {{\n"
-
-        all_slots = list(content.get("slots", []))
-        parent = content.get("is_a")
-        if parent and parent in classes:
-            all_slots = list(classes[parent].get("slots", [])) + all_slots
-
-        for slot_name in all_slots:
-            slot_def = slots.get(slot_name, {})
-            slot_label = safe_slot_label(slot_name, slot_def)
-            slot_range = slot_def.get("range", "string")
-
-            required = slot_def.get("required", False)
-            multivalued = slot_def.get("multivalued", False)
-
-            if required and multivalued:
-                card = "[1..*]"
-            elif required:
-                card = "[1]"
-            elif multivalued:
-                card = "[*]"
-            else:
-                card = "[0..1]"
-
-            enum = enums.get(slot_range)
-            if enum:
-                values = ",".join(enum.get("permissible_values", {}).keys())
-                uml += f"    {slot_label} : {slot_range} {card} [{values}]\n"
-            else:
-                uml += f"    {slot_label} : {slot_range} {card}\n"
-
-        uml += "  }\n"
-
-    for cls, content in classes.items():
-        all_slots = list(content.get("slots", []))
-
-        parent = content.get("is_a")
-        if parent and parent in classes:
-            all_slots = list(classes[parent].get("slots", [])) + all_slots
-            uml += f"  {cls} --|> {parent}\n"
-
-        for slot_name in all_slots:
-            slot_def = slots.get(slot_name, {})
-            slot_label = safe_slot_label(slot_name, slot_def)
-            slot_range = slot_def.get("range")
-
-            if slot_range in classes:
-                uml += f"  {cls} --> {slot_range} : {slot_label}\n"
-
-    return {"mermaid": uml}
-
-@app.post("/schema/add-slot")
-def add_slot(payload: dict):
-    schema_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(schema_path, encoding="utf-8") as f:
-        schema = yaml.safe_load(f)
-
-    class_name = payload["class_name"]
-    slot_name = payload["slot_name"]
-    slot_type = payload["slot_type"]
-
-    # add slot definition
-    schema.setdefault("slots", {})[slot_name] = {
-        "range": slot_type
-    }
-
-    # add slot to class
-    schema["classes"][class_name].setdefault("slots", []).append(slot_name)
-
-    # save back
-    with open(schema_path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f, sort_keys=False)
-
-    return {"status": "ok"}
-
-@app.post("/schema/add-enum-value")
-def add_enum_value(payload: dict):
-    schema_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(schema_path, encoding="utf-8") as f:
-        schema = yaml.safe_load(f)
-
-    enum_name = payload["enum_name"]
-    value = payload["value"]
-
-    enums = schema.setdefault("enums", {})
-
-    if enum_name not in enums:
-        enums[enum_name] = {"permissible_values": {}}
-
-    enums[enum_name].setdefault("permissible_values", {})[value] = None
-
-    with open(schema_path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f, sort_keys=False)
-
-    return {"status": "ok"}
-
-@app.post("/schema/add-enum")
-def add_enum(payload: dict):
-    schema_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(schema_path, encoding="utf-8") as f:
-        schema = yaml.safe_load(f)
-
-    enum_name = payload["enum_name"]
-
-    schema.setdefault("enums", {})[enum_name] = {
-        "permissible_values": {}
-    }
-
-    with open(schema_path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f, sort_keys=False)
-
-    return {"status": "ok"}
-
-@app.post("/schema/delete-slot")
-def delete_slot(payload: dict):
-    schema_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(schema_path, encoding="utf-8") as f:
-        schema = yaml.safe_load(f)
-
-    class_name = payload["class_name"]
-    slot_name = payload["slot_name"]
-
-    class_slots = schema.get("classes", {}).get(class_name, {}).get("slots", [])
-    if slot_name in class_slots:
-        class_slots.remove(slot_name)
-
-    # remove global slot definition too, if present
-    if slot_name in schema.get("slots", {}):
-        del schema["slots"][slot_name]
-
-    with open(schema_path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f, sort_keys=False)
-
-    return {"status": "ok"}
-
-@app.post("/schema/delete-enum-value")
-def delete_enum_value(payload: dict):
-    schema_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(schema_path, encoding="utf-8") as f:
-        schema = yaml.safe_load(f)
-
-    enum_name = payload["enum_name"]
-    value = payload["value"]
-
-    enums = schema.get("enums", {})
-    if enum_name in enums:
-        permissible = enums[enum_name].get("permissible_values", {})
-        if value in permissible:
-            del permissible[value]
-
-    with open(schema_path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f, sort_keys=False)
-
-    return {"status": "ok"}
-
-@app.post("/schema/update-slot-flags")
-def update_slot_flags(payload: dict):
-    schema_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(schema_path, encoding="utf-8") as f:
-        schema = yaml.safe_load(f)
-
-    slot_name = payload["slot_name"]
-    required = payload.get("required", False)
-    multivalued = payload.get("multivalued", False)
-
-    slot_def = schema.setdefault("slots", {}).setdefault(slot_name, {})
-    slot_def["required"] = required
-    slot_def["multivalued"] = multivalued
-
-    with open(schema_path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f, sort_keys=False)
-
-    return {"status": "ok"}
-
-def load_combined_schema() -> dict:
-    base_path = BASE_DIR / "schemas" / "dcat_ap_base.yaml"
-    ext_path = BASE_DIR / "schemas" / "construct_dcat.yaml"
-
-    with open(base_path, encoding="utf-8") as f:
-        base_schema = yaml.safe_load(f)
-
-    with open(ext_path, encoding="utf-8") as f:
-        ext_schema = yaml.safe_load(f)
-
-    combined = {
-        "prefixes": {},
-        "classes": {},
-        "slots": {},
-        "enums": {},
-    }
-
-    combined["prefixes"].update(base_schema.get("prefixes", {}))
-    combined["prefixes"].update(ext_schema.get("prefixes", {}))
-
-    combined["classes"].update(base_schema.get("classes", {}))
-    combined["classes"].update(ext_schema.get("classes", {}))
-
-    combined["slots"].update(base_schema.get("slots", {}))
-    combined["slots"].update(ext_schema.get("slots", {}))
-
-    combined["enums"].update(base_schema.get("enums", {}))
-    combined["enums"].update(ext_schema.get("enums", {}))
-
-    return combined
-
-
-def expand_curie(value: str, prefixes: dict) -> URIRef | None:
-    if not value:
-        return None
-    if value.startswith("http://") or value.startswith("https://"):
-        return URIRef(value)
-    if ":" in value:
-        prefix, local = value.split(":", 1)
-        ns = prefixes.get(prefix)
-        if isinstance(ns, str):
-            return URIRef(ns + local)
-    return None
-
-
-def datatype_for_range(range_name: str):
-    if range_name == "string":
-        return XSD.string
-    if range_name == "integer":
-        return XSD.integer
-    if range_name == "anyURI":
-        return XSD.anyURI
-    return None
-
-
-@app.get("/schema/export/shacl")
-def export_schema_shacl() -> PlainTextResponse:
-    schema = load_combined_schema()
-    prefixes = schema["prefixes"]
-    classes = schema["classes"]
-    slots = schema["slots"]
-    enums = schema["enums"]
-
-    SH = Namespace("http://www.w3.org/ns/shacl#")
-    g = Graph()
-
-    g.bind("sh", SH)
-    g.bind("rdf", RDF)
-    g.bind("rdfs", RDFS)
-    g.bind("xsd", XSD)
-
-    for pfx, uri in prefixes.items():
-        if isinstance(uri, str):
-            g.bind(pfx, Namespace(uri))
-
-    for class_name, class_def in classes.items():
-        class_uri = expand_curie(class_def.get("class_uri", f"https://example.org/{class_name}"), prefixes)
-        if class_uri is None:
-            continue
-
-        shape_uri = URIRef(str(class_uri) + "Shape")
-        g.add((shape_uri, RDF.type, SH.NodeShape))
-        g.add((shape_uri, SH.targetClass, class_uri))
-
-        all_slots = list(class_def.get("slots", []))
-        parent = class_def.get("is_a")
-        if parent and parent in classes:
-            all_slots = list(classes[parent].get("slots", [])) + all_slots
-
-        for slot_name in all_slots:
-            slot_def = slots.get(slot_name, {})
-            slot_uri = expand_curie(slot_def.get("slot_uri", ""), prefixes)
-            if slot_uri is None:
-                continue
-
-            prop_bnode = BNode()
-            g.add((shape_uri, SH.property, prop_bnode))
-            g.add((prop_bnode, SH.path, slot_uri))
-
-            required = slot_def.get("required", False)
-            multivalued = slot_def.get("multivalued", False)
-            slot_range = slot_def.get("range", "string")
-
-            if required:
-                g.add((prop_bnode, SH.minCount, Literal(1)))
-            if not multivalued:
-                g.add((prop_bnode, SH.maxCount, Literal(1)))
-
-            if slot_range in classes:
-                range_uri = expand_curie(classes[slot_range].get("class_uri", ""), prefixes)
-                if range_uri is not None:
-                    g.add((prop_bnode, SH["class"], range_uri))
-            elif slot_range in enums:
-                values = list(enums[slot_range].get("permissible_values", {}).keys())
-                list_node = BNode()
-                Collection(g, list_node, [Literal(v) for v in values])
-                g.add((prop_bnode, SH["in"], list_node))
-            else:
-                dt = datatype_for_range(slot_range)
-                if dt is not None:
-                    g.add((prop_bnode, SH.datatype, dt))
-
-    ttl = g.serialize(format="turtle")
-    return PlainTextResponse(ttl, media_type="text/turtle")
-
-
-@app.get("/schema/export/rdf")
-def export_schema_rdf() -> PlainTextResponse:
-    schema = load_combined_schema()
-    prefixes = schema["prefixes"]
-    classes = schema["classes"]
-    slots = schema["slots"]
-    enums = schema["enums"]
-
-    OWL = Namespace("http://www.w3.org/2002/07/owl#")
-    g = Graph()
-
-    g.bind("rdf", RDF)
-    g.bind("rdfs", RDFS)
-    g.bind("owl", OWL)
-    g.bind("xsd", XSD)
-
-    for pfx, uri in prefixes.items():
-        if isinstance(uri, str):
-            g.bind(pfx, Namespace(uri))
-
-    for class_name, class_def in classes.items():
-        class_uri = expand_curie(class_def.get("class_uri", f"https://example.org/{class_name}"), prefixes)
-        if class_uri is None:
-            continue
-
-        g.add((class_uri, RDF.type, RDFS.Class))
-
-        parent = class_def.get("is_a")
-        if parent and parent in classes:
-            parent_uri = expand_curie(classes[parent].get("class_uri", ""), prefixes)
-            if parent_uri is not None:
-                g.add((class_uri, RDFS.subClassOf, parent_uri))
-
-    for slot_name, slot_def in slots.items():
-        slot_uri = expand_curie(slot_def.get("slot_uri", ""), prefixes)
-        if slot_uri is None:
-            continue
-
-        g.add((slot_uri, RDF.type, RDF.Property))
-
-        slot_range = slot_def.get("range", "string")
-
-        for class_name, class_def in classes.items():
-            all_slots = list(class_def.get("slots", []))
-            parent = class_def.get("is_a")
-            if parent and parent in classes:
-                all_slots = list(classes[parent].get("slots", [])) + all_slots
-
-            if slot_name in all_slots:
-                class_uri = expand_curie(class_def.get("class_uri", ""), prefixes)
-                if class_uri is not None:
-                    g.add((slot_uri, RDFS.domain, class_uri))
-
-        if slot_range in classes:
-            range_uri = expand_curie(classes[slot_range].get("class_uri", ""), prefixes)
-            if range_uri is not None:
-                g.add((slot_uri, RDFS.range, range_uri))
-        else:
-            dt = datatype_for_range(slot_range)
-            if dt is not None:
-                g.add((slot_uri, RDFS.range, dt))
-            elif slot_range in enums:
-                g.add((slot_uri, RDFS.range, RDFS.Literal))
-
-    ttl = g.serialize(format="turtle")
-    return PlainTextResponse(ttl, media_type="text/turtle")
+    return PlainTextResponse(payload_to_graph(payload).serialize(format='turtle'), media_type='text/turtle')

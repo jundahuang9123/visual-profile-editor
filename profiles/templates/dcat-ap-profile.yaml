@@ -1,0 +1,173 @@
+id: https://w3id.org/construct-dcat/profile/dcat-ap
+name: dcat_ap_profile
+title: DCAT-AP Profile
+description: DCAT-AP-oriented profile structure with common European catalog constraints.
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: http://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  skos: http://www.w3.org/2004/02/skos/core#
+  foaf: http://xmlns.com/foaf/0.1/
+  xsd: http://www.w3.org/2001/XMLSchema#
+imports:
+  - linkml:types
+default_prefix: dcat
+default_range: string
+types:
+  anyURI:
+    uri: xsd:anyURI
+    base: str
+classes:
+  DcatCatalog:
+    class_uri: dcat:Catalog
+    slots:
+      - title
+      - description
+      - publisher
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+  DcatDatasetProfile:
+    class_uri: dcat:Dataset
+    slots:
+      - title
+      - description
+      - publisher
+      - issued
+      - modified
+      - theme
+      - keyword
+      - contactPoint
+      - distribution
+      - spatial
+      - temporal
+      - conformsTo
+    annotations:
+      term_kind:
+        value: profile
+      profile_of:
+        value: dcat:Dataset
+      source_vocabulary:
+        value: dcat-ap
+  DcatDistributionProfile:
+    class_uri: dcat:Distribution
+    slots:
+      - accessURL
+      - downloadURL
+      - license
+      - rights
+    annotations:
+      term_kind:
+        value: profile
+      profile_of:
+        value: dcat:Distribution
+      source_vocabulary:
+        value: dcat-ap
+  FoafAgent:
+    class_uri: foaf:Agent
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: foaf
+  SkosConcept:
+    class_uri: skos:Concept
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: skos
+  DctermsLicenseDocument:
+    class_uri: dcterms:LicenseDocument
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+  DctermsRightsStatement:
+    class_uri: dcterms:RightsStatement
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+  DctermsLocation:
+    class_uri: dcterms:Location
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+slots:
+  title:
+    slot_uri: dcterms:title
+    range: string
+    required: true
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: mandatory
+  description:
+    slot_uri: dcterms:description
+    range: string
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: mandatory
+  publisher:
+    slot_uri: dcterms:publisher
+    range: FoafAgent
+    annotations:
+      term_kind:
+        value: base
+      requirement_level:
+        value: mandatory
+  issued:
+    slot_uri: dcterms:issued
+    range: string
+  modified:
+    slot_uri: dcterms:modified
+    range: string
+  theme:
+    slot_uri: dcat:theme
+    range: SkosConcept
+    multivalued: true
+  keyword:
+    slot_uri: dcat:keyword
+    range: string
+    multivalued: true
+  contactPoint:
+    slot_uri: dcat:contactPoint
+    range: string
+  distribution:
+    slot_uri: dcat:distribution
+    range: DcatDistributionProfile
+    multivalued: true
+  accessURL:
+    slot_uri: dcat:accessURL
+    range: anyURI
+    required: true
+  downloadURL:
+    slot_uri: dcat:downloadURL
+    range: anyURI
+  license:
+    slot_uri: dcterms:license
+    range: DctermsLicenseDocument
+  rights:
+    slot_uri: dcterms:rights
+    range: DctermsRightsStatement
+  spatial:
+    slot_uri: dcterms:spatial
+    range: DctermsLocation
+  temporal:
+    slot_uri: dcterms:temporal
+    range: string
+  conformsTo:
+    slot_uri: dcterms:conformsTo
+    range: anyURI
+    multivalued: true
+enums: {}
