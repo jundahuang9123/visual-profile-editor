@@ -14,6 +14,7 @@ import { ClassNode } from './components/ClassNode';
 import { Inspector } from './components/Inspector';
 import { ProfileStartScreen } from './components/ProfileStartScreen';
 import { ProfileValidationPanel, type ValidationResult } from './components/ProfileValidationPanel';
+import { RequirementWorkbench } from './components/RequirementWorkbench';
 import { Toolbar, type ExportKind } from './components/Toolbar';
 import {
   exportSchema as exportSchemaFile,
@@ -47,6 +48,7 @@ type EditorCanvasProps = {
 };
 
 type PreviewTab = 'linkml' | 'shacl' | 'jsonschema' | 'rdf';
+type WorkbenchTab = 'profile' | 'requirements' | 'reuse' | 'validation' | 'export';
 
 function EditorCanvas({ onPreviewTabChange, previewLoading, previewTab, previewText, yamlVisible }: EditorCanvasProps) {
   const workspaceRef = useRef<HTMLDivElement>(null);
@@ -201,6 +203,7 @@ export default function App() {
   const [previewTab, setPreviewTab] = useState<PreviewTab>('linkml');
   const [previewText, setPreviewText] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<WorkbenchTab>('profile');
 
   useEffect(() => {
     loadSchemaModel()
@@ -310,27 +313,56 @@ export default function App() {
     [loadSchema, mergeSchema, pendingUpload],
   );
 
+  const editorVisible = activeTab === 'profile' || activeTab === 'validation' || activeTab === 'export';
+
   const provider = useMemo(
     () => (
       <ReactFlowProvider>
-        <Toolbar
-          onExport={exportSchema}
-          onImport={selectImportFile}
-          onSave={saveSchema}
-          onShowTemplates={() => setTemplatesOpen(true)}
-          onToggleYaml={() => setYamlVisible((visible) => !visible)}
-          onValidate={runValidation}
-          status={status}
-          yamlVisible={yamlVisible}
-        />
-        <EditorCanvas
-          onPreviewTabChange={setPreviewTab}
-          previewLoading={previewLoading}
-          previewTab={previewTab}
-          previewText={previewText}
-          yamlVisible={yamlVisible}
-        />
-        {templatesOpen ? (
+        <nav aria-label="Workbench modules" className="module-tabs">
+          {[
+            { id: 'profile', label: 'Profile Editor' },
+            { id: 'requirements', label: 'Requirement Extraction' },
+            { id: 'reuse', label: 'Reuse Recommendations' },
+            { id: 'validation', label: 'Validation' },
+            { id: 'export', label: 'Export' },
+          ].map((tab) => (
+            <button
+              className={activeTab === tab.id ? 'active' : undefined}
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id as WorkbenchTab);
+                if (tab.id === 'validation') void runValidation();
+              }}
+              type="button"
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        {editorVisible ? (
+          <>
+            <Toolbar
+              onExport={exportSchema}
+              onImport={selectImportFile}
+              onSave={saveSchema}
+              onShowTemplates={() => setTemplatesOpen(true)}
+              onToggleYaml={() => setYamlVisible((visible) => !visible)}
+              onValidate={runValidation}
+              status={status}
+              yamlVisible={yamlVisible}
+            />
+            <EditorCanvas
+              onPreviewTabChange={setPreviewTab}
+              previewLoading={previewLoading}
+              previewTab={previewTab}
+              previewText={previewText}
+              yamlVisible={yamlVisible}
+            />
+          </>
+        ) : (
+          <RequirementWorkbench initialView={activeTab === 'reuse' ? 'reuse' : 'requirements'} onStatus={setStatus} />
+        )}
+        {editorVisible && templatesOpen ? (
           <ProfileStartScreen
             loading={templateLoading}
             onClose={() => setTemplatesOpen(false)}
@@ -365,6 +397,8 @@ export default function App() {
       </ReactFlowProvider>
     ),
     [
+      activeTab,
+      editorVisible,
       exportSchema,
       importSchema,
       importing,

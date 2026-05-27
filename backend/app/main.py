@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ from rdflib import Graph, Literal, Namespace, RDF, URIRef
 from general_ontology_editor import create_app
 
 from .profile_routes import profile_router
+from .requirement_routes import requirement_router
 
 BASE_DIR = Path('/app') if Path('/app').exists() else Path(__file__).resolve().parents[2]
 PROFILE_SCHEMA_PATH = BASE_DIR / 'schemas' / 'profile.yaml'
@@ -44,6 +46,7 @@ app = create_app(
     include_validation_route=False,
 )
 app.include_router(profile_router(BASE_DIR))
+app.include_router(requirement_router(os.getenv('REQUIREMENT_REUSE_SERVICE_URL', 'http://requirement-reuse-service:8010')))
 
 
 def load_dataset_json_schema() -> dict[str, Any]:

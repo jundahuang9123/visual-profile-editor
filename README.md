@@ -77,3 +77,25 @@ visual-profile-editor/
   scripts/      artifact generation
   generated/    generated JSON Schema and SHACL files
 ```
+
+## Requirement Extraction & Reuse Recommendation
+
+The workbench includes a separate `requirement-reuse-service` container for semi-automated, reuse-first profile engineering from heterogeneous artifacts.
+
+Initial supported inputs:
+
+- textual requirements and competency questions;
+- AAS JSON and `.aasx` packages with submodels, semantic IDs, concept descriptions, and `idShort` patterns;
+- existing DCAT/RDF/JSON-LD metadata examples;
+- lightweight IFC snippets for schema, class, and property-set discovery.
+
+The frontend exposes workflow tabs for profile editing, requirement extraction, reuse recommendations, validation, and export. Requirement results are always reviewable: users accept or reject recommendations before generating SHACL/profile drafts.
+
+Service endpoints are proxied through the main app under:
+
+- `POST /api/requirements/analyze-artifacts`
+- `POST /api/requirements/extract-requirements`
+- `POST /api/requirements/recommend-reuse`
+- `POST /api/requirements/generate-shacl`
+
+The service itself remains independently deployable on port `8010`.

@@ -1,35 +1,34 @@
-id: https://w3id.org/construct-dcat/profile/dcat-ap
-name: dcat_ap_profile
-title: DCAT-AP Profile
-description: DCAT-AP-oriented profile structure with common European catalog constraints.
+id: https://w3id.org/construct-dcat/profile
+name: construct_dcat_profile
+title: Construct-DCAT Application Profile
+description: A DCAT-compatible application profile for construction-domain dataset
+  discovery.
 prefixes:
   linkml: https://w3id.org/linkml/
   dcat: http://www.w3.org/ns/dcat#
   dcterms: http://purl.org/dc/terms/
   skos: http://www.w3.org/2004/02/skos/core#
+  prov: http://www.w3.org/ns/prov#
   foaf: http://xmlns.com/foaf/0.1/
+  aas: https://admin-shell.io/aas/3/0/
+  bot: https://w3id.org/bot#
+  ifc: https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2_TC1/OWL#
+  cx: https://w3id.org/cx#
   xsd: http://www.w3.org/2001/XMLSchema#
 imports:
 - linkml:types
-default_prefix: dcat
+default_prefix: cx
 default_range: string
 types:
   anyURI:
     uri: xsd:anyURI
     base: str
+annotations:
+  base_profiles:
+    value: dcat,dcat-ap
 classes:
-  DcatCatalog:
-    class_uri: dcat:Catalog
-    slots:
-    - title
-    - description
-    - publisher
-    annotations:
-      term_kind:
-        value: base
-      source_vocabulary:
-        value: dcat
-  DcatDatasetProfile:
+  DcatDataset:
+    title: DCAT Dataset
     class_uri: dcat:Dataset
     slots:
     - title
@@ -41,17 +40,13 @@ classes:
     - keyword
     - contactPoint
     - distribution
-    - spatial
-    - temporal
-    - conformsTo
     annotations:
       term_kind:
-        value: profile
-      profile_of:
-        value: dcat:Dataset
+        value: base
       source_vocabulary:
-        value: dcat-ap
-  DcatDistributionProfile:
+        value: dcat
+  DcatDistribution:
+    title: DCAT Distribution
     class_uri: dcat:Distribution
     slots:
     - accessURL
@@ -60,11 +55,9 @@ classes:
     - rights
     annotations:
       term_kind:
-        value: profile
-      profile_of:
-        value: dcat:Distribution
+        value: base
       source_vocabulary:
-        value: dcat-ap
+        value: dcat
   FoafAgent:
     class_uri: foaf:Agent
     annotations:
@@ -93,13 +86,104 @@ classes:
         value: base
       source_vocabulary:
         value: dcterms
-  DctermsLocation:
-    class_uri: dcterms:Location
+  ConstructionDatasetProfile:
+    title: Construction Dataset
+    description: Dataset profile for construction-domain discovery metadata.
+    is_a: DcatDataset
+    class_uri: cx:ConstructionDataset
+    slots:
+    - semanticAnchor
+    - describesAssetType
+    - usesOntology
+    - hasLifecyclePhase
+    - hasRepresentationType
+    - hasGranularityLevel
+    - hasDataSourceSystem
     annotations:
       term_kind:
-        value: base
+        value: profile
+      profile_of:
+        value: dcat:Dataset
       source_vocabulary:
-        value: dcterms
+        value: dcat
+      requirement_level:
+        value: mandatory
+      usage_note:
+        value: Use this profile when describing construction-domain datasets in catalog
+          onboarding.
+  AASDataset:
+    is_a: ConstructionDatasetProfile
+    class_uri: cx:AASDataset
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Dataset whose semantic anchor includes an Asset Administration Shell
+          submodel.
+  BIMDataset:
+    is_a: ConstructionDatasetProfile
+    class_uri: cx:BIMDataset
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Dataset containing or derived from BIM/IFC information.
+  SemanticModelDataset:
+    is_a: ConstructionDatasetProfile
+    class_uri: cx:SemanticModelDataset
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: optional
+      usage_note:
+        value: Dataset represented as RDF, OWL, SHACL, or another semantic model.
+  HybridDataset:
+    is_a: ConstructionDatasetProfile
+    class_uri: cx:HybridDataset
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: optional
+      usage_note:
+        value: Dataset combining multiple representation types.
+  ConstructionAsset:
+    class_uri: cx:ConstructionAsset
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Construction asset type described by a dataset.
+  LifecyclePhase:
+    class_uri: cx:LifecyclePhase
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Lifecycle phase context for a construction dataset.
+  SemanticAnchor:
+    class_uri: cx:SemanticAnchor
+    slots:
+    - hasAASSubmodel
+    - hasIFCEntity
+    - alignsWithConcept
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: mandatory
+      usage_note:
+        value: Anchor from dataset metadata to an ontology class, SKOS concept, AAS
+          submodel, IFC entity, or identifier.
 slots:
   title:
     slot_uri: dcterms:title
@@ -108,6 +192,8 @@ slots:
     annotations:
       term_kind:
         value: base
+      source_vocabulary:
+        value: dcterms
       requirement_level:
         value: mandatory
   description:
@@ -116,58 +202,261 @@ slots:
     annotations:
       term_kind:
         value: base
+      source_vocabulary:
+        value: dcterms
       requirement_level:
-        value: mandatory
+        value: recommended
   publisher:
     slot_uri: dcterms:publisher
     range: FoafAgent
     annotations:
       term_kind:
         value: base
+      source_vocabulary:
+        value: dcterms
       requirement_level:
-        value: mandatory
+        value: recommended
   issued:
     slot_uri: dcterms:issued
     range: string
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+      requirement_level:
+        value: optional
   modified:
     slot_uri: dcterms:modified
     range: string
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+      requirement_level:
+        value: optional
   theme:
     slot_uri: dcat:theme
     range: SkosConcept
     multivalued: true
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+      requirement_level:
+        value: recommended
   keyword:
     slot_uri: dcat:keyword
     range: string
     multivalued: true
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+      requirement_level:
+        value: recommended
   contactPoint:
     slot_uri: dcat:contactPoint
     range: string
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+      requirement_level:
+        value: recommended
   distribution:
     slot_uri: dcat:distribution
-    range: DcatDistributionProfile
+    range: DcatDistribution
     multivalued: true
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+      requirement_level:
+        value: recommended
   accessURL:
     slot_uri: dcat:accessURL
     range: anyURI
     required: true
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+      requirement_level:
+        value: mandatory
   downloadURL:
     slot_uri: dcat:downloadURL
     range: anyURI
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcat
+      requirement_level:
+        value: recommended
   license:
     slot_uri: dcterms:license
     range: DctermsLicenseDocument
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+      requirement_level:
+        value: recommended
   rights:
     slot_uri: dcterms:rights
     range: DctermsRightsStatement
-  spatial:
-    slot_uri: dcterms:spatial
-    range: DctermsLocation
-  temporal:
-    slot_uri: dcterms:temporal
-    range: string
-  conformsTo:
-    slot_uri: dcterms:conformsTo
+    annotations:
+      term_kind:
+        value: base
+      source_vocabulary:
+        value: dcterms
+      requirement_level:
+        value: optional
+  semanticAnchor:
+    slot_uri: cx:semanticAnchor
+    range: SemanticAnchor
+    multivalued: true
+    required: true
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: mandatory
+      usage_note:
+        value: Use at least one anchor to connect the dataset to an ontology, SKOS
+          concept, AAS submodel, IFC entity, or controlled vocabulary.
+      recommended_vocabulary:
+        value: skos,aas,ifc,bot
+  describesAssetType:
+    slot_uri: cx:describesAssetType
+    range: ConstructionAsset
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Identifies the construction asset type represented by the dataset.
+  usesOntology:
+    slot_uri: cx:usesOntology
     range: anyURI
     multivalued: true
-enums: {}
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Ontology or vocabulary used to describe or interpret the dataset.
+  hasAASSubmodel:
+    slot_uri: cx:hasAASSubmodel
+    range: anyURI
+    multivalued: true
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: optional
+      usage_note:
+        value: AAS submodel identifier or URI used as a semantic anchor.
+  hasIFCEntity:
+    slot_uri: cx:hasIFCEntity
+    range: anyURI
+    multivalued: true
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: optional
+      usage_note:
+        value: IFC entity URI or identifier used as a semantic anchor.
+  alignsWithConcept:
+    slot_uri: cx:alignsWithConcept
+    range: SkosConcept
+    multivalued: true
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: SKOS concept describing the dataset topic, asset type, lifecycle phase,
+          or domain concept.
+  hasLifecyclePhase:
+    slot_uri: cx:hasLifecyclePhase
+    range: LifecyclePhaseEnum
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Construction lifecycle phase associated with the dataset.
+  hasRepresentationType:
+    slot_uri: cx:hasRepresentationType
+    range: RepresentationTypeEnum
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: recommended
+      usage_note:
+        value: Main representation type of the dataset.
+  hasGranularityLevel:
+    slot_uri: cx:hasGranularityLevel
+    range: string
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: optional
+      usage_note:
+        value: Dataset granularity, such as building, storey, element, system, zone,
+          document, or time series.
+  hasDataSourceSystem:
+    slot_uri: cx:hasDataSourceSystem
+    range: string
+    annotations:
+      term_kind:
+        value: extension
+      requirement_level:
+        value: optional
+      usage_note:
+        value: Source system, tool, platform, or dataspace connector that supplied
+          the dataset.
+enums:
+  RepresentationTypeEnum:
+    permissible_values:
+      aas: null
+      ifc: null
+      rdf: null
+      owl: null
+      json: null
+      csv: null
+      pdf: null
+      hybrid: null
+  LifecyclePhaseEnum:
+    permissible_values:
+      planning: null
+      design: null
+      procurement: null
+      construction: null
+      operation: null
+      maintenance: null
+      demolition: null
+  SemanticAnchorTypeEnum:
+    permissible_values:
+      ontology_class: null
+      skos_concept: null
+      aas_submodel: null
+      ifc_entity: null
+      external_identifier: null
+      controlled_vocabulary: null

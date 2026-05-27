@@ -12,7 +12,19 @@ services:
       - ./profiles:/app/profiles
     environment:
       - PYTHONUNBUFFERED=1
+      - REQUIREMENT_REUSE_SERVICE_URL=http://requirement-reuse-service:8010
+    depends_on:
+      - requirement-reuse-service
     command: sh -c "[ -f /app/generated/jsonschema/construct_dcat.schema.json ] && [ -f /app/generated/jsonschema/profile.schema.json ] || /app/scripts/generate.sh; uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  requirement-reuse-service:
+    build:
+      context: .
+      dockerfile: requirement-reuse-service/Dockerfile
+    ports:
+      - "8010:8010"
+    environment:
+      - PYTHONUNBUFFERED=1
 
   generator:
     build:
