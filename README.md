@@ -105,3 +105,7 @@ Service endpoints are proxied through the main app under:
 - `POST /api/requirements/generate-shacl`
 
 The service itself remains independently deployable on port `8010`.
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
