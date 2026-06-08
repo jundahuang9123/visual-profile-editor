@@ -31,6 +31,11 @@ def analyze_artifacts(payload: AnalysisRequest):
     return analyze_payload(payload)
 
 
+@app.post('/analyze')
+def analyze(payload: AnalysisRequest):
+    return analyze_payload(payload)
+
+
 @app.post('/extract-requirements')
 def extract_requirement_candidates(payload: AnalysisRequest):
     return extract_requirements(payload)

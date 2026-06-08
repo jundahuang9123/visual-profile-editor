@@ -19,13 +19,83 @@ export type ArtifactSummary = {
   notes: string[];
 };
 
+export type EvidenceUnit = {
+  id: string;
+  source_id: string;
+  artifact_name: string;
+  artifact_kind: string;
+  locator?: string | null;
+  content: string;
+  extracted_facts: string[];
+  confidence: number;
+};
+
+export type SourceEvidence = {
+  evidence_unit_id: string;
+  source_id: string;
+  artifact_name: string;
+  artifact_kind: string;
+  locator?: string | null;
+  evidence_text: string;
+  extracted_facts: string[];
+};
+
+export type NormalizedIntent = {
+  resource_type: 'Catalog' | 'Dataset' | 'Distribution' | 'DataService' | 'Agent' | 'Concept' | 'Unknown';
+  metadata_need: string;
+  value_kind: 'literal' | 'uri' | 'controlled_concept' | 'class_reference' | 'date' | 'agent' | 'distribution' | 'unknown';
+  obligation_hint: 'mandatory' | 'recommended' | 'optional' | 'unknown';
+};
+
+export type CandidateMetadataAction = {
+  action:
+    | 'reuse_existing_term'
+    | 'specialize_existing_term'
+    | 'create_extension'
+    | 'add_constraint'
+    | 'add_usage_note'
+    | 'no_action';
+  target_class?: string | null;
+  candidate_terms: string[];
+  rationale: string;
+};
+
 export type CandidateRequirement = {
   id: string;
-  title: string;
-  description: string;
-  category: string;
-  source: string;
+  raw_statement?: string | null;
+  normalized_statement?: string | null;
+  requirement_type:
+    | 'descriptive_metadata'
+    | 'semantic_anchor'
+    | 'technical_metadata'
+    | 'access_policy'
+    | 'quality_provenance'
+    | 'lifecycle_context'
+    | 'controlled_vocabulary'
+    | 'validation_constraint'
+    | 'competency_question'
+    | 'unknown';
+  source_evidence: SourceEvidence[];
+  normalized_intent: NormalizedIntent;
+  fair_dimensions: Array<'F' | 'A' | 'I' | 'R'>;
+  fair_rationale?: string | null;
+  candidate_metadata_actions: CandidateMetadataAction[];
+  status: 'candidate' | 'approved' | 'rejected' | 'merged' | 'needs_review';
+  review_notes?: string | null;
+  merged_from: string[];
+  title?: string | null;
+  description?: string | null;
+  category?: string | null;
+  source?: string | null;
   evidence: string[];
+  confidence: number;
+};
+
+export type DuplicateGroup = {
+  id: string;
+  requirement_ids: string[];
+  suggested_merged_statement: string;
+  reason: string;
   confidence: number;
 };
 
@@ -72,11 +142,14 @@ export type CompetencyQuestion = {
 
 export type AnalysisResponse = {
   artifacts: ArtifactSummary[];
+  evidence_units: EvidenceUnit[];
   extracted_attributes: ExtractedAttribute[];
   requirements: CandidateRequirement[];
+  duplicate_groups: DuplicateGroup[];
   semantic_candidates: SemanticCandidate[];
   metadata_candidates: MetadataCandidate[];
   competency_questions: CompetencyQuestion[];
+  warnings: string[];
 };
 
 export type ReuseRecommendation = {

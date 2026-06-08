@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
 
-ALLOWED_OPERATIONS = {'analyze-artifacts', 'extract-requirements', 'recommend-reuse', 'generate-shacl'}
+ALLOWED_OPERATIONS = {'analyze', 'analyze-artifacts', 'extract-requirements', 'recommend-reuse', 'generate-shacl'}
 
 
 def requirement_router(service_url: str) -> APIRouter:

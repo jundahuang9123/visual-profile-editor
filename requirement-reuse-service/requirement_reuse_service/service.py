@@ -17,9 +17,14 @@ from .models import (
     AnalysisResponse,
     ArtifactPayload,
     ArtifactSummary,
+    CandidateMetadataAction,
     CandidateRequirement,
     CompetencyQuestion,
+    DuplicateGroup,
+    EvidenceUnit,
     ExtractedAttribute,
+    NormalizedIntent,
+    SourceEvidence,
     ConstraintGenerationRequest,
     ConstraintGenerationResponse,
     MetadataCandidate,
@@ -147,50 +152,65 @@ URI_TO_PROPERTY = {
 
 def analyze_payload(payload: AnalysisRequest) -> AnalysisResponse:
     artifacts: list[ArtifactSummary] = []
-    requirements: list[CandidateRequirement] = []
+    legacy_requirements: list[CandidateRequirement] = []
     semantic_candidates: list[SemanticCandidate] = []
     metadata_candidates: list[MetadataCandidate] = []
     competency_questions: list[CompetencyQuestion] = []
     extracted_attributes: list[ExtractedAttribute] = []
+    warnings: list[str] = []
 
     if payload.text and payload.text.strip():
         summary, reqs, sem, meta, questions, attrs = analyze_text('text description', payload.text)
         artifacts.append(summary)
-        requirements.extend(reqs)
+        legacy_requirements.extend(reqs)
         semantic_candidates.extend(sem)
         metadata_candidates.extend(meta)
         competency_questions.extend(questions)
         extracted_attributes.extend(attrs)
 
     for artifact in payload.artifacts:
-        summary, reqs, sem, meta, questions, attrs = analyze_artifact(artifact)
+        try:
+            summary, reqs, sem, meta, questions, attrs = analyze_artifact(artifact)
+        except Exception as exc:
+            summary = ArtifactSummary(name=artifact.name, kind='unknown', evidence_count=0, notes=[str(exc)])
+            reqs, sem, meta, questions, attrs = [], [], [], [], []
+            warnings.append(f'{artifact.name}: {exc}')
         artifacts.append(summary)
-        requirements.extend(reqs)
+        legacy_requirements.extend(reqs)
         semantic_candidates.extend(sem)
         metadata_candidates.extend(meta)
         competency_questions.extend(questions)
         extracted_attributes.extend(attrs)
 
+    evidence_units = extract_evidence_units(payload)
+    staged_requirements = extract_candidate_requirements(evidence_units)
+    upgraded_legacy = [upgrade_legacy_requirement(requirement) for requirement in legacy_requirements]
+    requirements = dedupe_requirements([*staged_requirements, *upgraded_legacy])
+    requirements = normalize_requirements(requirements)
+    requirements = classify_requirements(requirements)
+    requirements = assign_fair_dimensions(requirements)
+    requirements = suggest_candidate_metadata_actions(requirements)
+    duplicate_groups = detect_duplicate_requirements(requirements)
+
+    for category in sorted({requirement.category or category_for_requirement_type(requirement.requirement_type) for requirement in requirements}):
+        competency_questions.append(generated_question(category, 'requirement workbench'))
+
     return AnalysisResponse(
         artifacts=artifacts,
+        evidence_units=dedupe_evidence_units(evidence_units),
         extracted_attributes=dedupe_attributes(extracted_attributes),
-        requirements=dedupe_requirements(requirements),
+        requirements=requirements,
+        duplicate_groups=duplicate_groups,
         semantic_candidates=dedupe_semantic(semantic_candidates),
         metadata_candidates=dedupe_metadata(metadata_candidates),
         competency_questions=dedupe_questions(competency_questions),
+        warnings=warnings,
     )
 
 
 def extract_requirements(payload: AnalysisRequest) -> AnalysisResponse:
-    analysis = analyze_payload(payload)
-    return AnalysisResponse(
-        artifacts=analysis.artifacts,
-        extracted_attributes=analysis.extracted_attributes,
-        requirements=analysis.requirements,
-        semantic_candidates=analysis.semantic_candidates,
-        metadata_candidates=analysis.metadata_candidates,
-        competency_questions=analysis.competency_questions,
-    )
+    return analyze_payload(payload)
+
 
 
 def recommend_reuse(payload: RecommendationRequest) -> RecommendationResponse:
@@ -212,9 +232,20 @@ def recommend_reuse(payload: RecommendationRequest) -> RecommendationResponse:
             continue
         recommendations.append(recommendation_from_property(candidate.property, candidate_id=candidate.id, confidence=candidate.confidence, reason=f"Matched extracted metadata candidate '{candidate.label}' in {candidate.category}."))
 
-    for requirement in dedupe_requirements(requirements):
-        for prop in properties_for_category(requirement.category):
-            recommendations.append(recommendation_from_property(prop, requirement_id=requirement.id, confidence=requirement.confidence, reason=f"Supports requirement category '{requirement.category}'."))
+    active_requirements = [requirement for requirement in dedupe_requirements(requirements) if requirement.status not in {'rejected', 'merged'}]
+    approved_requirements = [requirement for requirement in active_requirements if requirement.status == 'approved']
+    reviewable_requirements = approved_requirements or active_requirements
+
+    for requirement in reviewable_requirements:
+        for prop in properties_for_requirement(requirement):
+            recommendations.append(
+                recommendation_from_property(
+                    prop,
+                    requirement_id=requirement.id,
+                    confidence=requirement.confidence,
+                    reason=f"Supports reviewed requirement: '{requirement.normalized_statement or requirement.description or requirement.title}'.",
+                )
+            )
 
     for semantic in dedupe_semantic(semantic_candidates):
         lowered = f'{semantic.kind} {semantic.label} {semantic.identifier or ""}'.lower()
@@ -230,6 +261,7 @@ def recommend_reuse(payload: RecommendationRequest) -> RecommendationResponse:
             recommendations.append(recommendation_from_property(prop, reason='Baseline Construct-DCAT discovery profile recommendation.'))
 
     return RecommendationResponse(recommendations=dedupe_recommendations(recommendations), extension_candidates=extension_candidates)
+
 
 
 def generate_constraints(payload: ConstraintGenerationRequest) -> ConstraintGenerationResponse:
@@ -325,6 +357,399 @@ cx:ConstructionDatasetRequirementShape
     }
 
     return ConstraintGenerationResponse(shacl=shacl, profile_draft=profile_draft, validation_notes=notes)
+
+
+
+TEXT_EVIDENCE_PATTERNS = {
+    'descriptive_metadata': ['title', 'description', 'keyword', 'theme', 'publisher', 'catalog', 'dataset metadata'],
+    'semantic_anchor': ['semantic', 'ontology', 'vocabulary', 'concept', 'skos', 'semantic id', 'semanticid', 'aas', 'submodel', 'ifc', 'bot'],
+    'asset_semantics': ['asset', 'building element', 'wall', 'space', 'zone', 'equipment', 'sensor', 'hvac', 'pump'],
+    'lifecycle_context': ['planning', 'design', 'construction', 'operation', 'maintenance', 'demolition', 'lifecycle', 'life cycle'],
+    'technical_metadata': ['format', 'media type', 'schema version', 'version', 'download', 'distribution', 'json', 'rdf', 'ttl', 'ifc file', 'csv'],
+    'access_policy': ['license', 'rights', 'access', 'access rights', 'policy', 'permission', 'restricted', 'usage'],
+    'quality_provenance': ['provenance', 'quality', 'completeness', 'confidence', 'source system', 'origin'],
+}
+
+
+def extract_evidence_units(payload: AnalysisRequest) -> list[EvidenceUnit]:
+    evidence_units: list[EvidenceUnit] = []
+    if payload.text and payload.text.strip():
+        evidence_units.extend(evidence_from_text('text description', payload.text))
+
+    for artifact in payload.artifacts:
+        kind = detect_kind(artifact)
+        if kind == 'aasx':
+            evidence_units.extend(evidence_from_aasx(artifact.name, artifact))
+            continue
+        content = decode_artifact_text(artifact)
+        if kind == 'aas-json':
+            evidence_units.extend(evidence_from_aas_json(artifact.name, content))
+        elif kind == 'dcat-rdf':
+            evidence_units.extend(evidence_from_dcat_rdf(artifact.name, content))
+        elif kind == 'ifc':
+            evidence_units.extend(evidence_from_ifc(artifact.name, content))
+        else:
+            evidence_units.extend(evidence_from_text(artifact.name, content, artifact_kind='text'))
+    return dedupe_evidence_units(evidence_units)
+
+
+def evidence_from_text(source: str, text: str, artifact_kind: str = 'text') -> list[EvidenceUnit]:
+    evidence_units: list[EvidenceUnit] = []
+    for index, sentence in enumerate(split_sentences(text), start=1):
+        lowered = sentence.lower()
+        facts: list[str] = []
+        for group, tokens in TEXT_EVIDENCE_PATTERNS.items():
+            if any(token in lowered for token in tokens):
+                facts.append(f'Mentions {human_label(group)} requirement evidence')
+        if not facts:
+            continue
+        evidence_units.append(
+            evidence_unit(
+                source,
+                artifact_kind,
+                f'sentence:{index}',
+                sentence,
+                facts,
+                0.72,
+            )
+        )
+    return evidence_units
+
+
+def evidence_from_aas_json(source: str, content: str) -> list[EvidenceUnit]:
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError:
+        return evidence_from_text(source, content)
+
+    evidence_units: list[EvidenceUnit] = []
+
+    def walk(value: Any, path: str = '$') -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                key_label = str(key)
+                key_norm = key_label.lower()
+                child_path = f'{path}.{key_label}'
+                if key_norm in {'semanticid', 'semanticidlist'}:
+                    for identifier in extract_identifiers(child)[:20]:
+                        evidence_units.append(
+                            evidence_unit(
+                                source,
+                                'aas-json',
+                                child_path,
+                                f'semanticId = {identifier}',
+                                ['AAS submodel has semantic identifier', 'Potential dataset-level semantic anchor'],
+                                0.86,
+                            )
+                        )
+                elif key_norm == 'idshort' and is_scalar(child):
+                    facts = ['AAS model contains idShort value']
+                    if 'submodel' in path.lower():
+                        facts.append('AAS submodel can be referenced by profile metadata')
+                    evidence_units.append(evidence_unit(source, 'aas-json', child_path, f'idShort = {child}', facts, 0.8))
+                elif key_norm == 'id' and is_scalar(child) and ('submodel' in path.lower() or 'concept' in path.lower()):
+                    evidence_units.append(
+                        evidence_unit(source, 'aas-json', child_path, f'{key_label} = {child}', ['AAS submodel or concept has stable identifier'], 0.78)
+                    )
+                elif key_norm in {'preferredname', 'displayname', 'description'}:
+                    for label in extract_labels(child)[:20]:
+                        evidence_units.append(evidence_unit(source, 'aas-json', child_path, f'{key_label} = {label}', ['AAS concept description contains human-readable label'], 0.74))
+                elif key_norm in {'assetkind', 'globalassetid'} and is_scalar(child):
+                    evidence_units.append(
+                        evidence_unit(source, 'aas-json', child_path, f'{key_label} = {child}', ['AAS asset identity can support asset-level discovery'], 0.82)
+                    )
+                elif key_norm in {'modeltype', 'valuetype', 'category', 'kind'} and is_scalar(child):
+                    evidence_units.append(
+                        evidence_unit(source, 'aas-json', child_path, f'{key_label} = {child}', ['AAS technical structure can support representation metadata'], 0.72)
+                    )
+                walk(child, child_path)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(child, f'{path}[{index}]')
+
+    walk(data)
+    return evidence_units
+
+
+def evidence_from_aas_xml(source: str, content: str) -> list[EvidenceUnit]:
+    evidence_units: list[EvidenceUnit] = []
+    for index, value in enumerate(clean_matches(re.findall(r'<(?:[^:>]+:)?idShort[^>]*>(.*?)</(?:[^:>]+:)?idShort>', content, flags=re.IGNORECASE | re.DOTALL))[:80]):
+        evidence_units.append(evidence_unit(source, 'aas-xml', f'//idShort[{index}]', f'idShort = {value}', ['AAS model contains idShort value'], 0.78))
+    for index, value in enumerate(clean_matches(re.findall(r'(?:https?://|urn:|irdi:|0173-)[^\s<>"\']+', content))[:80]):
+        evidence_units.append(evidence_unit(source, 'aas-xml', f'//semanticId[{index}]', f'semantic identifier = {value}', ['AAS XML contains semantic identifier', 'Potential dataset-level semantic anchor'], 0.82))
+    for index, value in enumerate(clean_matches(re.findall(r'<(?:[^:>]+:)?preferredName[^>]*>(.*?)</(?:[^:>]+:)?preferredName>', content, flags=re.IGNORECASE | re.DOTALL))[:80]):
+        evidence_units.append(evidence_unit(source, 'aas-xml', f'//preferredName[{index}]', f'preferredName = {value}', ['AAS concept description contains human-readable label'], 0.74))
+    return evidence_units
+
+
+def evidence_from_aasx(source: str, artifact: ArtifactPayload) -> list[EvidenceUnit]:
+    try:
+        raw = decode_artifact_bytes(artifact)
+    except ValueError as exc:
+        return [evidence_unit(source, 'aasx', 'package', str(exc), ['AASX package could not be decoded'], 0.2)]
+
+    evidence_units = [evidence_unit(source, 'aasx', 'package', f'AASX package {source}', ['AASX package-level source artifact'], 0.7)]
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as package:
+            names = [name for name in package.namelist() if not name.endswith('/')]
+            evidence_units[0].extracted_facts.append(f'AASX package contains {len(names)} file entries')
+            for name in names:
+                lowered = name.lower()
+                if not lowered.endswith(('.json', '.xml', '.aas')):
+                    continue
+                try:
+                    text = package.read(name).decode('utf-8', errors='replace')
+                except KeyError:
+                    continue
+                embedded_source = f'{source}:{name}'
+                if lowered.endswith(('.json', '.aas')):
+                    try:
+                        json.loads(text)
+                    except json.JSONDecodeError:
+                        evidence_units.extend(prefix_evidence_locators(evidence_from_aas_xml(embedded_source, text), f'{source}:{name}:'))
+                    else:
+                        evidence_units.extend(prefix_evidence_locators(evidence_from_aas_json(embedded_source, text), f'{source}:{name}:'))
+                else:
+                    evidence_units.extend(prefix_evidence_locators(evidence_from_aas_xml(embedded_source, text), f'{source}:{name}:'))
+    except zipfile.BadZipFile:
+        text = raw.decode('utf-8', errors='replace')
+        evidence_units.extend(evidence_from_aas_json(source, text) or evidence_from_aas_xml(source, text))
+    return evidence_units
+
+
+def evidence_from_ifc(source: str, content: str) -> list[EvidenceUnit]:
+    schema_match = re.search(r"FILE_SCHEMA\s*\(\s*\(\s*'([^']+)'", content, flags=re.IGNORECASE)
+    schema = schema_match.group(1) if schema_match else 'IFC'
+    classes = Counter(match.upper() for match in re.findall(r'\bIFC[A-Z][A-Z0-9_]*\b', content, flags=re.IGNORECASE))
+    psets = Counter(match for match in re.findall(r'\bPset_[A-Za-z0-9_]+', content))
+    evidence_units = [
+        evidence_unit(source, 'ifc', 'FILE_SCHEMA', f'IFC schema detected: {schema}', ['Dataset should expose schema/conformance information'], 0.82)
+    ]
+    for name, count in classes.most_common(30):
+        evidence_units.append(
+            evidence_unit(
+                source,
+                'ifc',
+                f'IFC_CLASS:{name}',
+                f'{name} occurs {count} time(s)',
+                ['IFC entity can support semantic anchoring', 'IFC entity can support construction asset type discovery'],
+                min(0.9, 0.65 + count / 100),
+            )
+        )
+    for name, count in psets.most_common(20):
+        evidence_units.append(evidence_unit(source, 'ifc', f'PSET:{name}', f'{name} occurs {count} time(s)', ['IFC property set can support metadata requirement discovery'], 0.7))
+    return evidence_units
+
+
+def evidence_from_dcat_rdf(source: str, content: str) -> list[EvidenceUnit]:
+    predicates: Counter[str] = Counter()
+    evidence_units: list[EvidenceUnit] = []
+    parsed = False
+    for fmt in ['turtle', 'json-ld', 'xml', 'nt']:
+        graph = Graph()
+        try:
+            graph.parse(data=content, format=fmt)
+        except Exception:
+            continue
+        for _, predicate, obj in graph:
+            predicates[str(predicate)] += 1
+            if looks_like_uri(str(obj)) and any(token in str(obj).lower() for token in ['ifc', 'aas', 'bot', 'skos', 'w3id']):
+                evidence_units.append(
+                    evidence_unit(source, 'dcat-rdf', f'object:{obj}', f'Linked semantic resource: {obj}', ['Existing metadata links to an external semantic resource'], 0.78)
+                )
+        parsed = True
+        break
+
+    if not parsed:
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError:
+            return evidence_from_text(source, content)
+        for key in collect_keys(data):
+            predicates[key] += 1
+
+    for predicate, count in predicates.most_common(80):
+        prop = URI_TO_PROPERTY.get(predicate) or key_to_property(predicate)
+        facts = ['Existing metadata uses reusable predicate or key']
+        if prop:
+            facts.append(f'Existing metadata suggests {prop} profile term')
+        evidence_units.append(evidence_unit(source, 'dcat-rdf', f'predicate:{predicate}', f'{predicate} used {count} time(s)', facts, 0.78))
+    return evidence_units
+
+
+def extract_candidate_requirements(evidence_units: list[EvidenceUnit]) -> list[CandidateRequirement]:
+    requirements: list[CandidateRequirement] = []
+
+    def matching(*tokens: str) -> list[EvidenceUnit]:
+        lowered_tokens = [token.lower() for token in tokens]
+        return [unit for unit in evidence_units if any(token in evidence_text(unit).lower() for token in lowered_tokens)]
+
+    add_requirement(requirements, 'semantic_anchor', 'A dcat:Dataset should be able to reference one or more AAS semantic identifiers to support discovery and semantic interpretation.', matching('semanticid', 'semantic identifier'), 'reference AAS semantic identifiers', 'uri', 'recommended', ['F', 'I', 'R'], ['cx:semanticAnchor', 'cx:hasAASSubmodel'])
+    add_requirement(requirements, 'semantic_anchor', 'A dcat:Dataset should be able to indicate which AAS submodels are represented or referenced by the dataset.', matching('aas submodel', 'idshort', 'submodel'), 'reference AAS submodels', 'uri', 'recommended', ['F', 'I', 'R'], ['cx:hasAASSubmodel'])
+    add_requirement(requirements, 'technical_metadata', 'A dcat:Dataset or dcat:Distribution should expose the IFC schema version or conformance target of the represented file.', matching('ifc schema', 'file_schema'), 'indicate IFC schema version or conformance target', 'uri', 'recommended', ['I', 'R'], ['dcterms:conformsTo', 'dcterms:format', 'dcat:mediaType'], resource_type='Distribution')
+    add_requirement(requirements, 'semantic_anchor', 'A dcat:Dataset should be able to reference relevant IFC entity classes as lightweight semantic anchors for discovery.', matching('ifc entity', 'ifc_class', 'ifcwall', 'ifcspace'), 'reference IFC entity classes', 'class_reference', 'recommended', ['F', 'I', 'R'], ['cx:hasIFCEntity'])
+    add_requirement(requirements, 'semantic_anchor', 'A dcat:Dataset should indicate the construction asset type or asset category it describes.', matching('construction asset type', 'asset type', 'asset-level', 'wall', 'pump', 'sensor', 'hvac', 'space', 'equipment'), 'indicate construction asset type', 'controlled_concept', 'recommended', ['F', 'R'], ['cx:describesAssetType', 'dcat:theme'])
+    add_requirement(requirements, 'lifecycle_context', 'A dcat:Dataset should indicate the construction lifecycle phase to which the data relates.', matching('lifecycle', 'life cycle', 'planning', 'design', 'construction', 'operation', 'maintenance', 'demolition'), 'indicate construction lifecycle phase', 'controlled_concept', 'recommended', ['F', 'R'], ['cx:hasLifecyclePhase', 'dcat:theme'])
+    add_requirement(requirements, 'access_policy', 'A dcat:Dataset or dcat:Distribution should describe access conditions, license, rights, or reuse policy.', matching('license', 'rights', 'access', 'policy', 'permission', 'restricted'), 'describe access and reuse conditions', 'uri', 'recommended', ['A', 'R'], ['dcterms:license', 'dcterms:accessRights', 'dcat:accessURL'])
+    add_requirement(requirements, 'technical_metadata', 'A dcat:Distribution should expose technical representation metadata such as format, media type, download URL, and schema version.', matching('format', 'media type', 'schema version', 'download', 'distribution', 'json', 'rdf', 'ttl', 'csv'), 'describe distribution format and representation', 'distribution', 'recommended', ['A', 'I', 'R'], ['dcat:distribution', 'dcterms:format', 'dcat:mediaType', 'dcat:downloadURL'])
+    add_requirement(requirements, 'descriptive_metadata', 'A dcat:Dataset should provide reusable descriptive metadata such as title, description, keywords, themes, and publisher.', matching('title', 'description', 'keyword', 'theme', 'publisher', 'catalog', 'dataset metadata'), 'provide descriptive dataset metadata', 'literal', 'mandatory', ['F'], ['dcterms:title', 'dcterms:description', 'dcat:keyword', 'dcat:theme', 'dcterms:publisher'])
+    add_requirement(requirements, 'quality_provenance', 'A dcat:Dataset should expose provenance, quality, completeness, confidence, or source-system metadata where available.', matching('provenance', 'quality', 'completeness', 'confidence', 'source system', 'origin'), 'describe provenance and quality context', 'literal', 'optional', ['R'], ['dcterms:provenance', 'prov:wasDerivedFrom', 'cx:hasDataSourceSystem'])
+
+    return [requirement for requirement in requirements if requirement.source_evidence]
+
+
+def add_requirement(requirements: list[CandidateRequirement], requirement_type: str, statement: str, evidence: list[EvidenceUnit], metadata_need: str, value_kind: str, obligation_hint: str, fair_dimensions: list[str], candidate_terms: list[str], resource_type: str = 'Dataset') -> None:
+    if not evidence:
+        return
+    confidence = min(0.92, max(unit.confidence for unit in evidence) + min(len(evidence), 5) * 0.02)
+    category = category_for_requirement_type(requirement_type)
+    requirements.append(
+        CandidateRequirement(
+            id=stable_id('req', requirement_type, metadata_need, *(unit.id for unit in evidence[:6])),
+            raw_statement='; '.join(unit.content for unit in evidence[:3]),
+            normalized_statement=statement,
+            requirement_type=requirement_type,
+            source_evidence=[source_evidence(unit) for unit in evidence[:8]],
+            normalized_intent=NormalizedIntent(resource_type=resource_type, metadata_need=metadata_need, value_kind=value_kind, obligation_hint=obligation_hint),
+            fair_dimensions=fair_dimensions,
+            fair_rationale=fair_rationale_for(requirement_type, fair_dimensions),
+            candidate_metadata_actions=[
+                CandidateMetadataAction(
+                    action='reuse_existing_term' if any(term.startswith(('dcat:', 'dcterms:', 'prov:')) for term in candidate_terms) else 'create_extension',
+                    target_class=resource_type,
+                    candidate_terms=candidate_terms,
+                    rationale=metadata_action_rationale(metadata_need, candidate_terms),
+                )
+            ],
+            title=title_for_statement(statement),
+            description=statement,
+            category=category,
+            source=', '.join(sorted({unit.artifact_name for unit in evidence}))[:120],
+            evidence=[unit.content for unit in evidence[:8]],
+            confidence=confidence,
+        )
+    )
+
+
+def normalize_requirements(requirements: list[CandidateRequirement]) -> list[CandidateRequirement]:
+    for requirement in requirements:
+        if not requirement.normalized_statement:
+            requirement.normalized_statement = requirement.description or requirement.raw_statement or requirement.title
+        if not requirement.raw_statement:
+            requirement.raw_statement = requirement.description or requirement.normalized_statement
+        requirement.title = requirement.title or title_for_statement(requirement.normalized_statement or requirement.id)
+        requirement.description = requirement.description or requirement.normalized_statement or requirement.raw_statement or requirement.title
+        requirement.category = requirement.category or category_for_requirement_type(requirement.requirement_type)
+    return requirements
+
+
+def classify_requirements(requirements: list[CandidateRequirement]) -> list[CandidateRequirement]:
+    for requirement in requirements:
+        if requirement.requirement_type == 'unknown':
+            requirement.requirement_type = requirement_type_for_category(requirement.category or infer_category(requirement.normalized_statement or ''))
+        requirement.category = category_for_requirement_type(requirement.requirement_type)
+    return requirements
+
+
+def assign_fair_dimensions(requirements: list[CandidateRequirement]) -> list[CandidateRequirement]:
+    for requirement in requirements:
+        if not requirement.fair_dimensions:
+            requirement.fair_dimensions = default_fair_dimensions(requirement.requirement_type)
+        if not requirement.fair_rationale:
+            requirement.fair_rationale = fair_rationale_for(requirement.requirement_type, requirement.fair_dimensions)
+    return requirements
+
+
+def suggest_candidate_metadata_actions(requirements: list[CandidateRequirement]) -> list[CandidateRequirement]:
+    for requirement in requirements:
+        if requirement.candidate_metadata_actions:
+            continue
+        terms = terms_for_requirement(requirement)
+        requirement.candidate_metadata_actions = [
+            CandidateMetadataAction(
+                action='reuse_existing_term' if any(term.startswith(('dcat:', 'dcterms:', 'prov:')) for term in terms) else 'create_extension',
+                target_class=requirement.normalized_intent.resource_type,
+                candidate_terms=terms,
+                rationale=metadata_action_rationale(requirement.normalized_intent.metadata_need, terms),
+            )
+        ]
+    return requirements
+
+
+def detect_duplicate_requirements(requirements: list[CandidateRequirement]) -> list[DuplicateGroup]:
+    groups: list[DuplicateGroup] = []
+    seen: set[str] = set()
+    active = [item for item in requirements if item.status not in {'rejected', 'merged'}]
+    for index, left in enumerate(active):
+        if left.id in seen:
+            continue
+        related = [left]
+        for right in active[index + 1:]:
+            if right.id in seen:
+                continue
+            same_type = left.requirement_type == right.requirement_type
+            same_resource = left.normalized_intent.resource_type == right.normalized_intent.resource_type
+            similarity = token_jaccard(left.normalized_intent.metadata_need, right.normalized_intent.metadata_need)
+            threshold = 0.55 if same_type and same_resource else 0.7
+            if similarity >= threshold:
+                related.append(right)
+        if len(related) > 1:
+            for item in related:
+                seen.add(item.id)
+            statement = merged_statement_for(related)
+            groups.append(
+                DuplicateGroup(
+                    id=stable_id('dup', *(item.id for item in related)),
+                    requirement_ids=[item.id for item in related],
+                    suggested_merged_statement=statement,
+                    reason='Requirements share type, resource target, and overlapping normalized metadata needs.',
+                    confidence=min(0.9, 0.62 + 0.06 * len(related)),
+                )
+            )
+    return groups
+
+
+def upgrade_legacy_requirement(requirement: CandidateRequirement) -> CandidateRequirement:
+    if requirement.source_evidence:
+        return requirement
+    statement = requirement.description or requirement.normalized_statement or requirement.title or 'Extracted metadata requirement.'
+    req_type = requirement_type_for_category(requirement.category or infer_category(statement))
+    source = requirement.source or 'analysis'
+    unit = evidence_unit(
+        source,
+        'unknown',
+        None,
+        '; '.join(requirement.evidence) or statement,
+        [f'Legacy analyzer suggested {requirement.category or category_for_requirement_type(req_type)}'],
+        requirement.confidence,
+    )
+    upgraded = requirement.model_copy(deep=True)
+    upgraded.raw_statement = upgraded.raw_statement or statement
+    upgraded.normalized_statement = upgraded.normalized_statement or statement
+    upgraded.requirement_type = req_type
+    upgraded.source_evidence = [source_evidence(unit)]
+    upgraded.normalized_intent = NormalizedIntent(
+        resource_type='Dataset',
+        metadata_need=metadata_need_for_requirement(req_type, statement),
+        value_kind=value_kind_for_requirement(req_type),
+        obligation_hint='recommended',
+    )
+    upgraded.fair_dimensions = upgraded.fair_dimensions or default_fair_dimensions(req_type)
+    upgraded.fair_rationale = upgraded.fair_rationale or fair_rationale_for(req_type, upgraded.fair_dimensions)
+    upgraded.candidate_metadata_actions = upgraded.candidate_metadata_actions or [
+        CandidateMetadataAction(
+            action='reuse_existing_term',
+            target_class='Dataset',
+            candidate_terms=terms_for_requirement(upgraded),
+            rationale='Legacy analyzer output was normalized into a reviewable requirement record.',
+        )
+    ]
+    upgraded.category = category_for_requirement_type(req_type)
+    upgraded.title = upgraded.title or title_for_statement(statement)
+    upgraded.description = upgraded.description or statement
+    upgraded.source = source
+    upgraded.evidence = upgraded.evidence or [unit.content]
+    return upgraded
 
 
 def analyze_artifact(artifact: ArtifactPayload):
@@ -774,6 +1199,242 @@ def properties_for_category(category: str) -> list[str]:
     }.get(category, ['description'])
 
 
+
+def evidence_unit(source: str, artifact_kind: str, locator: str | None, content: str, facts: list[str], confidence: float) -> EvidenceUnit:
+    return EvidenceUnit(
+        id=stable_id('ev', source, artifact_kind, locator or '', content),
+        source_id=stable_id('source', source),
+        artifact_name=source,
+        artifact_kind=artifact_kind if artifact_kind in {'text', 'ifc', 'aas-json', 'aas-xml', 'aasx', 'dcat-rdf', 'profile-spec', 'use-case'} else 'unknown',
+        locator=locator,
+        content=attribute_value(content),
+        extracted_facts=clean_matches(facts),
+        confidence=confidence,
+    )
+
+
+def source_evidence(unit: EvidenceUnit) -> SourceEvidence:
+    return SourceEvidence(
+        evidence_unit_id=unit.id,
+        source_id=unit.source_id,
+        artifact_name=unit.artifact_name,
+        artifact_kind=unit.artifact_kind,
+        locator=unit.locator,
+        evidence_text=unit.content,
+        extracted_facts=unit.extracted_facts,
+    )
+
+
+def prefix_evidence_locators(units: list[EvidenceUnit], prefix: str) -> list[EvidenceUnit]:
+    for unit in units:
+        if unit.locator:
+            unit.locator = f'{prefix}{unit.locator}'
+    return units
+
+
+def evidence_text(unit: EvidenceUnit) -> str:
+    return f'{unit.artifact_kind} {unit.locator or ""} {unit.content} {" ".join(unit.extracted_facts)}'
+
+
+def human_label(value: str) -> str:
+    return value.replace('_', ' ')
+
+
+def title_for_statement(statement: str) -> str:
+    cleaned = re.sub(r'\s+', ' ', statement).strip()
+    return cleaned[:92] + ('...' if len(cleaned) > 92 else '')
+
+
+def category_for_requirement_type(requirement_type: str) -> str:
+    return {
+        'descriptive_metadata': 'Dataset Metadata',
+        'semantic_anchor': 'Semantic Anchors',
+        'technical_metadata': 'Technical Metadata',
+        'access_policy': 'Access/Policy',
+        'quality_provenance': 'Quality Metadata',
+        'lifecycle_context': 'Lifecycle Information',
+        'controlled_vocabulary': 'Semantic Anchors',
+        'validation_constraint': 'Technical Metadata',
+        'competency_question': 'Dataset Metadata',
+    }.get(requirement_type, 'Dataset Metadata')
+
+
+def requirement_type_for_category(category: str) -> str:
+    return {
+        'Dataset Metadata': 'descriptive_metadata',
+        'Semantic Anchors': 'semantic_anchor',
+        'Asset Semantics': 'semantic_anchor',
+        'Lifecycle Information': 'lifecycle_context',
+        'Technical Metadata': 'technical_metadata',
+        'Access/Policy': 'access_policy',
+        'Quality Metadata': 'quality_provenance',
+    }.get(category, 'unknown')
+
+
+def default_fair_dimensions(requirement_type: str) -> list[str]:
+    return {
+        'descriptive_metadata': ['F'],
+        'semantic_anchor': ['F', 'I', 'R'],
+        'technical_metadata': ['I', 'R'],
+        'access_policy': ['A', 'R'],
+        'quality_provenance': ['R'],
+        'lifecycle_context': ['F', 'R'],
+        'controlled_vocabulary': ['F', 'I', 'R'],
+        'validation_constraint': ['I', 'R'],
+    }.get(requirement_type, ['F'])
+
+
+def fair_rationale_for(requirement_type: str, dimensions: list[str]) -> str:
+    labels = ', '.join(dimensions)
+    return {
+        'descriptive_metadata': f'Supports FAIR {labels} by improving discovery through reusable catalog metadata.',
+        'semantic_anchor': f'Supports FAIR {labels} by linking records to reusable semantic identifiers and interpretation anchors.',
+        'technical_metadata': f'Supports FAIR {labels} by exposing representation and conformance details needed for reuse.',
+        'access_policy': f'Supports FAIR {labels} by clarifying access, licensing, and reuse conditions.',
+        'quality_provenance': f'Supports FAIR {labels} by documenting origin, quality, and trust context.',
+        'lifecycle_context': f'Supports FAIR {labels} by making construction phase context searchable and reusable.',
+    }.get(requirement_type, f'Supports FAIR {labels} through reviewable metadata requirements.')
+
+
+def metadata_need_for_requirement(requirement_type: str, statement: str) -> str:
+    lowered = statement.lower()
+    if 'aas' in lowered and 'semantic' in lowered:
+        return 'reference AAS semantic identifiers'
+    if 'aas' in lowered or 'submodel' in lowered:
+        return 'reference AAS submodels'
+    if 'ifc' in lowered and 'schema' in lowered:
+        return 'indicate IFC schema version or conformance target'
+    if 'ifc' in lowered:
+        return 'reference IFC entity classes'
+    if 'lifecycle' in lowered or 'maintenance' in lowered:
+        return 'indicate construction lifecycle phase'
+    if 'license' in lowered or 'access' in lowered:
+        return 'describe access and reuse conditions'
+    if 'format' in lowered or 'distribution' in lowered:
+        return 'describe distribution format and representation'
+    return {
+        'descriptive_metadata': 'provide descriptive dataset metadata',
+        'semantic_anchor': 'provide semantic anchors',
+        'technical_metadata': 'describe technical representation metadata',
+        'access_policy': 'describe access and reuse conditions',
+        'quality_provenance': 'describe provenance and quality context',
+        'lifecycle_context': 'indicate construction lifecycle phase',
+    }.get(requirement_type, 'describe dataset for discovery')
+
+
+def value_kind_for_requirement(requirement_type: str) -> str:
+    return {
+        'semantic_anchor': 'uri',
+        'technical_metadata': 'uri',
+        'access_policy': 'uri',
+        'lifecycle_context': 'controlled_concept',
+        'descriptive_metadata': 'literal',
+        'quality_provenance': 'literal',
+    }.get(requirement_type, 'unknown')
+
+
+def terms_for_requirement(requirement: CandidateRequirement) -> list[str]:
+    need = (requirement.normalized_intent.metadata_need or '').lower()
+    if 'aas semantic' in need:
+        return ['cx:semanticAnchor', 'cx:hasAASSubmodel']
+    if 'aas submodel' in need:
+        return ['cx:hasAASSubmodel']
+    if 'ifc schema' in need or 'conformance' in need:
+        return ['dcterms:conformsTo', 'dcterms:format', 'dcat:mediaType']
+    if 'ifc entity' in need:
+        return ['cx:hasIFCEntity']
+    if 'asset type' in need:
+        return ['cx:describesAssetType', 'dcat:theme']
+    if 'lifecycle' in need:
+        return ['cx:hasLifecyclePhase', 'dcat:theme']
+    if 'access' in need or 'license' in need:
+        return ['dcterms:license', 'dcterms:accessRights', 'dcat:accessURL']
+    if 'distribution' in need or 'format' in need:
+        return ['dcat:distribution', 'dcterms:format', 'dcat:mediaType', 'dcat:downloadURL']
+    if 'provenance' in need or 'quality' in need:
+        return ['dcterms:provenance', 'prov:wasDerivedFrom', 'cx:hasDataSourceSystem']
+    return ['dcterms:title', 'dcterms:description', 'dcat:keyword', 'dcat:theme']
+
+
+def metadata_action_rationale(metadata_need: str, terms: list[str]) -> str:
+    if any(term.startswith('cx:') for term in terms):
+        return f'{metadata_need} is construction-specific and may need Construct-DCAT profile terms or extensions.'
+    return f'{metadata_need} can reuse established DCAT/DCAT-AP or provenance terms.'
+
+
+def property_from_candidate_term(term: str) -> str | None:
+    return {
+        'dcterms:title': 'title',
+        'dcterms:description': 'description',
+        'dcterms:publisher': 'publisher',
+        'dcterms:license': 'license',
+        'dcterms:accessRights': 'accessRights',
+        'dcterms:format': 'format',
+        'dcterms:conformsTo': 'schemaVersion',
+        'dcterms:provenance': 'provenance',
+        'dcat:keyword': 'keyword',
+        'dcat:theme': 'theme',
+        'dcat:distribution': 'distribution',
+        'dcat:accessURL': 'accessURL',
+        'dcat:downloadURL': 'downloadURL',
+        'dcat:mediaType': 'mediaType',
+        'cx:semanticAnchor': 'semanticAnchor',
+        'cx:usesOntology': 'usesOntology',
+        'cx:hasLifecyclePhase': 'hasLifecyclePhase',
+        'cx:describesAssetType': 'describesAssetType',
+        'cx:hasAASSubmodel': 'hasAASSubmodel',
+        'cx:hasIFCEntity': 'hasIFCEntity',
+        'cx:hasDataSourceSystem': 'hasDataSourceSystem',
+        'prov:wasDerivedFrom': 'provenance',
+    }.get(term)
+
+
+def properties_for_requirement(requirement: CandidateRequirement) -> list[str]:
+    props: list[str] = []
+    for action in requirement.candidate_metadata_actions:
+        for term in action.candidate_terms:
+            prop = property_from_candidate_term(term)
+            if prop and prop not in props:
+                props.append(prop)
+    if props:
+        return props
+    return properties_for_category(requirement.category or category_for_requirement_type(requirement.requirement_type))
+
+
+def token_jaccard(a: str, b: str) -> float:
+    left = set(normalize_tokens(a))
+    right = set(normalize_tokens(b))
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
+def normalize_tokens(value: str) -> list[str]:
+    stop = {'a', 'an', 'and', 'or', 'the', 'to', 'of', 'for', 'with', 'by', 'be', 'able', 'should'}
+    return [token for token in re.findall(r'[a-z0-9]+', value.lower()) if token not in stop]
+
+
+def merged_statement_for(requirements: list[CandidateRequirement]) -> str:
+    resource = requirements[0].normalized_intent.resource_type
+    req_type = requirements[0].requirement_type
+    if req_type == 'semantic_anchor':
+        return f'A dcat:{resource} should support external semantic anchors for construction-specific interpretation and discovery.'
+    needs = clean_matches(requirement.normalized_intent.metadata_need for requirement in requirements)
+    return f'A dcat:{resource} should support {", ".join(needs)}.'
+
+
+def dedupe_evidence_units(items: Iterable[EvidenceUnit]) -> list[EvidenceUnit]:
+    grouped: dict[tuple[str, str | None, str], EvidenceUnit] = {}
+    for item in items:
+        key = (item.artifact_name, item.locator, item.content)
+        if key not in grouped:
+            grouped[key] = item
+        else:
+            grouped[key].extracted_facts = merge_evidence(grouped[key].extracted_facts, item.extracted_facts)
+            grouped[key].confidence = max(grouped[key].confidence, item.confidence)
+    return sorted(grouped.values(), key=lambda item: (item.artifact_name, item.locator or '', item.content))[:400]
+
+
 def split_sentences(text: str) -> list[str]:
     parts = re.split(r'(?<=[.!?])\s+|\n+', text)
     return [part.strip(' -*\t') for part in parts if part.strip(' -*\t')]
@@ -922,15 +1583,21 @@ def dedupe_attributes(items: Iterable[ExtractedAttribute]) -> list[ExtractedAttr
 
 
 def dedupe_requirements(items: Iterable[CandidateRequirement]) -> list[CandidateRequirement]:
-    grouped: dict[tuple[str, str], CandidateRequirement] = {}
+    grouped: dict[tuple[str, str, str], CandidateRequirement] = {}
     for item in items:
-        key = (item.category, item.title)
+        statement = item.normalized_statement or item.description or item.title or item.id
+        category = item.category or category_for_requirement_type(item.requirement_type)
+        key = (item.requirement_type, item.normalized_intent.resource_type, re.sub(r'\s+', ' ', statement.lower()).strip())
         if key not in grouped:
             grouped[key] = item
+            grouped[key].category = category
         else:
             grouped[key].evidence = merge_evidence(grouped[key].evidence, item.evidence)
+            grouped[key].source_evidence = merge_source_evidence(grouped[key].source_evidence, item.source_evidence)
+            grouped[key].fair_dimensions = merge_evidence(grouped[key].fair_dimensions, item.fair_dimensions)
+            grouped[key].candidate_metadata_actions = merge_metadata_actions(grouped[key].candidate_metadata_actions, item.candidate_metadata_actions)
             grouped[key].confidence = max(grouped[key].confidence, item.confidence)
-    return sorted(grouped.values(), key=lambda item: (item.category, item.title))
+    return sorted(grouped.values(), key=lambda item: (item.category or '', item.requirement_type, item.title or item.normalized_statement or item.id))
 
 
 def dedupe_metadata(items: Iterable[MetadataCandidate]) -> list[MetadataCandidate]:
@@ -977,6 +1644,23 @@ def dedupe_recommendations(items: Iterable[ReuseRecommendation]) -> list[ReuseRe
             grouped[key].confidence = max(grouped[key].confidence, item.confidence)
             grouped[key].rationale = grouped[key].rationale if item.rationale in grouped[key].rationale else f'{grouped[key].rationale} {item.rationale}'
     return sorted(grouped.values(), key=lambda item: (item.priority, item.label))
+
+
+
+def merge_source_evidence(left: list[SourceEvidence], right: list[SourceEvidence]) -> list[SourceEvidence]:
+    grouped: dict[str, SourceEvidence] = {}
+    for item in [*left, *right]:
+        key = f'{item.evidence_unit_id}:{item.locator or ""}:{item.evidence_text}'
+        grouped.setdefault(key, item)
+    return list(grouped.values())[:12]
+
+
+def merge_metadata_actions(left: list[CandidateMetadataAction], right: list[CandidateMetadataAction]) -> list[CandidateMetadataAction]:
+    grouped: dict[tuple[str, tuple[str, ...]], CandidateMetadataAction] = {}
+    for item in [*left, *right]:
+        key = (item.action, tuple(item.candidate_terms))
+        grouped.setdefault(key, item)
+    return list(grouped.values())[:8]
 
 
 def merge_evidence(left: list[str], right: list[str]) -> list[str]:
