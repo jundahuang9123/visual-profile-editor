@@ -7,7 +7,16 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
 
-ALLOWED_OPERATIONS = {'analyze', 'analyze-artifacts', 'extract-requirements', 'recommend-reuse', 'generate-shacl'}
+ALLOWED_OPERATIONS = {
+    'analyze',
+    'analyze-artifacts',
+    'extract-requirements',
+    'recommend-reuse',
+    'generate-shacl',
+    'save-requirement-set',
+    'list-requirement-sets',
+    'load-requirement-set',
+}
 
 
 def requirement_router(service_url: str) -> APIRouter:
@@ -28,8 +37,10 @@ def requirement_router(service_url: str) -> APIRouter:
     async def forward_requirement_operation(operation: str, payload: dict[str, Any]) -> JSONResponse:
         if operation not in ALLOWED_OPERATIONS:
             raise HTTPException(status_code=404, detail=f'Unknown requirement operation: {operation}')
+        # LLM-assisted extraction can take minutes; rule-based calls return fast.
+        timeout = 300.0 if operation in {'analyze', 'analyze-artifacts', 'extract-requirements'} else 60.0
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(f'{base_url}/{operation}', json=payload)
         except httpx.HTTPError as exc:
             raise HTTPException(status_code=503, detail=f'Requirement reuse service unavailable: {exc}') from exc

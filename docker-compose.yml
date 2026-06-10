@@ -23,8 +23,17 @@ services:
       dockerfile: requirement-reuse-service/Dockerfile
     ports:
       - "8010:8010"
+    volumes:
+      - ./requirement-sets:/service/requirement-sets
     environment:
       - PYTHONUNBUFFERED=1
+      # LLM strategy configuration (plug-and-play providers; see docs/requirement-extraction.md)
+      - RRS_LLM_PROVIDER=${RRS_LLM_PROVIDER:-}
+      - RRS_LLM_MODEL=${RRS_LLM_MODEL:-}
+      - RRS_LLM_BASE_URL=${RRS_LLM_BASE_URL:-}
+      - RRS_LLM_API_KEY=${RRS_LLM_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - RRS_REQUIREMENT_STORE=/service/requirement-sets
 
   generator:
     build:

@@ -1020,6 +1020,25 @@ button.danger {
   width: 100%;
 }
 
+.requirement-textarea--tasks {
+  min-height: 72px;
+}
+
+.requirement-strategy {
+  align-items: center;
+  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 8px;
+}
+
+.requirement-strategy select {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  flex: 1;
+  padding: 6px 8px;
+}
+
 .artifact-list,
 .summary-strip,
 .requirement-actions,

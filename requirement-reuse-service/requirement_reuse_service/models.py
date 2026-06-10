@@ -35,6 +35,8 @@ ValueKind = Literal['literal', 'uri', 'controlled_concept', 'class_reference', '
 ObligationHint = Literal['mandatory', 'recommended', 'optional', 'unknown']
 ReviewStatus = Literal['candidate', 'approved', 'rejected', 'merged', 'needs_review']
 FairDimension = Literal['F', 'A', 'I', 'R']
+ExtractionStrategy = Literal['rules', 'llm', 'hybrid']
+UserTaskKind = Literal['competency_question', 'user_task', 'stakeholder_need']
 
 
 class ArtifactPayload(BaseModel):
@@ -44,9 +46,43 @@ class ArtifactPayload(BaseModel):
     content_encoding: Literal['text', 'base64'] = 'text'
 
 
+class UserTask(BaseModel):
+    """An expert-provided competency question, user task, or stakeholder need.
+
+    Requirements link back to user tasks via ``supports_user_tasks`` so that
+    competency-question coverage can be computed during evaluation (RQ1).
+    """
+
+    id: str
+    statement: str
+    kind: UserTaskKind = 'competency_question'
+    stakeholder: str | None = None
+    source: str = 'expert input'
+
+
+class ExtractionProvenance(BaseModel):
+    """Records how a requirement candidate was produced, for reproducibility.
+
+    ``editor_history`` accumulates human corrections (field, old value, new
+    value) so that expert editing effort can be measured (H1 / Section 6.2).
+    """
+
+    strategy: ExtractionStrategy = 'rules'
+    extractor: str = 'rule-based-v1'
+    model_id: str | None = None
+    prompt_version: str | None = None
+    created_at: str | None = None
+    evidence_verified: bool | None = None
+    notes: list[str] = Field(default_factory=list)
+    editor_history: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class AnalysisRequest(BaseModel):
     text: str | None = None
     artifacts: list[ArtifactPayload] = Field(default_factory=list)
+    user_tasks: list[UserTask] = Field(default_factory=list)
+    strategy: ExtractionStrategy = 'rules'
+    llm_model: str | None = None
 
 
 class ArtifactSummary(BaseModel):
@@ -142,6 +178,9 @@ class CandidateRequirement(BaseModel):
     fair_dimensions: list[FairDimension] = Field(default_factory=list)
     fair_rationale: str | None = None
     candidate_metadata_actions: list[CandidateMetadataAction] = Field(default_factory=list)
+    supports_user_tasks: list[str] = Field(default_factory=list)
+    validation_evidence: list[str] = Field(default_factory=list)
+    provenance: ExtractionProvenance | None = None
     status: ReviewStatus = 'candidate'
     review_notes: str | None = None
     merged_from: list[str] = Field(default_factory=list)
@@ -172,6 +211,7 @@ class CompetencyQuestion(BaseModel):
 
 
 class AnalysisResponse(BaseModel):
+    strategy: ExtractionStrategy = 'rules'
     artifacts: list[ArtifactSummary] = Field(default_factory=list)
     evidence_units: list[EvidenceUnit] = Field(default_factory=list)
     extracted_attributes: list[ExtractedAttribute] = Field(default_factory=list)
@@ -180,7 +220,43 @@ class AnalysisResponse(BaseModel):
     semantic_candidates: list[SemanticCandidate] = Field(default_factory=list)
     metadata_candidates: list[MetadataCandidate] = Field(default_factory=list)
     competency_questions: list[CompetencyQuestion] = Field(default_factory=list)
+    user_tasks: list[UserTask] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+
+
+class RequirementSetSaveRequest(BaseModel):
+    name: str
+    description: str | None = None
+    analysis: AnalysisResponse | None = None
+    requirements: list[CandidateRequirement] = Field(default_factory=list)
+    user_tasks: list[UserTask] = Field(default_factory=list)
+
+
+class RequirementSetInfo(BaseModel):
+    id: str
+    name: str
+    description: str | None = None
+    created_at: str
+    strategy: ExtractionStrategy | None = None
+    requirement_count: int = 0
+
+
+class RequirementSet(BaseModel):
+    id: str
+    name: str
+    description: str | None = None
+    created_at: str
+    strategy: ExtractionStrategy | None = None
+    requirements: list[CandidateRequirement] = Field(default_factory=list)
+    user_tasks: list[UserTask] = Field(default_factory=list)
+
+
+class RequirementSetListResponse(BaseModel):
+    requirement_sets: list[RequirementSetInfo] = Field(default_factory=list)
+
+
+class RequirementSetLoadRequest(BaseModel):
+    id: str
 
 
 class RecommendationRequest(BaseModel):

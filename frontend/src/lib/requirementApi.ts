@@ -7,9 +7,33 @@ export type ArtifactPayload = {
   content_encoding?: 'text' | 'base64';
 };
 
+export type ExtractionStrategy = 'rules' | 'llm' | 'hybrid';
+
+export type UserTask = {
+  id: string;
+  statement: string;
+  kind: 'competency_question' | 'user_task' | 'stakeholder_need';
+  stakeholder?: string | null;
+  source?: string;
+};
+
+export type ExtractionProvenance = {
+  strategy: ExtractionStrategy;
+  extractor: string;
+  model_id?: string | null;
+  prompt_version?: string | null;
+  created_at?: string | null;
+  evidence_verified?: boolean | null;
+  notes: string[];
+  editor_history: Array<Record<string, unknown>>;
+};
+
 export type AnalysisRequest = {
   text?: string;
   artifacts: ArtifactPayload[];
+  user_tasks?: UserTask[];
+  strategy?: ExtractionStrategy;
+  llm_model?: string | null;
 };
 
 export type ArtifactSummary = {
@@ -80,6 +104,9 @@ export type CandidateRequirement = {
   fair_dimensions: Array<'F' | 'A' | 'I' | 'R'>;
   fair_rationale?: string | null;
   candidate_metadata_actions: CandidateMetadataAction[];
+  supports_user_tasks: string[];
+  validation_evidence: string[];
+  provenance?: ExtractionProvenance | null;
   status: 'candidate' | 'approved' | 'rejected' | 'merged' | 'needs_review';
   review_notes?: string | null;
   merged_from: string[];
@@ -141,6 +168,8 @@ export type CompetencyQuestion = {
 };
 
 export type AnalysisResponse = {
+  strategy: ExtractionStrategy;
+  user_tasks: UserTask[];
   artifacts: ArtifactSummary[];
   evidence_units: EvidenceUnit[];
   extracted_attributes: ExtractedAttribute[];

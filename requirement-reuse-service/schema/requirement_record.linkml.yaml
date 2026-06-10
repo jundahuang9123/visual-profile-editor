@@ -1,0 +1,205 @@
+# Traceable Requirement Record - LinkML schema
+#
+# Normative definition of the requirement representation used by the
+# requirement-reuse-service (RQ1: requirement extraction and representation).
+# Each requirement record links source evidence, the stakeholder need or user
+# task it supports, FAIR relevance, candidate reusable DCAT/DCAT-AP terms, the
+# proposed profile action, validation evidence, and extraction provenance.
+#
+# The operational Pydantic models in requirement_reuse_service/models.py
+# mirror this schema; records are serialized as YAML in the requirement-set
+# registry and as JSON over the API.
+id: https://w3id.org/construct-dcat/requirement-record
+name: requirement_record
+title: Traceable Requirement Record
+description: >-
+  Requirement representation for semi-automated, reuse-first DCAT profile
+  engineering. Connects domain evidence to profile-design decisions and later
+  validation, while recording how each candidate was produced (rule-based,
+  LLM-assisted, or hybrid extraction) and how experts corrected it.
+license: https://www.apache.org/licenses/LICENSE-2.0
+prefixes:
+  linkml: https://w3id.org/linkml/
+  rr: https://w3id.org/construct-dcat/requirement-record/
+  dcterms: http://purl.org/dc/terms/
+  prov: http://www.w3.org/ns/prov#
+default_prefix: rr
+default_range: string
+imports:
+  - linkml:types
+
+classes:
+  RequirementSet:
+    description: A named, persisted collection of requirement records plus the user tasks they were extracted against.
+    slots: [id, name, description, created_at, strategy]
+    attributes:
+      requirements:
+        range: CandidateRequirement
+        multivalued: true
+      user_tasks:
+        range: UserTask
+        multivalued: true
+
+  UserTask:
+    description: An expert-provided competency question, user task, or stakeholder need that requirements can support.
+    slots: [id]
+    attributes:
+      statement:
+        required: true
+      kind:
+        range: UserTaskKind
+      stakeholder:
+        description: Stakeholder role the task belongs to (e.g. data steward, site manager).
+      source:
+        description: Where the task came from (workshop, document, expert).
+
+  CandidateRequirement:
+    description: A traceable profile-design requirement candidate awaiting or carrying expert review.
+    slots: [id]
+    attributes:
+      raw_statement:
+        description: Evidence-near phrasing the requirement was derived from.
+      normalized_statement:
+        description: Normalized, testable profile-design statement.
+      requirement_type:
+        range: RequirementType
+      source_evidence:
+        range: SourceEvidence
+        multivalued: true
+        description: Verbatim, locatable evidence the requirement is grounded in.
+      normalized_intent:
+        range: NormalizedIntent
+      fair_dimensions:
+        range: FairDimension
+        multivalued: true
+      fair_rationale:
+        description: Why the requirement supports the listed FAIR dimensions.
+      candidate_metadata_actions:
+        range: CandidateMetadataAction
+        multivalued: true
+        description: Proposed reuse/extension actions with candidate terms.
+      supports_user_tasks:
+        multivalued: true
+        description: IDs of user tasks / competency questions this requirement supports (enables CQ-coverage evaluation).
+      validation_evidence:
+        multivalued: true
+        description: References to validation artifacts (test cases, SHACL reports) once the requirement is checked. Populated in later workflow stages.
+      provenance:
+        range: ExtractionProvenance
+        description: How the candidate was produced and corrected.
+      status:
+        range: ReviewStatus
+      review_notes:
+        description: Free-text notes from the expert reviewer.
+      merged_from:
+        multivalued: true
+        description: IDs of requirements merged into this record.
+      confidence:
+        range: float
+
+  SourceEvidence:
+    description: A verbatim span of source material supporting a requirement.
+    attributes:
+      evidence_unit_id:
+        required: true
+      source_id: {}
+      artifact_name:
+        required: true
+      artifact_kind: {}
+      locator:
+        description: Machine-checkable location, e.g. chars:120-240, sentence:3, JSON path, or IFC line reference.
+      evidence_text:
+        required: true
+        description: Exact text span; programmatically verified to occur verbatim in the artifact for LLM extraction.
+      extracted_facts:
+        multivalued: true
+
+  NormalizedIntent:
+    description: Comparable normalized core of the requirement.
+    attributes:
+      resource_type:
+        range: ResourceType
+      metadata_need: {}
+      value_kind:
+        range: ValueKind
+      obligation_hint:
+        range: ObligationHint
+
+  CandidateMetadataAction:
+    description: A proposed profile-design action derived from the requirement.
+    attributes:
+      action:
+        range: MetadataActionKind
+      target_class: {}
+      candidate_terms:
+        multivalued: true
+        description: Prefixed candidate terms in reuse-priority order (dcterms:, dcat:, prov:, skos:, then cx: extensions).
+      rationale: {}
+
+  ExtractionProvenance:
+    description: Reproducibility and effort-measurement record (PROV-O-style, simplified).
+    attributes:
+      strategy:
+        range: ExtractionStrategy
+      extractor:
+        description: Identifier of the producing component, e.g. rule-based-v1 or llm-extractor/rrs-extract-v1.
+      model_id:
+        description: LLM model identifier when strategy is llm or hybrid.
+      prompt_version:
+        description: Version tag of the extraction prompt.
+      created_at:
+        range: datetime
+      evidence_verified:
+        range: boolean
+        description: Whether all evidence quotes were verified verbatim against the sources.
+      notes:
+        multivalued: true
+      editor_history:
+        multivalued: true
+        description: Expert corrections (field, old value, new value, timestamp) used to measure human editing effort (H1).
+
+slots:
+  id:
+    identifier: true
+  name: {}
+  description: {}
+  created_at:
+    range: datetime
+  strategy:
+    range: ExtractionStrategy
+
+enums:
+  RequirementType:
+    permissible_values:
+      descriptive_metadata: {}
+      semantic_anchor: {}
+      technical_metadata: {}
+      access_policy: {}
+      quality_provenance: {}
+      lifecycle_context: {}
+      controlled_vocabulary: {}
+      validation_constraint: {}
+      competency_question: {}
+      unknown: {}
+  ResourceType:
+    permissible_values: {Catalog: {}, Dataset: {}, Distribution: {}, DataService: {}, Agent: {}, Concept: {}, Unknown: {}}
+  ValueKind:
+    permissible_values: {literal: {}, uri: {}, controlled_concept: {}, class_reference: {}, date: {}, agent: {}, distribution: {}, unknown: {}}
+  ObligationHint:
+    permissible_values: {mandatory: {}, recommended: {}, optional: {}, unknown: {}}
+  ReviewStatus:
+    permissible_values: {candidate: {}, approved: {}, rejected: {}, merged: {}, needs_review: {}}
+  FairDimension:
+    permissible_values: {F: {}, A: {}, I: {}, R: {}}
+  ExtractionStrategy:
+    permissible_values: {rules: {}, llm: {}, hybrid: {}}
+  UserTaskKind:
+    permissible_values: {competency_question: {}, user_task: {}, stakeholder_need: {}}
+  MetadataActionKind:
+    permissible_values:
+      reuse_existing_term: {}
+      specialize_existing_term: {}
+      create_extension: {}
+      add_constraint: {}
+      add_usage_note: {}
+      no_action: {}

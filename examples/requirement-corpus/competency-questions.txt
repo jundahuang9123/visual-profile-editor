@@ -1,0 +1,11 @@
+# Competency questions and user tasks for the Construct-DCAT pilot corpus.
+# One statement per line. Questions (ending in '?') become competency_question
+# tasks; other lines become user_task entries.
+Which datasets describe HVAC equipment in building X?
+Which datasets contain sensor measurements for a given building zone?
+Which IFC schema version does a BIM dataset conform to?
+Which datasets reference a specific AAS submodel or semantic ID?
+Which datasets can be reused under an open license for facility-management analytics?
+Which lifecycle phase (design, construction, operation) does a dataset cover?
+Find all datasets published by a given contractor for a given project.
+Assess whether a dataset is fit for energy-performance simulation before downloading it.

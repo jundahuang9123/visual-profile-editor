@@ -1,0 +1,62 @@
+{
+  "assetAdministrationShells": [
+    {
+      "idShort": "Pump_AAS_001",
+      "id": "https://example.org/aas/pump-001",
+      "assetInformation": {
+        "assetKind": "Instance",
+        "globalAssetId": "https://example.org/assets/pump-001"
+      }
+    }
+  ],
+  "submodels": [
+    {
+      "idShort": "TechnicalData",
+      "id": "https://example.org/aas/pump-001/technical-data",
+      "semanticId": {
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2"
+          }
+        ]
+      },
+      "submodelElements": [
+        {
+          "idShort": "MaxFlowRate",
+          "modelType": "Property",
+          "valueType": "xs:double",
+          "value": "12.5",
+          "semanticId": {
+            "keys": [
+              {"type": "GlobalReference", "value": "0173-1#02-AAB713#005"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "idShort": "OperationalData",
+      "id": "https://example.org/aas/pump-001/operational-data",
+      "semanticId": {
+        "keys": [
+          {"type": "GlobalReference", "value": "https://example.org/semantics/PumpOperationalData/1/0"}
+        ]
+      }
+    }
+  ],
+  "conceptDescriptions": [
+    {
+      "idShort": "MaxFlowRate",
+      "id": "0173-1#02-AAB713#005",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecificationContent": {
+            "preferredName": [{"language": "en", "text": "maximum flow rate"}],
+            "shortName": [{"language": "en", "text": "MaxFlow"}]
+          }
+        }
+      ]
+    }
+  ]
+}

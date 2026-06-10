@@ -10,9 +10,11 @@ import {
   type ArtifactPayload,
   type CandidateRequirement,
   type ExtractedAttribute,
+  type ExtractionStrategy,
   type NormalizedIntent,
   type ReuseRecommendation,
   type SourceEvidence,
+  type UserTask,
 } from '../lib/requirementApi';
 import { downloadText } from '../lib/schemaApi';
 import { useEditorStore } from '../store';
@@ -54,6 +56,8 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
   const mergeSchema = useEditorStore((state) => state.mergeSchema);
   const [view, setView] = useState<WorkbenchView>(initialView);
   const [text, setText] = useState(SAMPLE_TEXT);
+  const [strategy, setStrategy] = useState<ExtractionStrategy>('rules');
+  const [taskText, setTaskText] = useState('');
   const [artifacts, setArtifacts] = useState<ArtifactPayload[]>([]);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [requirements, setRequirements] = useState<CandidateRequirement[]>([]);
@@ -80,7 +84,25 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     setMergeSelection({});
   }, [analysis]);
 
-  const requestPayload = useMemo<AnalysisRequest>(() => ({ text, artifacts }), [artifacts, text]);
+  const userTasks = useMemo<UserTask[]>(
+    () =>
+      taskText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith('#'))
+        .map((statement, index) => ({
+          id: `task-${index + 1}`,
+          statement,
+          kind: statement.endsWith('?') ? ('competency_question' as const) : ('user_task' as const),
+          source: 'workbench input',
+        })),
+    [taskText],
+  );
+
+  const requestPayload = useMemo<AnalysisRequest>(
+    () => ({ text, artifacts, strategy, user_tasks: userTasks }),
+    [artifacts, strategy, text, userTasks],
+  );
 
   const filteredRequirements = useMemo(
     () =>
@@ -112,7 +134,7 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
       setRecommendations([]);
       setShacl('');
       setGeneratedProfile(null);
-      onStatus(`Analyzed ${result.evidence_units.length} evidence unit(s) and ${result.requirements.length} candidate requirement(s).`);
+      onStatus(`Analyzed ${result.evidence_units.length} evidence unit(s) and ${result.requirements.length} candidate requirement(s) [${result.strategy} strategy].`);
       return result;
     } catch (error) {
       onStatus(`Requirement analysis failed: ${error instanceof Error ? error.message : 'unknown error'}`);
@@ -132,7 +154,7 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
       setRecommendations([]);
       setShacl('');
       setGeneratedProfile(null);
-      onStatus(`Extracted ${result.requirements.length} requirement candidate(s) from ${result.evidence_units.length} evidence unit(s).`);
+      onStatus(`Extracted ${result.requirements.length} requirement candidate(s) from ${result.evidence_units.length} evidence unit(s) [${result.strategy} strategy].`);
       return result;
     } catch (error) {
       onStatus(`Requirement extraction failed: ${error instanceof Error ? error.message : 'unknown error'}`);
@@ -329,6 +351,24 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
         </div>
 
         <textarea aria-label="Requirement text" className="requirement-textarea" onChange={(event) => setText(event.target.value)} value={text} />
+
+        <textarea
+          aria-label="Competency questions and user tasks"
+          className="requirement-textarea requirement-textarea--tasks"
+          onChange={(event) => setTaskText(event.target.value)}
+          placeholder={'Competency questions / user tasks (one per line), e.g.\nWhich datasets describe HVAC equipment in building X?'}
+          rows={3}
+          value={taskText}
+        />
+
+        <label className="requirement-strategy">
+          Extraction strategy
+          <select onChange={(event) => setStrategy(event.target.value as ExtractionStrategy)} value={strategy}>
+            <option value="rules">Rule-based (baseline)</option>
+            <option value="llm">LLM-assisted (verified evidence)</option>
+            <option value="hybrid">Hybrid (LLM + rules)</option>
+          </select>
+        </label>
 
         {artifacts.length ? (
           <div className="artifact-list">

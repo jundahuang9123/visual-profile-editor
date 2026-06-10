@@ -88,12 +88,17 @@ Initial supported inputs:
 
 The frontend exposes workflow tabs for profile editing, requirement extraction, reuse recommendations, validation, and export. Requirement results are always reviewable: users accept or reject recommendations before generating SHACL/profile drafts.
 
+Extraction supports three strategies — a deterministic rule-based baseline, an LLM-assisted strategy with verbatim evidence verification, and a hybrid of both. The LLM layer is provider-agnostic (Anthropic native, or any OpenAI-compatible endpoint such as Ollama, vLLM, OpenRouter). Requirements are represented as traceable records (source evidence, user-task links, FAIR relevance, candidate reuse terms, extraction provenance) defined normatively in LinkML and persisted as YAML requirement sets. See [docs/requirement-extraction.md](docs/requirement-extraction.md).
+
 Service endpoints are proxied through the main app under:
 
 - `POST /api/requirements/analyze-artifacts`
 - `POST /api/requirements/extract-requirements`
 - `POST /api/requirements/recommend-reuse`
 - `POST /api/requirements/generate-shacl`
+- `POST /api/requirements/save-requirement-set`
+- `POST /api/requirements/list-requirement-sets`
+- `POST /api/requirements/load-requirement-set`
 
 The service itself remains independently deployable on port `8010`.
 

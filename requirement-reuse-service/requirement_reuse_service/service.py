@@ -10,6 +10,8 @@ import zipfile
 from collections import Counter
 from typing import Any, Iterable
 
+from datetime import datetime, timezone
+
 from rdflib import Graph
 
 from .models import (
@@ -23,6 +25,7 @@ from .models import (
     DuplicateGroup,
     EvidenceUnit,
     ExtractedAttribute,
+    ExtractionProvenance,
     NormalizedIntent,
     SourceEvidence,
     ConstraintGenerationRequest,
@@ -32,6 +35,7 @@ from .models import (
     RecommendationResponse,
     ReuseRecommendation,
     SemanticCandidate,
+    UserTask,
 )
 
 
@@ -151,6 +155,47 @@ URI_TO_PROPERTY = {
 
 
 def analyze_payload(payload: AnalysisRequest) -> AnalysisResponse:
+    """Dispatch analysis to the selected extraction strategy.
+
+    - ``rules``  deterministic keyword/structure heuristics (baseline)
+    - ``llm``    LLM-assisted extraction with verbatim-evidence verification
+    - ``hybrid`` LLM records first, rule-based records appended for needs the
+      LLM missed; duplicate detection surfaces the overlaps for review
+    """
+    rules_response = analyze_payload_rules(payload)
+    if payload.strategy == 'rules':
+        return rules_response
+
+    from .llm import LLMConfig, LLMError, create_client
+    from .llm.extractor import extract_with_llm, merge_hybrid
+
+    config = LLMConfig.from_env()
+    if payload.llm_model:
+        config.model = payload.llm_model
+    try:
+        client = create_client(config)
+        llm_requirements, llm_warnings = extract_with_llm(payload, client)
+    except LLMError as exc:
+        rules_response.warnings.append(f'LLM extraction unavailable; returning rule-based results instead: {exc}')
+        return rules_response
+
+    if payload.strategy == 'hybrid':
+        requirements = merge_hybrid(llm_requirements, rules_response.requirements)
+    else:
+        requirements = llm_requirements
+    requirements = link_user_tasks(requirements, payload.user_tasks)
+
+    return rules_response.model_copy(
+        update={
+            'strategy': payload.strategy,
+            'requirements': requirements,
+            'duplicate_groups': detect_duplicate_requirements(requirements),
+            'warnings': [*rules_response.warnings, *llm_warnings],
+        }
+    )
+
+
+def analyze_payload_rules(payload: AnalysisRequest) -> AnalysisResponse:
     artifacts: list[ArtifactSummary] = []
     legacy_requirements: list[CandidateRequirement] = []
     semantic_candidates: list[SemanticCandidate] = []
@@ -190,12 +235,15 @@ def analyze_payload(payload: AnalysisRequest) -> AnalysisResponse:
     requirements = classify_requirements(requirements)
     requirements = assign_fair_dimensions(requirements)
     requirements = suggest_candidate_metadata_actions(requirements)
+    requirements = stamp_rule_provenance(requirements)
+    requirements = link_user_tasks(requirements, payload.user_tasks)
     duplicate_groups = detect_duplicate_requirements(requirements)
 
     for category in sorted({requirement.category or category_for_requirement_type(requirement.requirement_type) for requirement in requirements}):
         competency_questions.append(generated_question(category, 'requirement workbench'))
 
     return AnalysisResponse(
+        strategy='rules',
         artifacts=artifacts,
         evidence_units=dedupe_evidence_units(evidence_units),
         extracted_attributes=dedupe_attributes(extracted_attributes),
@@ -204,8 +252,61 @@ def analyze_payload(payload: AnalysisRequest) -> AnalysisResponse:
         semantic_candidates=dedupe_semantic(semantic_candidates),
         metadata_candidates=dedupe_metadata(metadata_candidates),
         competency_questions=dedupe_questions(competency_questions),
+        user_tasks=list(payload.user_tasks),
         warnings=warnings,
     )
+
+
+def stamp_rule_provenance(requirements: list[CandidateRequirement]) -> list[CandidateRequirement]:
+    created_at = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    for requirement in requirements:
+        if requirement.provenance is None:
+            requirement.provenance = ExtractionProvenance(
+                strategy='rules',
+                extractor='rule-based-v1',
+                created_at=created_at,
+                evidence_verified=True,
+            )
+    return requirements
+
+
+def link_user_tasks(requirements: list[CandidateRequirement], user_tasks: list[UserTask]) -> list[CandidateRequirement]:
+    """Lexical fallback linking of requirements to user tasks (rules baseline).
+
+    LLM-extracted requirements arrive with model-proposed links; this only
+    fills in links for requirements that have none yet.
+    """
+    if not user_tasks:
+        return requirements
+
+    def stemmed(value: str) -> set[str]:
+        tokens = set()
+        for token in normalize_tokens(value):
+            for suffix in ('ies', 'ing', 'ed', 'es', 's'):
+                if token.endswith(suffix) and len(token) - len(suffix) >= 3:
+                    token = token[: -len(suffix)]
+                    break
+            if token.endswith('e') and len(token) >= 4:
+                token = token[:-1]
+            tokens.add(token)
+        return tokens
+
+    task_tokens = {task.id: stemmed(task.statement) for task in user_tasks}
+    for requirement in requirements:
+        if requirement.supports_user_tasks:
+            continue
+        statement = ' '.join(
+            filter(None, [requirement.normalized_statement, requirement.normalized_intent.metadata_need, requirement.category])
+        )
+        requirement_tokens = stemmed(statement)
+        linked = [
+            task.id
+            for task in user_tasks
+            if task_tokens[task.id]
+            and len(requirement_tokens & task_tokens[task.id]) / len(task_tokens[task.id]) >= 0.3
+        ]
+        requirement.supports_user_tasks = linked
+    return requirements
 
 
 def extract_requirements(payload: AnalysisRequest) -> AnalysisResponse:
