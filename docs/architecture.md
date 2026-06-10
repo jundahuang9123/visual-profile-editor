@@ -4,7 +4,10 @@ This application is a downstream profile editor. The reusable backend functions 
 
 Construct-DCAT-specific code stays in this repository:
 
-- `schemas/profile.yaml` is the active profile source.
+- `schemas/` contains versioned default profile seeds.
+- `.vpe-workspace/profiles/profile.yaml` is the ignored local active profile
+  source by default; `VPE_PROFILE_WORKSPACE` or `/api/profile/workspace` can
+  point the active profile at another local directory.
 - `profiles/templates/` contains selectable profile starting points.
 - `backend/app/profile_*` modules add profile validation and export packaging.
 - `frontend/` contains the specialized profile workflow and terminology.

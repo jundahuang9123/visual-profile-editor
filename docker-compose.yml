@@ -10,9 +10,11 @@ services:
       - ./generated:/app/generated
       - ./examples:/app/examples
       - ./profiles:/app/profiles
+      - ./.vpe-workspace:/app/.vpe-workspace
     environment:
       - PYTHONUNBUFFERED=1
       - REQUIREMENT_REUSE_SERVICE_URL=http://requirement-reuse-service:8010
+      - VPE_PROFILE_WORKSPACE=/app/.vpe-workspace/profiles
     depends_on:
       - requirement-reuse-service
     command: sh -c "[ -f /app/generated/jsonschema/construct_dcat.schema.json ] && [ -f /app/generated/jsonschema/profile.schema.json ] || /app/scripts/generate.sh; uvicorn app.main:app --host 0.0.0.0 --port 8000"

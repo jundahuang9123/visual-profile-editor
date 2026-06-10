@@ -20,11 +20,14 @@ import {
   exportSchema as exportSchemaFile,
   importSchemaFile,
   loadPreview,
+  loadProfileWorkspace,
   loadProfileTemplate,
   loadProfileTemplates,
   loadSchemaModel,
   saveSchemaYaml,
+  setProfileWorkspace,
   validateProfile,
+  type ProfileWorkspace,
   type ProfileTemplate,
 } from './lib/schemaApi';
 import { schemaToFlow } from './lib/schema';
@@ -199,6 +202,9 @@ export default function App() {
   const [templates, setTemplates] = useState<ProfileTemplate[]>([]);
   const [templatesOpen, setTemplatesOpen] = useState(true);
   const [templateLoading, setTemplateLoading] = useState(false);
+  const [workspace, setWorkspace] = useState<ProfileWorkspace | null>(null);
+  const [workspaceInput, setWorkspaceInput] = useState('');
+  const [workspaceSaving, setWorkspaceSaving] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [previewTab, setPreviewTab] = useState<PreviewTab>('linkml');
   const [previewText, setPreviewText] = useState('');
@@ -221,6 +227,17 @@ export default function App() {
       .then(setTemplates)
       .catch((error) => {
         setStatus(`Template load failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+      });
+  }, []);
+
+  useEffect(() => {
+    loadProfileWorkspace()
+      .then((result) => {
+        setWorkspace(result);
+        setWorkspaceInput(result.directory);
+      })
+      .catch((error) => {
+        setStatus(`Workspace load failed: ${error instanceof Error ? error.message : 'unknown error'}`);
       });
   }, []);
 
@@ -283,6 +300,28 @@ export default function App() {
     },
     [loadSchema],
   );
+
+  const updateWorkspace = useCallback(async () => {
+    const directory = workspaceInput.trim();
+    if (!directory) {
+      setStatus('Workspace directory is required.');
+      return;
+    }
+
+    setWorkspaceSaving(true);
+    setStatus('Updating profile workspace...');
+    try {
+      const result = await setProfileWorkspace(directory);
+      setWorkspace(result.workspace);
+      setWorkspaceInput(result.workspace.directory);
+      loadSchema(result.schema);
+      setStatus(`Using workspace ${result.workspace.directory}`);
+    } catch (error) {
+      setStatus(`Workspace update failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+    } finally {
+      setWorkspaceSaving(false);
+    }
+  }, [loadSchema, workspaceInput]);
 
   const selectImportFile = useCallback((file: File) => {
     setPendingUpload(file);
@@ -367,7 +406,12 @@ export default function App() {
             loading={templateLoading}
             onClose={() => setTemplatesOpen(false)}
             onLoadTemplate={(templateId) => void selectTemplate(templateId)}
+            onSetWorkspace={() => void updateWorkspace()}
+            onWorkspaceInputChange={setWorkspaceInput}
             templates={templates}
+            workspace={workspace}
+            workspaceInput={workspaceInput}
+            workspaceSaving={workspaceSaving}
           />
         ) : null}
         {validationResult ? (
@@ -414,7 +458,11 @@ export default function App() {
       templateLoading,
       templates,
       templatesOpen,
+      updateWorkspace,
       validationResult,
+      workspace,
+      workspaceInput,
+      workspaceSaving,
       yamlVisible,
     ],
   );

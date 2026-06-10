@@ -5,9 +5,9 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 
-from general_ontology_editor import generate_json_schema, generate_linkml, generate_rdf, generate_shacl, import_rdf_schema, save_schema
+from general_ontology_editor import generate_json_schema, generate_linkml, generate_rdf, generate_shacl, import_rdf_schema
 
-from .profile_export import TEMPLATES, apply_template, create_profile_package, load_profile
+from .profile_export import TEMPLATES, apply_template, create_profile_package, load_profile, profile_workspace_info, save_profile, set_profile_workspace
 from .profile_validation import validate_profile
 
 
@@ -18,6 +18,24 @@ def profile_router(base_dir: Path) -> APIRouter:
     def profile_model() -> JSONResponse:
         return JSONResponse(load_profile(base_dir))
 
+    @router.get('/api/profile/workspace')
+    def profile_workspace() -> JSONResponse:
+        try:
+            return JSONResponse(profile_workspace_info(base_dir))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @router.put('/api/profile/workspace')
+    def update_profile_workspace(payload: dict[str, str]) -> JSONResponse:
+        directory = payload.get('directory')
+        if not isinstance(directory, str):
+            raise HTTPException(status_code=400, detail='Missing directory payload')
+        try:
+            workspace, schema = set_profile_workspace(base_dir, directory)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return JSONResponse({'workspace': workspace, 'schema': schema})
+
     @router.get('/api/profile/linkml')
     def profile_linkml() -> PlainTextResponse:
         return PlainTextResponse(generate_linkml(load_profile(base_dir)), media_type='application/yaml')
@@ -27,8 +45,8 @@ def profile_router(base_dir: Path) -> APIRouter:
         yaml_text = payload.get('yaml')
         if not isinstance(yaml_text, str) or not yaml_text.strip():
             raise HTTPException(status_code=400, detail='Missing yaml payload')
-        save_schema(base_dir / 'schemas' / 'profile.yaml', yaml_text)
-        return JSONResponse({'status': 'ok'})
+        save_profile(base_dir, yaml_text)
+        return JSONResponse({'status': 'ok', **profile_workspace_info(base_dir)})
 
     @router.post('/api/profile/import')
     async def import_profile(file: UploadFile = File(...)) -> JSONResponse:

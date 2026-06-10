@@ -36,6 +36,18 @@ type SaveResult = {
   message: string;
 };
 
+export type ProfileWorkspace = {
+  directory: string;
+  schema_path: string;
+  default_directory: string;
+  seed_path: string;
+};
+
+type WorkspaceUpdateResult = {
+  workspace: ProfileWorkspace;
+  schema: SchemaModel;
+};
+
 export function downloadText(text: string, filename: string, type: string) {
   if (exportWithNativePicker(text, filename, type)) {
     return;
@@ -110,8 +122,9 @@ export async function saveSchemaYaml(yamlText: string): Promise<SaveResult> {
         body: JSON.stringify({ yaml: yamlText }),
       });
       if (!res.ok) throw new Error(await res.text());
+      const payload = (await res.json()) as Partial<ProfileWorkspace>;
       saveLocalSchema(parseLinkmlSchema(yamlText));
-      return { message: 'Saved to schemas/profile.yaml' };
+      return { message: payload.schema_path ? `Saved to ${payload.schema_path}` : 'Saved to workspace profile.yaml' };
     } catch (error) {
       saveLocalSchema(parseLinkmlSchema(yamlText));
       return { message: `Server save failed; saved on this device (${errorMessage(error)}).` };
@@ -190,6 +203,26 @@ export async function loadProfileTemplate(templateId: string): Promise<SchemaMod
   const res = await fetch(`/api/profile/templates/${templateId}/load`, { method: 'POST' });
   if (!res.ok) throw new Error(await res.text());
   return normalizeSchema((await res.json()) as SchemaModel);
+}
+
+export async function loadProfileWorkspace(): Promise<ProfileWorkspace> {
+  const res = await fetch('/api/profile/workspace');
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()) as ProfileWorkspace;
+}
+
+export async function setProfileWorkspace(directory: string): Promise<WorkspaceUpdateResult> {
+  const res = await fetch('/api/profile/workspace', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ directory }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const result = (await res.json()) as WorkspaceUpdateResult;
+  return {
+    workspace: result.workspace,
+    schema: normalizeSchema(result.schema),
+  };
 }
 
 export async function validateProfile(schema: SchemaModel) {

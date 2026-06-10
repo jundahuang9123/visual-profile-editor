@@ -408,6 +408,40 @@ button.danger {
   font-size: 12px;
 }
 
+.workspace-settings {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.workspace-settings label {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workspace-settings__row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.workspace-settings input {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  min-width: 0;
+  padding: 8px 10px;
+}
+
+.workspace-settings span {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .validation-modal__header {
   align-items: center;
   display: flex;

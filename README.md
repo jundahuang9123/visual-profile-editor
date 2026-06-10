@@ -50,12 +50,14 @@ Then open:
 ## Useful Endpoints
 
 - `GET /api/profile/model`
+- `GET /api/profile/workspace`
+- `PUT /api/profile/workspace`
 - `GET /api/profile/templates`
 - `POST /api/profile/templates/{template_id}/load`
 - `POST /api/profile/validate`
 - `GET /profile/export/package`
-- `GET /schema/export/shacl`
-- `GET /schema/export/rdf`
+- `GET /profile/export/shacl`
+- `GET /profile/export/rdf`
 
 The legacy dataset onboarding demo routes remain available:
 
@@ -70,10 +72,19 @@ visual-profile-editor/
   backend/      FastAPI app and Construct-DCAT profile routes
   frontend/     React + TypeScript profile editor UI
   profiles/     profile templates and example metadata
-  schemas/      active LinkML profile source
+  schemas/      versioned default profile seeds
+  .vpe-workspace/ ignored local active profile storage
   scripts/      artifact generation
   generated/    generated JSON Schema and SHACL files
 ```
+
+## Active Profile Storage
+
+The editor keeps the active working profile in an ignored local workspace, not
+in `schemas/profile.yaml`. By default it writes `.vpe-workspace/profiles/profile.yaml`;
+set `VPE_PROFILE_WORKSPACE` or use the start dialog's active schema folder field
+to choose another local directory. Versioned files in `schemas/` remain default
+starting points for fresh workspaces and tests.
 
 ## Requirement Extraction & Reuse Recommendation
 

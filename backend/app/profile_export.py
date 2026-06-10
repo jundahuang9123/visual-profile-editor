@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -37,9 +38,105 @@ TEMPLATES = [
 ]
 
 
-def profile_schema_path(base_dir: Path) -> Path:
+WORKSPACE_ENV = 'VPE_PROFILE_WORKSPACE'
+WORKSPACE_DIRNAME = '.vpe-workspace'
+WORKSPACE_CONFIG = 'workspace.json'
+PROFILE_FILENAME = 'profile.yaml'
+
+
+def default_profile_seed_path(base_dir: Path) -> Path:
     primary = base_dir / 'schemas' / 'profile.yaml'
     return primary if primary.exists() else base_dir / 'schemas' / 'construct_dcat.yaml'
+
+
+def workspace_config_path(base_dir: Path) -> Path:
+    return base_dir / WORKSPACE_DIRNAME / WORKSPACE_CONFIG
+
+
+def default_workspace_dir(base_dir: Path) -> Path:
+    env_dir = os.environ.get(WORKSPACE_ENV)
+    if env_dir:
+        return resolve_workspace_dir(base_dir, env_dir)
+    return (base_dir / WORKSPACE_DIRNAME / 'profiles').resolve()
+
+
+def configured_workspace_dir(base_dir: Path) -> Path:
+    config_path = workspace_config_path(base_dir)
+    if config_path.exists():
+        try:
+            data = json.loads(config_path.read_text(encoding='utf-8'))
+            directory = data.get('directory')
+            if isinstance(directory, str) and directory.strip():
+                return resolve_workspace_dir(base_dir, directory)
+        except (OSError, json.JSONDecodeError):
+            pass
+    return default_workspace_dir(base_dir)
+
+
+def profile_schema_path(base_dir: Path) -> Path:
+    return ensure_workspace_profile(base_dir)
+
+
+def ensure_workspace_profile(base_dir: Path) -> Path:
+    workspace_dir = configured_workspace_dir(base_dir)
+    validate_workspace_dir(base_dir, workspace_dir)
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+    profile_path = workspace_dir / PROFILE_FILENAME
+    if not profile_path.exists():
+        profile_path.write_text(default_profile_seed_path(base_dir).read_text(encoding='utf-8'), encoding='utf-8')
+    return profile_path
+
+
+def profile_workspace_info(base_dir: Path) -> dict[str, str]:
+    profile_path = profile_schema_path(base_dir)
+    return {
+        'directory': str(profile_path.parent),
+        'schema_path': str(profile_path),
+        'default_directory': str(default_workspace_dir(base_dir)),
+        'seed_path': str(default_profile_seed_path(base_dir)),
+    }
+
+
+def set_profile_workspace(base_dir: Path, directory: str) -> tuple[dict[str, str], dict[str, Any]]:
+    if not directory.strip():
+        raise ValueError('Workspace directory is required.')
+
+    current_schema = load_profile(base_dir)
+    workspace_dir = resolve_workspace_dir(base_dir, directory)
+    validate_workspace_dir(base_dir, workspace_dir)
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+
+    config_path = workspace_config_path(base_dir)
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(json.dumps({'directory': str(workspace_dir)}, indent=2), encoding='utf-8')
+
+    profile_path = workspace_dir / PROFILE_FILENAME
+    if profile_path.exists():
+        schema = load_schema(profile_path)
+    else:
+        schema = save_schema(profile_path, current_schema)
+    return profile_workspace_info(base_dir), schema
+
+
+def resolve_workspace_dir(base_dir: Path, directory: str) -> Path:
+    expanded = Path(directory).expanduser()
+    if not expanded.is_absolute():
+        expanded = base_dir / expanded
+    return expanded.resolve()
+
+
+def validate_workspace_dir(base_dir: Path, workspace_dir: Path) -> None:
+    if workspace_dir.exists() and not workspace_dir.is_dir():
+        raise ValueError(f'Workspace path is not a directory: {workspace_dir}')
+
+    protected_dirs = [
+        (base_dir / 'schemas').resolve(),
+        (base_dir / 'profiles' / 'templates').resolve(),
+        (base_dir / '.git').resolve(),
+    ]
+    for protected_dir in protected_dirs:
+        if workspace_dir == protected_dir or workspace_dir.is_relative_to(protected_dir):
+            raise ValueError(f'Choose a workspace outside the versioned seed directory: {protected_dir}')
 
 
 def load_profile(base_dir: Path) -> dict[str, Any]:
@@ -47,7 +144,7 @@ def load_profile(base_dir: Path) -> dict[str, Any]:
 
 
 def save_profile(base_dir: Path, schema: dict[str, Any] | str) -> dict[str, Any]:
-    return save_schema(base_dir / 'schemas' / 'profile.yaml', schema)
+    return save_schema(profile_schema_path(base_dir), schema)
 
 
 def template_path(base_dir: Path, template_id: str) -> Path:

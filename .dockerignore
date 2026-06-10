@@ -3,6 +3,7 @@
 __pycache__/
 *.pyc
 *.log
+.vpe-workspace/
 frontend/node_modules/
 frontend/dist/
 generated/
