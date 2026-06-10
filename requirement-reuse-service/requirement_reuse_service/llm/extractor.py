@@ -10,6 +10,7 @@ from ..models import (
     AnalysisRequest,
     CandidateMetadataAction,
     CandidateRequirement,
+    EvidenceUnit,
     ExtractionProvenance,
     NormalizedIntent,
     SourceEvidence,
@@ -19,10 +20,8 @@ from .client import LLMClient
 
 PROMPT_VERSION = 'rrs-extract-v1'
 
-MAX_CHARS_PER_ARTIFACT = 12000
+MAX_CHARS_PER_EVIDENCE_UNIT = 1200
 MAX_TOTAL_CHARS = 60000
-
-TEXT_SOURCE_NAME = 'text description'
 
 REQUIREMENT_TYPES = [
     'descriptive_metadata',
@@ -35,6 +34,20 @@ REQUIREMENT_TYPES = [
     'validation_constraint',
     'competency_question',
 ]
+
+RESOURCE_TYPES = {'Catalog', 'Dataset', 'Distribution', 'DataService', 'Agent', 'Concept'}
+VALUE_KINDS = {'literal', 'uri', 'controlled_concept', 'class_reference', 'date', 'agent', 'distribution'}
+OBLIGATIONS = {'mandatory', 'recommended', 'optional'}
+ACTIONS = {'reuse_existing_term', 'specialize_existing_term', 'create_extension', 'add_constraint', 'add_usage_note', 'no_action'}
+REQUIREMENT_SCOPES = {
+    'profile_element',
+    'obligation_level',
+    'controlled_vocabulary',
+    'validation_constraint',
+    'documentation_guidance',
+    'example_requirement',
+    'unknown',
+}
 
 SYSTEM_PROMPT = f"""You are a metadata profile engineering assistant supporting a reuse-first, \
 requirements-driven workflow for building DCAT/DCAT-AP-compatible application profiles \
@@ -50,33 +63,35 @@ You are a bounded assistant - every record will be reviewed by a human expert be
 Rules:
 1. Each requirement must be a single, testable profile-design statement of the form \
 "A dcat:Dataset (or dcat:Distribution / dcat:Catalog / dcat:DataService) should/must ...".
-2. EVIDENCE MUST BE VERBATIM. Every evidence quote must be an exact, contiguous substring \
-copied character-for-character from the named source artifact. Never paraphrase, never \
-summarize, never merge text from different places into one quote. Quotes are programmatically \
-verified against the sources; fabricated quotes are discarded.
+2. EVIDENCE MUST BE VERBATIM. Every evidence quote must cite an evidence_unit_id and must be \
+an exact, contiguous substring copied character-for-character from that evidence unit content. \
+Never paraphrase, never summarize, never merge text from different evidence units into one quote. \
+Unknown evidence_unit_id values and fabricated quotes are discarded.
 3. Reuse first: prefer existing DCAT/DCAT-AP/Dublin Core terms (dcterms:, dcat:, foaf:, prov:, \
 skos:). Suggest a profile-specific extension term (cx: prefix) only when no standard term fits, \
 and say why in the action rationale.
 4. requirement_type must be one of: {', '.join(REQUIREMENT_TYPES)}.
-5. fair_dimensions uses letters F, A, I, R (Findable, Accessible, Interoperable, Reusable); \
+5. requirement_scope must be one of: {', '.join(sorted(REQUIREMENT_SCOPES))}.
+6. fair_dimensions uses letters F, A, I, R (Findable, Accessible, Interoperable, Reusable); \
 include only dimensions the requirement genuinely supports, with a one-sentence rationale.
-6. If user tasks / competency questions are provided (each with an id), list the ids of the \
+7. If user tasks / competency questions are provided (each with an id), list the ids of the \
 tasks each requirement supports in supports_user_tasks. Only link a task if the requirement \
 genuinely helps answer or accomplish it.
-7. Do not invent requirements that have no support in the sources. Fewer, well-grounded \
+8. Do not invent requirements that have no support in the sources. Fewer, well-grounded \
 records are better than many speculative ones.
-8. Normalize: if several places express the same need, produce ONE requirement with multiple \
+9. Normalize: if several places express the same need, produce ONE requirement with multiple \
 evidence quotes rather than near-duplicates."""
 
 
 class LLMEvidence(BaseModel):
-    artifact_name: str = Field(description='Exact name of the source artifact the quote comes from')
-    quote: str = Field(description='Verbatim contiguous substring copied from that artifact')
+    evidence_unit_id: str = Field(description='ID of the evidence unit being cited')
+    quote: str = Field(description='Verbatim contiguous substring copied from that evidence unit content')
 
 
 class LLMRequirement(BaseModel):
     statement: str = Field(description='Normalized profile-design statement')
     requirement_type: str = Field(description='One of the allowed requirement types')
+    requirement_scope: str = Field(description='One of the allowed requirement scopes')
     resource_type: str = Field(description='Dataset | Distribution | Catalog | DataService | Agent | Concept')
     metadata_need: str = Field(description='Short phrase naming the metadata need')
     value_kind: str = Field(description='literal | uri | controlled_concept | class_reference | date | agent | distribution')
@@ -95,12 +110,6 @@ class LLMExtractionResult(BaseModel):
     requirements: list[LLMRequirement] = Field(default_factory=list)
 
 
-RESOURCE_TYPES = {'Catalog', 'Dataset', 'Distribution', 'DataService', 'Agent', 'Concept'}
-VALUE_KINDS = {'literal', 'uri', 'controlled_concept', 'class_reference', 'date', 'agent', 'distribution'}
-OBLIGATIONS = {'mandatory', 'recommended', 'optional'}
-ACTIONS = {'reuse_existing_term', 'specialize_existing_term', 'create_extension', 'add_constraint', 'add_usage_note', 'no_action'}
-
-
 def extract_with_llm(
     payload: AnalysisRequest,
     client: LLMClient,
@@ -110,15 +119,16 @@ def extract_with_llm(
     Returns candidate requirements (with provenance and verified evidence)
     plus human-readable warnings (e.g. discarded hallucinated quotes).
     """
-    sources = build_sources(payload)
-    if not sources:
+    evidence_units = build_evidence_units(payload)
+    if not evidence_units:
         return [], ['No analyzable source content was provided for LLM extraction.']
 
-    user_prompt = build_user_prompt(sources, payload.user_tasks)
+    user_prompt = build_user_prompt(evidence_units, payload.user_tasks)
     result = client.generate_structured(system=SYSTEM_PROMPT, user=user_prompt, output_model=LLMExtractionResult)
 
     warnings: list[str] = []
     requirements: list[CandidateRequirement] = []
+    evidence_by_id = {unit.id: unit for unit in evidence_units}
     known_task_ids = {task.id for task in payload.user_tasks}
     created_at = datetime.now(timezone.utc).isoformat(timespec='seconds')
     description = client.describe()
@@ -126,7 +136,7 @@ def extract_with_llm(
     for item in result.requirements:
         requirement = convert_requirement(
             item,
-            sources,
+            evidence_by_id,
             known_task_ids,
             warnings,
             provenance=ExtractionProvenance(
@@ -142,22 +152,13 @@ def extract_with_llm(
     return requirements, warnings
 
 
-def build_sources(payload: AnalysisRequest) -> dict[str, dict[str, str]]:
-    """Collect named source texts: {artifact_name: {'kind': ..., 'text': ...}}."""
-    from ..service import decode_artifact_text, detect_kind
+def build_evidence_units(payload: AnalysisRequest) -> list[EvidenceUnit]:
+    from ..service import extract_evidence_units
 
-    sources: dict[str, dict[str, str]] = {}
-    if payload.text and payload.text.strip():
-        sources[TEXT_SOURCE_NAME] = {'kind': 'text', 'text': payload.text}
-    for artifact in payload.artifacts:
-        kind = detect_kind(artifact)
-        text = decode_artifact_text(artifact)
-        if text and text.strip():
-            sources[artifact.name] = {'kind': kind, 'text': text}
-    return sources
+    return extract_evidence_units(payload)
 
 
-def build_user_prompt(sources: dict[str, dict[str, str]], user_tasks: list[UserTask]) -> str:
+def build_user_prompt(evidence_units: list[EvidenceUnit], user_tasks: list[UserTask]) -> str:
     parts: list[str] = []
     if user_tasks:
         parts.append('USER TASKS / COMPETENCY QUESTIONS (reference these ids in supports_user_tasks):')
@@ -166,35 +167,41 @@ def build_user_prompt(sources: dict[str, dict[str, str]], user_tasks: list[UserT
             parts.append(f'- {task.id} ({task.kind}){stakeholder}: {task.statement}')
         parts.append('')
 
+    parts.append('EVIDENCE UNITS (cite evidence_unit_id plus a verbatim quote from content):')
     total = 0
-    for name, source in sources.items():
-        text = source['text']
-        if len(text) > MAX_CHARS_PER_ARTIFACT:
-            text = text[:MAX_CHARS_PER_ARTIFACT]
-        if total + len(text) > MAX_TOTAL_CHARS:
+    for unit in evidence_units:
+        content = unit.content
+        if len(content) > MAX_CHARS_PER_EVIDENCE_UNIT:
+            content = content[:MAX_CHARS_PER_EVIDENCE_UNIT]
+        if total + len(content) > MAX_TOTAL_CHARS:
             remaining = MAX_TOTAL_CHARS - total
             if remaining <= 0:
-                parts.append(f'=== SOURCE ARTIFACT: {name} (kind: {source["kind"]}) === [omitted: input budget exhausted]')
+                parts.append(f'--- evidence_unit_id: {unit.id} [omitted: input budget exhausted]')
                 continue
-            text = text[:remaining]
-        total += len(text)
-        parts.append(f'=== SOURCE ARTIFACT: {name} (kind: {source["kind"]}) ===')
-        parts.append(text)
-        parts.append(f'=== END OF {name} ===')
+            content = content[:remaining]
+        total += len(content)
+        parts.append(f'--- evidence_unit_id: {unit.id}')
+        parts.append(f'artifact_name: {unit.artifact_name}')
+        parts.append(f'artifact_kind: {unit.artifact_kind}')
+        parts.append(f'locator: {unit.locator or ""}')
+        parts.append(f'extracted_facts: {"; ".join(unit.extracted_facts)}')
+        parts.append('content:')
+        parts.append(content)
+        parts.append('--- end evidence unit')
         parts.append('')
 
-    parts.append('Extract the candidate profile-design requirements from these sources now.')
+    parts.append('Extract the candidate profile-design requirements from these evidence units now.')
     return '\n'.join(parts)
 
 
 def convert_requirement(
     item: LLMRequirement,
-    sources: dict[str, dict[str, str]],
+    evidence_by_id: dict[str, EvidenceUnit],
     known_task_ids: set[str],
     warnings: list[str],
     provenance: ExtractionProvenance,
 ) -> CandidateRequirement | None:
-    from ..service import category_for_requirement_type, stable_id, title_for_statement
+    from ..service import category_for_requirement_type, stable_id, title_for_statement, validate_requirement
 
     statement = item.statement.strip()
     if not statement:
@@ -203,24 +210,32 @@ def convert_requirement(
     verified_evidence: list[SourceEvidence] = []
     dropped = 0
     for evidence in item.evidence:
-        located = locate_quote(evidence.quote, evidence.artifact_name, sources)
+        unit = evidence_by_id.get(evidence.evidence_unit_id)
+        if unit is None:
+            dropped += 1
+            warnings.append(
+                f"Discarded evidence for '{title_for_statement(statement)}' "
+                f'(unknown evidence_unit_id={evidence.evidence_unit_id}): "{truncate(evidence.quote, 120)}"'
+            )
+            continue
+        located = locate_quote(evidence.quote, unit)
         if located is None:
             dropped += 1
             warnings.append(
                 f"Discarded unverifiable evidence quote for '{title_for_statement(statement)}' "
-                f'(not found verbatim in {evidence.artifact_name}): "{truncate(evidence.quote, 120)}"'
+                f'(not found verbatim in {evidence.evidence_unit_id}): "{truncate(evidence.quote, 120)}"'
             )
             continue
-        artifact_name, kind, start, end, quote = located
+        start, end, quote = located
         verified_evidence.append(
             SourceEvidence(
-                evidence_unit_id=stable_id('ev', artifact_name, start, end),
-                source_id=stable_id('src', artifact_name),
-                artifact_name=artifact_name,
-                artifact_kind=kind,
-                locator=f'chars:{start}-{end}',
+                evidence_unit_id=unit.id,
+                source_id=unit.source_id,
+                artifact_name=unit.artifact_name,
+                artifact_kind=unit.artifact_kind,
+                locator=f'{unit.locator or "content"};chars:{start}-{end}',
                 evidence_text=quote,
-                extracted_facts=[],
+                extracted_facts=unit.extracted_facts,
             )
         )
 
@@ -234,6 +249,7 @@ def convert_requirement(
     value_kind = item.value_kind if item.value_kind in VALUE_KINDS else 'unknown'
     obligation = item.obligation if item.obligation in OBLIGATIONS else 'unknown'
     action = item.action if item.action in ACTIONS else 'reuse_existing_term'
+    requirement_scope = item.requirement_scope if item.requirement_scope in REQUIREMENT_SCOPES else 'unknown'
     fair = [dim for dim in item.fair_dimensions if dim in {'F', 'A', 'I', 'R'}]
 
     unknown_tasks = [task_id for task_id in item.supports_user_tasks if known_task_ids and task_id not in known_task_ids]
@@ -246,11 +262,12 @@ def convert_requirement(
         confidence = min(confidence, 0.4)
 
     category = category_for_requirement_type(requirement_type)
-    return CandidateRequirement(
+    requirement = CandidateRequirement(
         id=stable_id('req', 'llm', statement, *(unit.evidence_unit_id for unit in verified_evidence[:4])),
         raw_statement='; '.join(unit.evidence_text for unit in verified_evidence[:3]) or statement,
         normalized_statement=statement,
         requirement_type=requirement_type,
+        requirement_scope=requirement_scope,
         source_evidence=verified_evidence,
         normalized_intent=NormalizedIntent(
             resource_type=resource_type,
@@ -270,7 +287,8 @@ def convert_requirement(
         ],
         supports_user_tasks=supported_tasks,
         provenance=provenance,
-        status='candidate' if evidence_verified else 'needs_review',
+        validation_status='valid' if evidence_verified else 'missing_evidence',
+        status='candidate',
         title=title_for_statement(statement),
         description=statement,
         category=category,
@@ -278,36 +296,26 @@ def convert_requirement(
         evidence=[unit.evidence_text for unit in verified_evidence[:8]],
         confidence=confidence,
     )
+    return validate_requirement(requirement)
 
 
 def locate_quote(
     quote: str,
-    artifact_name: str,
-    sources: dict[str, dict[str, str]],
-) -> tuple[str, str, int, int, str] | None:
-    """Verify a quote occurs verbatim in its claimed source (whitespace-tolerant).
-
-    Returns (artifact_name, kind, start, end, matched_text) or None. Falls back
-    to searching all sources if the claimed artifact name does not match.
-    """
+    unit: EvidenceUnit,
+) -> tuple[int, int, str] | None:
+    """Verify a quote occurs inside its cited evidence unit."""
     quote = quote.strip()
     if not quote:
         return None
 
-    candidates = []
-    if artifact_name in sources:
-        candidates.append((artifact_name, sources[artifact_name]))
-    candidates.extend((name, source) for name, source in sources.items() if name != artifact_name)
-
-    for name, source in candidates:
-        text = source['text']
-        start = text.find(quote)
-        if start >= 0:
-            return name, source['kind'], start, start + len(quote), quote
-        match = whitespace_tolerant_search(quote, text)
-        if match is not None:
-            start, end = match
-            return name, source['kind'], start, end, text[start:end]
+    text = unit.content
+    start = text.find(quote)
+    if start >= 0:
+        return start, start + len(quote), quote
+    match = whitespace_tolerant_search(quote, text)
+    if match is not None:
+        start, end = match
+        return start, end, text[start:end]
     return None
 
 

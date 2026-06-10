@@ -12,6 +12,8 @@ class LLMConfig:
     """Provider-agnostic LLM configuration resolved from environment variables.
 
     Providers:
+      - ``disabled``           no LLM provider configured; strategies fall back
+                               to rule-based extraction
       - ``anthropic``          native Anthropic Messages API (default when an
                                Anthropic key is available)
       - ``openai-compatible``  any endpoint speaking the OpenAI chat-completions
@@ -20,7 +22,7 @@ class LLMConfig:
       - ``mock``               deterministic offline client for tests and demos
 
     Environment variables:
-      RRS_LLM_PROVIDER   anthropic | openai-compatible | mock
+      RRS_LLM_PROVIDER   disabled | anthropic | openai-compatible | mock
       RRS_LLM_MODEL      model id (default for anthropic: claude-opus-4-8)
       RRS_LLM_BASE_URL   base URL for openai-compatible endpoints
                          (e.g. http://localhost:11434/v1 for Ollama)
@@ -30,7 +32,7 @@ class LLMConfig:
       RRS_LLM_TIMEOUT    request timeout in seconds (default 240)
     """
 
-    provider: str = 'anthropic'
+    provider: str = 'disabled'
     model: str | None = None
     base_url: str | None = None
     api_key: str | None = None
@@ -42,7 +44,12 @@ class LLMConfig:
     def from_env(cls) -> 'LLMConfig':
         provider = os.environ.get('RRS_LLM_PROVIDER', '').strip().lower()
         if not provider:
-            provider = 'anthropic' if os.environ.get('ANTHROPIC_API_KEY') else 'mock'
+            if os.environ.get('ANTHROPIC_API_KEY'):
+                provider = 'anthropic'
+            elif os.environ.get('RRS_LLM_BASE_URL'):
+                provider = 'openai-compatible'
+            else:
+                provider = 'disabled'
         return cls(
             provider=provider,
             model=os.environ.get('RRS_LLM_MODEL') or None,
@@ -59,4 +66,6 @@ class LLMConfig:
             return DEFAULT_ANTHROPIC_MODEL
         if self.provider == 'mock':
             return 'mock-model'
+        if self.provider == 'disabled':
+            return 'disabled'
         raise ValueError('RRS_LLM_MODEL must be set for openai-compatible providers')

@@ -37,7 +37,7 @@ plan, Section 6.2):
 | Strategy | Description |
 | --- | --- |
 | `rules` | Deterministic keyword/structure heuristics (baseline). Always available, no network access. |
-| `llm` | LLM-assisted extraction. The model receives the sources plus user tasks and returns structured requirement records. |
+| `llm` | LLM-assisted extraction. The model receives evidence-unit records plus user tasks and returns structured requirement records. |
 | `hybrid` | LLM records first; rule-based records covering metadata needs the LLM missed are appended. Duplicate detection surfaces overlaps for review. |
 
 If the LLM provider is unavailable or misconfigured, the service falls back to
@@ -47,11 +47,21 @@ rule-based results and reports the reason in `warnings` (the response
 ### Verbatim evidence guard
 
 LLM output is only trusted where it can be verified: every evidence quote must
-occur verbatim (whitespace-tolerant) in its source artifact. Verified quotes
-get `chars:start-end` locators; unverifiable quotes are discarded with a
-warning, and requirements left without verified evidence are downgraded to
-`needs_review` with capped confidence and `provenance.evidence_verified=false`.
-This turns traceability from a promise into a checkable property.
+cite an `evidence_unit_id` and occur verbatim (whitespace-tolerant) inside that
+evidence unit's `content`. Verified quotes keep the cited evidence unit id plus
+a subspan locator; unknown evidence ids or unverifiable quotes are discarded
+with a warning. Requirements left without verified evidence get
+`validation_status=missing_evidence`, capped confidence, and
+`provenance.evidence_verified=false`. Human review state remains separate in
+`status`.
+
+Machine validation also checks candidate terms:
+
+- unknown reused/specialized terms set `validation_status=unknown_term`;
+- obvious resource mismatches such as `dcat:mediaType` on `Dataset` set
+  `validation_status=resource_mismatch`;
+- `create_extension` actions must use `cx:` terms, otherwise they get
+  `validation_status=needs_review`.
 
 ## LLM provider configuration (plug and play)
 
@@ -59,7 +69,7 @@ The service is provider-agnostic. Configure via environment variables:
 
 | Variable | Meaning |
 | --- | --- |
-| `RRS_LLM_PROVIDER` | `anthropic`, `openai-compatible`, or `mock` |
+| `RRS_LLM_PROVIDER` | `disabled`, `anthropic`, `openai-compatible`, or `mock` |
 | `RRS_LLM_MODEL` | model id (default for anthropic: `claude-opus-4-8`) |
 | `RRS_LLM_BASE_URL` | base URL for OpenAI-compatible endpoints |
 | `RRS_LLM_API_KEY` | API key for OpenAI-compatible endpoints |
@@ -83,8 +93,11 @@ export RRS_LLM_API_KEY=<your-openrouter-api-key>
 export RRS_LLM_MODEL=meta-llama/llama-3.3-70b-instruct
 ```
 
-`mock` is a deterministic offline client used by the test suite. The
-`/health` endpoint reports the active provider and model.
+With no provider, key, or base URL configured, the provider resolves to
+`disabled`; `llm` and `hybrid` requests fall back to `rules` with a warning.
+`mock` is a deterministic offline client used by the test suite and only runs
+when `RRS_LLM_PROVIDER=mock`. The `/health` endpoint reports the active
+provider and model.
 
 ## Requirement-set registry
 
@@ -97,6 +110,15 @@ files (default directory `requirement-sets/`, override with
 - `POST /load-requirement-set` — `{id}`
 
 All three are proxied by the main app under `/api/requirements/...`.
+
+## RQ1 evaluation export
+
+The registry is a convenience store for reviewed requirement sets; the full
+experiment export is `POST /export-rq1-dataset` (proxied as
+`/api/requirements/export-rq1-dataset`). It reruns the requested strategy and
+returns requirements, evidence units, duplicate groups, user tasks, warnings,
+review/editor history, and summary metrics such as counts by type, scope, and
+validation status.
 
 ## CLI runner
 

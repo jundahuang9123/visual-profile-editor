@@ -8,6 +8,15 @@ export type ArtifactPayload = {
 };
 
 export type ExtractionStrategy = 'rules' | 'llm' | 'hybrid';
+export type ValidationStatus = 'valid' | 'missing_evidence' | 'invalid_schema' | 'unknown_term' | 'resource_mismatch' | 'needs_review';
+export type RequirementScope =
+  | 'profile_element'
+  | 'obligation_level'
+  | 'controlled_vocabulary'
+  | 'validation_constraint'
+  | 'documentation_guidance'
+  | 'example_requirement'
+  | 'unknown';
 
 export type UserTask = {
   id: string;
@@ -106,6 +115,8 @@ export type CandidateRequirement = {
   candidate_metadata_actions: CandidateMetadataAction[];
   supports_user_tasks: string[];
   validation_evidence: string[];
+  validation_status: ValidationStatus;
+  requirement_scope: RequirementScope;
   provenance?: ExtractionProvenance | null;
   status: 'candidate' | 'approved' | 'rejected' | 'merged' | 'needs_review';
   review_notes?: string | null;
@@ -205,6 +216,20 @@ export type ConstraintGenerationResponse = {
   validation_notes: string[];
 };
 
+export type Rq1DatasetExport = {
+  schema_version: string;
+  generated_at: string;
+  strategy_requested: ExtractionStrategy;
+  strategy_used: ExtractionStrategy;
+  summary_metrics: Record<string, unknown>;
+  requirements: CandidateRequirement[];
+  evidence_units: EvidenceUnit[];
+  duplicate_groups: DuplicateGroup[];
+  user_tasks: UserTask[];
+  warnings: string[];
+  review_editor_history: Array<Record<string, unknown>>;
+};
+
 async function postJson<T>(endpoint: string, payload: unknown): Promise<T> {
   const response = await fetch(`/api/requirements/${endpoint}`, {
     method: 'POST',
@@ -221,6 +246,10 @@ export function analyzeArtifacts(payload: AnalysisRequest) {
 
 export function extractRequirements(payload: AnalysisRequest) {
   return postJson<AnalysisResponse>('extract-requirements', payload);
+}
+
+export function exportRq1Dataset(payload: AnalysisRequest) {
+  return postJson<Rq1DatasetExport>('export-rq1-dataset', payload);
 }
 
 export function recommendReuse(analysis: AnalysisResponse) {

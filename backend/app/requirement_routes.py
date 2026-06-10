@@ -11,6 +11,7 @@ ALLOWED_OPERATIONS = {
     'analyze',
     'analyze-artifacts',
     'extract-requirements',
+    'export-rq1-dataset',
     'recommend-reuse',
     'generate-shacl',
     'save-requirement-set',

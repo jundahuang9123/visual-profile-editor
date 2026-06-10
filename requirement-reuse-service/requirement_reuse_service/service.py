@@ -118,6 +118,38 @@ PROPERTY_CATALOG: dict[str, dict[str, Any]] = {
 }
 
 
+COMMON_TERM_CATALOG: dict[str, dict[str, Any]] = {
+    'dcat:Catalog': {'resource_types': ['Catalog']},
+    'dcat:Dataset': {'resource_types': ['Dataset']},
+    'dcat:Distribution': {'resource_types': ['Distribution']},
+    'dcat:DataService': {'resource_types': ['DataService']},
+    'dcat:theme': {'resource_types': ['Dataset', 'Catalog']},
+    'dcat:keyword': {'resource_types': ['Dataset']},
+    'dcat:distribution': {'resource_types': ['Dataset']},
+    'dcat:accessURL': {'resource_types': ['Distribution']},
+    'dcat:downloadURL': {'resource_types': ['Distribution']},
+    'dcat:mediaType': {'resource_types': ['Distribution']},
+    'dcat:contactPoint': {'resource_types': ['Dataset', 'DataService']},
+    'dcterms:title': {'resource_types': ['Catalog', 'Dataset', 'Distribution', 'DataService']},
+    'dcterms:description': {'resource_types': ['Catalog', 'Dataset', 'Distribution', 'DataService']},
+    'dcterms:publisher': {'resource_types': ['Catalog', 'Dataset', 'DataService']},
+    'dcterms:issued': {'resource_types': ['Dataset', 'Distribution']},
+    'dcterms:modified': {'resource_types': ['Dataset', 'Distribution']},
+    'dcterms:license': {'resource_types': ['Dataset', 'Distribution']},
+    'dcterms:rights': {'resource_types': ['Dataset', 'Distribution']},
+    'dcterms:accessRights': {'resource_types': ['Dataset', 'Distribution']},
+    'dcterms:format': {'resource_types': ['Distribution']},
+    'dcterms:conformsTo': {'resource_types': ['Dataset', 'Distribution']},
+    'dcterms:provenance': {'resource_types': ['Dataset', 'Distribution']},
+    'skos:Concept': {'resource_types': ['Concept']},
+    'skos:prefLabel': {'resource_types': ['Concept']},
+    'skos:inScheme': {'resource_types': ['Concept']},
+    'prov:wasDerivedFrom': {'resource_types': ['Dataset', 'Distribution']},
+    'prov:wasGeneratedBy': {'resource_types': ['Dataset', 'Distribution']},
+    'foaf:Agent': {'resource_types': ['Agent']},
+}
+
+
 AAS_ATTRIBUTE_KEYS = {
     'id',
     'idshort',
@@ -235,6 +267,7 @@ def analyze_payload_rules(payload: AnalysisRequest) -> AnalysisResponse:
     requirements = classify_requirements(requirements)
     requirements = assign_fair_dimensions(requirements)
     requirements = suggest_candidate_metadata_actions(requirements)
+    requirements = validate_requirements(requirements)
     requirements = stamp_rule_provenance(requirements)
     requirements = link_user_tasks(requirements, payload.user_tasks)
     duplicate_groups = detect_duplicate_requirements(requirements)
@@ -311,6 +344,45 @@ def link_user_tasks(requirements: list[CandidateRequirement], user_tasks: list[U
 
 def extract_requirements(payload: AnalysisRequest) -> AnalysisResponse:
     return analyze_payload(payload)
+
+
+def export_rq1_dataset(payload: AnalysisRequest) -> dict[str, Any]:
+    analysis = analyze_payload(payload)
+    requirements = analysis.requirements
+    return {
+        'schema_version': 'rq1-requirement-dataset-v1',
+        'generated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+        'strategy_requested': payload.strategy,
+        'strategy_used': analysis.strategy,
+        'summary_metrics': {
+            'requirement_count': len(requirements),
+            'evidence_unit_count': len(analysis.evidence_units),
+            'duplicate_group_count': len(analysis.duplicate_groups),
+            'user_task_count': len(analysis.user_tasks),
+            'warning_count': len(analysis.warnings),
+            'requirements_by_type': dict(Counter(requirement.requirement_type for requirement in requirements)),
+            'requirements_by_scope': dict(Counter(requirement.requirement_scope for requirement in requirements)),
+            'requirements_by_validation_status': dict(Counter(requirement.validation_status for requirement in requirements)),
+            'requirements_with_editor_history': sum(
+                1 for requirement in requirements if requirement.provenance and requirement.provenance.editor_history
+            ),
+        },
+        'requirements': [requirement.model_dump(mode='json', exclude_none=True) for requirement in requirements],
+        'evidence_units': [unit.model_dump(mode='json', exclude_none=True) for unit in analysis.evidence_units],
+        'duplicate_groups': [group.model_dump(mode='json', exclude_none=True) for group in analysis.duplicate_groups],
+        'user_tasks': [task.model_dump(mode='json', exclude_none=True) for task in analysis.user_tasks],
+        'warnings': analysis.warnings,
+        'review_editor_history': [
+            {
+                'requirement_id': requirement.id,
+                'review_status': requirement.status,
+                'validation_status': requirement.validation_status,
+                'review_notes': requirement.review_notes,
+                'editor_history': requirement.provenance.editor_history if requirement.provenance else [],
+            }
+            for requirement in requirements
+        ],
+    }
 
 
 
@@ -775,6 +847,95 @@ def suggest_candidate_metadata_actions(requirements: list[CandidateRequirement])
             )
         ]
     return requirements
+
+
+def validate_requirements(requirements: list[CandidateRequirement]) -> list[CandidateRequirement]:
+    for requirement in requirements:
+        validate_requirement(requirement)
+    return requirements
+
+
+def validate_requirement(requirement: CandidateRequirement) -> CandidateRequirement:
+    requirement.requirement_scope = requirement.requirement_scope if requirement.requirement_scope != 'unknown' else infer_requirement_scope(requirement)
+
+    if not requirement.source_evidence:
+        requirement.validation_status = 'missing_evidence'
+        requirement.confidence = min(requirement.confidence, 0.4)
+        return requirement
+
+    validation_status = 'valid'
+    for action in requirement.candidate_metadata_actions:
+        terms = clean_matches(action.candidate_terms)
+        action.candidate_terms = terms
+        if action.action in {'reuse_existing_term', 'specialize_existing_term'}:
+            for term in terms:
+                if term not in term_catalog():
+                    validation_status = stronger_validation_status(validation_status, 'unknown_term')
+                    requirement.confidence = min(requirement.confidence, 0.55)
+                    continue
+                if not term_matches_resource(term, action.target_class or requirement.normalized_intent.resource_type):
+                    validation_status = stronger_validation_status(validation_status, 'resource_mismatch')
+                    requirement.confidence = min(requirement.confidence, 0.6)
+        elif action.action == 'create_extension':
+            if not terms or any(not term.startswith('cx:') for term in terms):
+                validation_status = stronger_validation_status(validation_status, 'needs_review')
+                requirement.confidence = min(requirement.confidence, 0.6)
+
+    requirement.validation_status = validation_status
+    return requirement
+
+
+def stronger_validation_status(current: str, candidate: str) -> str:
+    priority = {
+        'valid': 0,
+        'needs_review': 1,
+        'resource_mismatch': 2,
+        'unknown_term': 3,
+        'invalid_schema': 4,
+        'missing_evidence': 5,
+    }
+    return candidate if priority.get(candidate, 0) > priority.get(current, 0) else current
+
+
+def infer_requirement_scope(requirement: CandidateRequirement) -> str:
+    actions = {action.action for action in requirement.candidate_metadata_actions}
+    if 'add_constraint' in actions or requirement.requirement_type == 'validation_constraint':
+        return 'validation_constraint'
+    if 'add_usage_note' in actions:
+        return 'documentation_guidance'
+    if requirement.requirement_type == 'controlled_vocabulary' or requirement.normalized_intent.value_kind == 'controlled_concept':
+        return 'controlled_vocabulary'
+    if requirement.requirement_type == 'competency_question':
+        return 'example_requirement'
+    if requirement.normalized_intent.obligation_hint in {'mandatory', 'recommended', 'optional'} and not requirement.candidate_metadata_actions:
+        return 'obligation_level'
+    if requirement.candidate_metadata_actions:
+        return 'profile_element'
+    return 'unknown'
+
+
+def term_catalog() -> dict[str, dict[str, Any]]:
+    catalog = dict(COMMON_TERM_CATALOG)
+    for term in PROPERTY_CATALOG.values():
+        compact = compact_uri(term['uri'])
+        resource_types = ['Dataset']
+        if compact in {'dcat:accessURL', 'dcat:downloadURL', 'dcat:mediaType', 'dcterms:format'}:
+            resource_types = ['Distribution']
+        elif compact == 'dcat:distribution':
+            resource_types = ['Dataset']
+        elif compact in {'dcterms:license', 'dcterms:accessRights', 'dcterms:conformsTo', 'dcterms:provenance'}:
+            resource_types = ['Dataset', 'Distribution']
+        elif compact.startswith('cx:'):
+            resource_types = ['Dataset']
+        catalog[compact] = {'resource_types': resource_types, **term}
+    return catalog
+
+
+def term_matches_resource(term: str, resource_type: str | None) -> bool:
+    if not resource_type or resource_type == 'Unknown':
+        return True
+    allowed = term_catalog().get(term, {}).get('resource_types')
+    return not allowed or resource_type in allowed
 
 
 def detect_duplicate_requirements(requirements: list[CandidateRequirement]) -> list[DuplicateGroup]:

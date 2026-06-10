@@ -34,6 +34,16 @@ ResourceType = Literal['Catalog', 'Dataset', 'Distribution', 'DataService', 'Age
 ValueKind = Literal['literal', 'uri', 'controlled_concept', 'class_reference', 'date', 'agent', 'distribution', 'unknown']
 ObligationHint = Literal['mandatory', 'recommended', 'optional', 'unknown']
 ReviewStatus = Literal['candidate', 'approved', 'rejected', 'merged', 'needs_review']
+ValidationStatus = Literal['valid', 'missing_evidence', 'invalid_schema', 'unknown_term', 'resource_mismatch', 'needs_review']
+RequirementScope = Literal[
+    'profile_element',
+    'obligation_level',
+    'controlled_vocabulary',
+    'validation_constraint',
+    'documentation_guidance',
+    'example_requirement',
+    'unknown',
+]
 FairDimension = Literal['F', 'A', 'I', 'R']
 ExtractionStrategy = Literal['rules', 'llm', 'hybrid']
 UserTaskKind = Literal['competency_question', 'user_task', 'stakeholder_need']
@@ -180,6 +190,8 @@ class CandidateRequirement(BaseModel):
     candidate_metadata_actions: list[CandidateMetadataAction] = Field(default_factory=list)
     supports_user_tasks: list[str] = Field(default_factory=list)
     validation_evidence: list[str] = Field(default_factory=list)
+    validation_status: ValidationStatus = 'needs_review'
+    requirement_scope: RequirementScope = 'unknown'
     provenance: ExtractionProvenance | None = None
     status: ReviewStatus = 'candidate'
     review_notes: str | None = None

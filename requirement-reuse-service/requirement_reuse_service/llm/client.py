@@ -183,10 +183,12 @@ def extract_json_object(text: str) -> str:
 def create_client(config: LLMConfig | None = None) -> LLMClient:
     config = config or LLMConfig.from_env()
     provider = config.provider.lower()
+    if provider == 'disabled':
+        raise LLMError('LLM provider is disabled; set RRS_LLM_PROVIDER and credentials/base URL to enable LLM extraction.')
     if provider == 'anthropic':
         return AnthropicClient(config)
     if provider in {'openai-compatible', 'openai', 'ollama'}:
         return OpenAICompatibleClient(config)
     if provider == 'mock':
         return MockLLMClient()
-    raise LLMError(f"Unknown LLM provider '{config.provider}'. Use anthropic, openai-compatible, or mock.")
+    raise LLMError(f"Unknown LLM provider '{config.provider}'. Use disabled, anthropic, openai-compatible, or mock.")

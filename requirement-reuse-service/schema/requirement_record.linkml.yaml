@@ -84,6 +84,12 @@ classes:
       validation_evidence:
         multivalued: true
         description: References to validation artifacts (test cases, SHACL reports) once the requirement is checked. Populated in later workflow stages.
+      validation_status:
+        range: ValidationStatus
+        description: Machine validation result, separate from human review status.
+      requirement_scope:
+        range: RequirementScope
+        description: RQ1 classification of what kind of profile-design decision the requirement supports.
       provenance:
         range: ExtractionProvenance
         description: How the candidate was produced and corrected.
@@ -189,6 +195,23 @@ enums:
     permissible_values: {mandatory: {}, recommended: {}, optional: {}, unknown: {}}
   ReviewStatus:
     permissible_values: {candidate: {}, approved: {}, rejected: {}, merged: {}, needs_review: {}}
+  ValidationStatus:
+    permissible_values:
+      valid: {}
+      missing_evidence: {}
+      invalid_schema: {}
+      unknown_term: {}
+      resource_mismatch: {}
+      needs_review: {}
+  RequirementScope:
+    permissible_values:
+      profile_element: {}
+      obligation_level: {}
+      controlled_vocabulary: {}
+      validation_constraint: {}
+      documentation_guidance: {}
+      example_requirement: {}
+      unknown: {}
   FairDimension:
     permissible_values: {F: {}, A: {}, I: {}, R: {}}
   ExtractionStrategy:

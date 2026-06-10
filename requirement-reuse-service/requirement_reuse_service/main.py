@@ -12,7 +12,7 @@ from .models import (
     RequirementSetSaveRequest,
 )
 from .registry import list_requirement_sets, load_requirement_set, save_requirement_set
-from .service import analyze_payload, extract_requirements, generate_constraints, recommend_reuse
+from .service import analyze_payload, export_rq1_dataset, extract_requirements, generate_constraints, recommend_reuse
 
 app = FastAPI(
     title='Requirement Extraction & Reuse Recommendation Service',
@@ -59,6 +59,11 @@ def analyze(payload: AnalysisRequest):
 @app.post('/extract-requirements')
 def extract_requirement_candidates(payload: AnalysisRequest):
     return extract_requirements(payload)
+
+
+@app.post('/export-rq1-dataset')
+def export_rq1_requirement_dataset(payload: AnalysisRequest):
+    return export_rq1_dataset(payload)
 
 
 @app.post('/recommend-reuse')
