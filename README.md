@@ -25,16 +25,30 @@ Typical use cases include:
 
 ## Repository Relationship
 
-`Visual Profile Editor` depends on `General-Ontology-Editor`. Construct-DCAT-specific templates, validation rules, examples, terminology, and export packaging live in this repository only.
+`Visual Profile Editor` depends on the reusable Python backend/core package from `General-Ontology-Editor`. Construct-DCAT-specific templates, validation rules, examples, terminology, frontend workflow, and export packaging live in this repository only.
 
-For local development with both repositories side by side:
+The default dependency is pinned in `backend/requirements.txt` to a GOE GitHub tag:
+
+```text
+general-ontology-editor @ https://github.com/jundahuang9123/General-Ontology-Editor/archive/refs/tags/v0.1.0.zip
+```
+
+This lets VPE install the GOE backend package with pip without requiring a sibling `../General-Ontology-Editor` checkout.
+
+For ordinary VPE development:
 
 ```bash
-python -m pip install -e ../General-Ontology-Editor
 python -m pip install -r backend/requirements.txt
 ```
 
-For stable downstream releases, pin `general-ontology-editor` to a Git tag or exact commit after the upstream package API is published.
+If you are actively changing the GOE Python core and want VPE to use your local checkout temporarily:
+
+```bash
+python -m pip install -r backend/requirements.txt
+python -m pip install -e ../General-Ontology-Editor
+```
+
+When GOE changes, create a new GOE tag and update this dependency line. VPE will not update automatically.
 
 ## Start The App
 
