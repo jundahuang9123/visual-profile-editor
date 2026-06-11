@@ -13,6 +13,7 @@ from .profile_export import (
     browse_workspace_directories,
     create_profile_package,
     load_profile,
+    pick_workspace_directory,
     profile_workspace_info,
     save_profile,
     set_profile_workspace,
@@ -38,6 +39,14 @@ def profile_router(base_dir: Path) -> APIRouter:
     def browse_profile_workspace(directory: str | None = None) -> JSONResponse:
         try:
             return JSONResponse(browse_workspace_directories(base_dir, directory))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @router.post('/api/profile/workspace/pick')
+    def pick_profile_workspace(payload: dict[str, str] | None = None) -> JSONResponse:
+        directory = payload.get('directory') if isinstance(payload, dict) else None
+        try:
+            return JSONResponse(pick_workspace_directory(base_dir, directory))
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 

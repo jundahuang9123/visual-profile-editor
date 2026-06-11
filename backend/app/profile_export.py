@@ -3,6 +3,8 @@ from __future__ import annotations
 import io
 import json
 import os
+import subprocess
+import sys
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -126,6 +128,73 @@ def browse_workspace_directories(base_dir: Path, directory: str | None = None) -
         'default_directory': str(default_workspace_dir(base_dir)),
         'repo_directory': str(base_dir.resolve()),
     }
+
+
+def pick_workspace_directory(base_dir: Path, directory: str | None = None) -> dict[str, Any]:
+    selected = directory.strip() if directory else ''
+    initial_dir = resolve_workspace_dir(base_dir, selected) if selected else configured_workspace_dir(base_dir)
+    if not initial_dir.exists() or not initial_dir.is_dir():
+        initial_dir = initial_dir.parent if initial_dir.parent.exists() else Path.home()
+
+    try:
+        picked, method = _pick_directory_with_native_dialog(initial_dir)
+    except RuntimeError as exc:
+        raise ValueError(str(exc)) from exc
+
+    return {
+        'directory': str(picked) if picked else None,
+        'cancelled': picked is None,
+        'method': method,
+    }
+
+
+def _pick_directory_with_native_dialog(initial_dir: Path) -> tuple[Path | None, str]:
+    if sys.platform == 'darwin':
+        try:
+            return _pick_directory_macos(initial_dir), 'osascript'
+        except RuntimeError:
+            pass
+    return _pick_directory_tk(initial_dir), 'tkinter'
+
+
+def _pick_directory_macos(initial_dir: Path) -> Path | None:
+    script = (
+        'POSIX path of (choose folder with prompt "Choose Visual Profile Editor active schema folder" '
+        f'default location POSIX file {_applescript_string(str(initial_dir))})'
+    )
+    try:
+        result = subprocess.run(['osascript', '-e', script], capture_output=True, check=False, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError('macOS folder picker is unavailable.') from exc
+
+    if result.returncode != 0:
+        if 'User canceled' in result.stderr:
+            return None
+        raise RuntimeError(result.stderr.strip() or 'macOS folder picker failed.')
+
+    picked = result.stdout.strip()
+    return Path(picked).expanduser().resolve() if picked else None
+
+
+def _pick_directory_tk(initial_dir: Path) -> Path | None:
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+    except ImportError as exc:
+        raise RuntimeError('Native folder picker is unavailable in this Python environment.') from exc
+
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    try:
+        picked = filedialog.askdirectory(initialdir=str(initial_dir), title='Choose Visual Profile Editor active schema folder')
+    finally:
+        root.destroy()
+    return Path(picked).expanduser().resolve() if picked else None
+
+
+def _applescript_string(value: str) -> str:
+    return '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
 
 
 def set_profile_workspace(base_dir: Path, directory: str) -> tuple[dict[str, str], dict[str, Any]]:

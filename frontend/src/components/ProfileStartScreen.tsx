@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ChevronUp, Folder, Home, RotateCcw, Server } from 'lucide-react';
-import { browseProfileWorkspace, type ProfileTemplate, type ProfileWorkspace, type ProfileWorkspaceBrowse } from '../lib/schemaApi';
+import { browseProfileWorkspace, pickProfileWorkspaceDirectory, type ProfileTemplate, type ProfileWorkspace, type ProfileWorkspaceBrowse } from '../lib/schemaApi';
 
 type Props = {
   loading: boolean;
@@ -29,6 +29,7 @@ export function ProfileStartScreen({
   const [browser, setBrowser] = useState<ProfileWorkspaceBrowse | null>(null);
   const [browserLoading, setBrowserLoading] = useState(false);
   const [browserError, setBrowserError] = useState('');
+  const [directoryPicking, setDirectoryPicking] = useState(false);
 
   const openBrowser = useCallback(
     async (directory?: string) => {
@@ -55,6 +56,25 @@ export function ProfileStartScreen({
     [onWorkspaceInputChange],
   );
 
+  const pickDirectory = useCallback(async () => {
+    const initialDirectory = workspaceInput || workspace?.directory || workspace?.default_directory;
+    setDirectoryPicking(true);
+    setBrowserError('');
+    try {
+      const result = await pickProfileWorkspaceDirectory(initialDirectory);
+      if (!result.cancelled && result.directory) {
+        onWorkspaceInputChange(result.directory);
+        setBrowserOpen(false);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Native folder picker failed.';
+      await openBrowser(initialDirectory);
+      setBrowserError(`Native folder picker unavailable: ${message}`);
+    } finally {
+      setDirectoryPicking(false);
+    }
+  }, [onWorkspaceInputChange, openBrowser, workspace, workspaceInput]);
+
   return (
     <div className="modal-backdrop" role="presentation">
       <section aria-labelledby="profile-start-title" aria-modal="true" className="start-modal" role="dialog">
@@ -76,9 +96,9 @@ export function ProfileStartScreen({
             <button disabled={workspaceSaving || !workspaceInput.trim()} onClick={onSetWorkspace} type="button">
               Use Folder
             </button>
-            <button disabled={workspaceSaving} onClick={() => void openBrowser()} type="button">
+            <button disabled={workspaceSaving || directoryPicking} onClick={() => void pickDirectory()} type="button">
               <Folder size={16} />
-              Browse
+              {directoryPicking ? 'Choosing...' : 'Browse'}
             </button>
           </div>
           {workspace ? <span>{workspace.schema_path}</span> : null}

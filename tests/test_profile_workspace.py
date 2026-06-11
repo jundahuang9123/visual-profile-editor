@@ -2,7 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from app.profile_export import browse_workspace_directories, load_profile, save_profile, set_profile_workspace
+from app import profile_export
+from app.profile_export import browse_workspace_directories, load_profile, pick_workspace_directory, save_profile, set_profile_workspace
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,6 +61,27 @@ def test_browse_workspace_directories_lists_local_folders(tmp_path, monkeypatch)
     assert browse['repo_directory'] == str(base_dir.resolve())
     assert {'name': 'child-folder', 'path': str(child.resolve())} in browse['entries']
     assert all(entry['name'] != 'profile.yaml' for entry in browse['entries'])
+
+
+def test_pick_workspace_directory_returns_native_selection(tmp_path, monkeypatch):
+    monkeypatch.delenv('VPE_PROFILE_WORKSPACE', raising=False)
+    base_dir = make_base(tmp_path)
+    selected = tmp_path / 'selected-workspace'
+    selected.mkdir()
+
+    def fake_picker(initial_dir: Path):
+        assert initial_dir == tmp_path.resolve()
+        return selected.resolve(), 'test-picker'
+
+    monkeypatch.setattr(profile_export, '_pick_directory_with_native_dialog', fake_picker)
+
+    picked = pick_workspace_directory(base_dir, str(tmp_path))
+
+    assert picked == {
+        'directory': str(selected.resolve()),
+        'cancelled': False,
+        'method': 'test-picker',
+    }
 
 
 def test_workspace_cannot_be_inside_versioned_schema_seeds(tmp_path, monkeypatch):

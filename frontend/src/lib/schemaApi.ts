@@ -57,6 +57,12 @@ export type ProfileWorkspaceBrowse = {
   repo_directory: string;
 };
 
+export type ProfileWorkspacePick = {
+  directory: string | null;
+  cancelled: boolean;
+  method: string;
+};
+
 type WorkspaceUpdateResult = {
   workspace: ProfileWorkspace;
   schema: SchemaModel;
@@ -232,6 +238,16 @@ export async function browseProfileWorkspace(directory?: string): Promise<Profil
   const res = await fetch(`/api/profile/workspace/browse${suffix}`);
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()) as ProfileWorkspaceBrowse;
+}
+
+export async function pickProfileWorkspaceDirectory(directory?: string): Promise<ProfileWorkspacePick> {
+  const res = await fetch('/api/profile/workspace/pick', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ directory: directory?.trim() || undefined }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()) as ProfileWorkspacePick;
 }
 
 export async function setProfileWorkspace(directory: string): Promise<WorkspaceUpdateResult> {
