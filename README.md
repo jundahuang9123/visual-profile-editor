@@ -99,7 +99,9 @@ Initial supported inputs:
 
 The frontend exposes workflow tabs for profile editing, requirement extraction, reuse recommendations, validation, and export. Requirement results are always reviewable: users accept or reject recommendations before generating SHACL/profile drafts.
 
-Extraction supports three strategies — a deterministic rule-based baseline, an LLM-assisted strategy with evidence-unit verification, and a hybrid of both. The LLM layer is provider-agnostic (disabled by default, Anthropic native, or any OpenAI-compatible endpoint such as Ollama, vLLM, OpenRouter). Requirements are represented as traceable records (source evidence, user-task links, FAIR relevance, candidate reuse terms, validation status, extraction provenance) defined normatively in LinkML and persisted as YAML requirement sets. See [docs/requirement-extraction.md](docs/requirement-extraction.md).
+**RQ1 — extraction.** Three strategies: a deterministic rule-based baseline, an LLM-assisted strategy with evidence-unit verification, and a hybrid of both. The LLM layer is provider-agnostic (disabled by default, Anthropic native, or any OpenAI-compatible endpoint such as Ollama, vLLM, OpenRouter). Requirements are represented as traceable records (source evidence, user-task links, FAIR relevance, candidate reuse terms, validation status, extraction provenance incl. reviewer edit history) defined normatively in LinkML and persisted as YAML requirement sets. See [docs/requirement-extraction.md](docs/requirement-extraction.md).
+
+**RQ2 — profile generation.** Approved requirements (only) are converted into a reviewable `ProfileChangeSet`; accepted changes generate a DCAT-AP-based LinkML profile draft and SHACL shapes, with provenance from every generated element back to requirement and evidence ids, exported as a reproducibility package and merged into the visual editor only on explicit user action. See [docs/profile-generation.md](docs/profile-generation.md).
 
 Service endpoints are proxied through the main app under:
 
@@ -107,12 +109,16 @@ Service endpoints are proxied through the main app under:
 - `POST /api/requirements/extract-requirements`
 - `POST /api/requirements/export-rq1-dataset`
 - `POST /api/requirements/recommend-reuse`
-- `POST /api/requirements/generate-shacl`
+- `POST /api/requirements/generate-profile-changes`
+- `POST /api/requirements/generate-profile-draft`
+- `POST /api/requirements/generate-shacl-from-profile-changes`
+- `POST /api/requirements/export-rq2-package`
+- `POST /api/requirements/generate-shacl` (legacy)
 - `POST /api/requirements/save-requirement-set`
 - `POST /api/requirements/list-requirement-sets`
 - `POST /api/requirements/load-requirement-set`
 
-The service itself remains independently deployable on port `8010`.
+The service itself remains independently deployable on port `8010`. Evaluation tooling: `scripts/extract_requirements.py` (corpus runs) and `scripts/evaluate_rq1.py` (strategy comparison incl. gold matching and review-effort metrics), with example corpus, gold set, and export artifacts under `examples/`.
 
 ## Developer Dependency Note
 

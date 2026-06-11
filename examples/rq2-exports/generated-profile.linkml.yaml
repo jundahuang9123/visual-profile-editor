@@ -1,0 +1,141 @@
+id: https://w3id.org/construct-dcat/profile/generated-from-requirements
+name: generated_requirement_profile
+title: Generated DCAT-AP Profile Extension Draft
+description: Reviewable profile draft generated from approved, evidence-traceable requirements (profile change set chg-c316743554).
+  Merge into the visual editor only after review.
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: http://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  skos: http://www.w3.org/2004/02/skos/core#
+  prov: http://www.w3.org/ns/prov#
+  foaf: http://xmlns.com/foaf/0.1/
+  cx: https://w3id.org/cx#
+imports:
+- linkml:types
+default_prefix: cx
+default_range: string
+classes:
+  ConstructionDatasetProfile:
+    title: Construction Dataset Profile
+    is_a: DcatDataset
+    class_uri: cx:ConstructionDataset
+    slots:
+    - keyword
+    - theme
+    - provenance
+    - hasAASSubmodel
+    - hasIFCEntity
+    annotations:
+      term_kind:
+        value: profile
+      profile_of:
+        value: dcat:Dataset
+      profile_base:
+        value: DCAT-AP
+      generated_from_requirements:
+        value: req-922afd7b20, req-94b78d5d83, req-a872a62c16, req-b13c45efc3, req-74f79dcdf2, req-cd3f3a5360, req-8ae35763ac
+slots:
+  keyword:
+    title: Keyword
+    slot_uri: dcat:keyword
+    range: string
+    annotations:
+      term_kind:
+        value: profile
+      source_vocabulary:
+        value: DCAT/DCAT-AP
+      obligation_level:
+        value: mandatory
+      rationale:
+        value: provide descriptive dataset metadata can reuse established DCAT/DCAT-AP or provenance terms.
+      source_requirement_ids:
+        value: req-922afd7b20
+      source_evidence_ids:
+        value: ev-80229ece82, ev-4b9715ed7a, ev-e15f89cdb1, ev-bb4cdb333e, ev-4e55852864, ev-f13bf1742e, ev-9a4c1cee02, ev-061b7ebcd1
+      generated_from_change:
+        value: pchg-08fde779ab
+    required: true
+  theme:
+    title: Theme
+    slot_uri: dcat:theme
+    range: SkosConcept
+    annotations:
+      term_kind:
+        value: profile
+      source_vocabulary:
+        value: DCAT/DCAT-AP
+      obligation_level:
+        value: recommended
+      rationale:
+        value: indicate construction lifecycle phase is construction-specific and may need Construct-DCAT profile terms or
+          extensions.
+      source_requirement_ids:
+        value: req-94b78d5d83, req-a872a62c16
+      source_evidence_ids:
+        value: ev-aea2672bd0, ev-70d39cbc0b, ev-943c63d99e, ev-cc1b140ca6, ev-f77077dfee, ev-8e52b7191b, ev-ce4bde05ca, ev-73b2b00eaa
+      generated_from_change:
+        value: pchg-dc6b009518
+    multivalued: true
+  provenance:
+    title: Provenance
+    slot_uri: dcterms:provenance
+    range: string
+    annotations:
+      term_kind:
+        value: profile
+      source_vocabulary:
+        value: DCAT-AP / DCTERMS
+      obligation_level:
+        value: optional
+      rationale:
+        value: describe provenance and quality context is construction-specific and may need Construct-DCAT profile terms
+          or extensions.
+      source_requirement_ids:
+        value: req-b13c45efc3
+      source_evidence_ids:
+        value: ev-582a4f6c20, ev-ce23cda506
+      generated_from_change:
+        value: pchg-b8e8ade8ca
+  hasAASSubmodel:
+    title: Has a a s submodel
+    slot_uri: cx:hasAASSubmodel
+    range: anyURI
+    annotations:
+      term_kind:
+        value: extension
+      source_vocabulary:
+        value: Construct-DCAT extension
+      obligation_level:
+        value: recommended
+      rationale:
+        value: reference AAS submodels is construction-specific and may need Construct-DCAT profile terms or extensions.
+      source_requirement_ids:
+        value: req-74f79dcdf2, req-cd3f3a5360
+      source_evidence_ids:
+        value: ev-0ea24b6939, ev-11e2aba27e, ev-f13bf1742e, ev-9a4c1cee02, ev-40f9dfd8d7, ev-ca89032a22, ev-815dc53b43, ev-8a4738fa4c,
+          ev-88513b498a, ev-377ab6de42, ev-622de1ec5f, ev-1c31ef42da
+      generated_from_change:
+        value: pchg-2cbb261b8e
+    multivalued: true
+  hasIFCEntity:
+    title: Has i f c entity
+    slot_uri: cx:hasIFCEntity
+    range: anyURI
+    annotations:
+      term_kind:
+        value: extension
+      source_vocabulary:
+        value: Construct-DCAT extension
+      obligation_level:
+        value: recommended
+      rationale:
+        value: reference IFC entity classes is construction-specific and may need Construct-DCAT profile terms or extensions.
+      source_requirement_ids:
+        value: req-8ae35763ac
+      source_evidence_ids:
+        value: ev-aea2672bd0, ev-70d39cbc0b, ev-943c63d99e, ev-cc1b140ca6, ev-f77077dfee, ev-8e52b7191b, ev-ce4bde05ca, ev-73b2b00eaa
+      generated_from_change:
+        value: pchg-76a0ae342c
+    multivalued: true
+enums: {}

@@ -351,10 +351,12 @@ def export_rq1_dataset(payload: AnalysisRequest) -> dict[str, Any]:
     requirements = analysis.requirements
     return {
         'schema_version': 'rq1-requirement-dataset-v1',
+        'export_kind': 'reproducible_run',
         'generated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'strategy_requested': payload.strategy,
         'strategy_used': analysis.strategy,
         'summary_metrics': {
+            'competency_question_coverage': competency_question_coverage(requirements, analysis.user_tasks),
             'requirement_count': len(requirements),
             'evidence_unit_count': len(analysis.evidence_units),
             'duplicate_group_count': len(analysis.duplicate_groups),
@@ -384,6 +386,19 @@ def export_rq1_dataset(payload: AnalysisRequest) -> dict[str, Any]:
         ],
     }
 
+
+
+def competency_question_coverage(requirements: list[CandidateRequirement], user_tasks: list[UserTask]) -> dict[str, Any]:
+    """Coverage of expert user tasks / competency questions by active requirements (RQ1 metric)."""
+    active = [requirement for requirement in requirements if requirement.status not in {'rejected', 'merged'}]
+    covered = {task_id for requirement in active for task_id in requirement.supports_user_tasks}
+    task_ids = [task.id for task in user_tasks]
+    return {
+        'task_count': len(task_ids),
+        'covered_task_count': sum(1 for task_id in task_ids if task_id in covered),
+        'uncovered_task_ids': [task_id for task_id in task_ids if task_id not in covered],
+        'requirements_without_task_links': [requirement.id for requirement in active if not requirement.supports_user_tasks],
+    }
 
 
 def recommend_reuse(payload: RecommendationRequest) -> RecommendationResponse:
@@ -882,6 +897,27 @@ def validate_requirement(requirement: CandidateRequirement) -> CandidateRequirem
                 requirement.confidence = min(requirement.confidence, 0.6)
 
     requirement.validation_status = validation_status
+    populate_action_hints(requirement)
+    return requirement
+
+
+def populate_action_hints(requirement: CandidateRequirement) -> CandidateRequirement:
+    """Fill the RQ1 -> RQ2 handoff fields on metadata actions.
+
+    ``constraint_hint`` is derived from the normalized intent unless the
+    extractor or reviewer supplied one; ``source_requirement_id`` backlinks the
+    action to its requirement for ProfileChangeSet provenance.
+    """
+    from .models import ConstraintHint
+
+    for action in requirement.candidate_metadata_actions:
+        if action.constraint_hint is None:
+            action.constraint_hint = ConstraintHint(
+                value_kind=requirement.normalized_intent.value_kind,
+                obligation=requirement.normalized_intent.obligation_hint,
+            )
+        if action.source_requirement_id is None:
+            action.source_requirement_id = requirement.id
     return requirement
 
 

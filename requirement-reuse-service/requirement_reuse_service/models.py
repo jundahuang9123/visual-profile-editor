@@ -48,6 +48,19 @@ FairDimension = Literal['F', 'A', 'I', 'R']
 ExtractionStrategy = Literal['rules', 'llm', 'hybrid']
 UserTaskKind = Literal['competency_question', 'user_task', 'stakeholder_need']
 
+# RQ2: profile change proposal types.
+ProfileChangeType = Literal[
+    'reuse_property',
+    'specialize_property',
+    'create_extension_property',
+    'create_profile_class',
+    'add_constraint',
+    'add_usage_note',
+    'add_controlled_vocabulary',
+]
+ProfileChangeReviewStatus = Literal['candidate', 'accepted', 'rejected', 'needs_review']
+ObligationLevel = Literal['mandatory', 'recommended', 'optional', 'unknown']
+
 
 class ArtifactPayload(BaseModel):
     name: str = 'artifact'
@@ -130,7 +143,18 @@ class NormalizedIntent(BaseModel):
     obligation_hint: ObligationHint = 'unknown'
 
 
+class ConstraintHint(BaseModel):
+    """Structured constraint hint for RQ2 profile generation (RQ1 -> RQ2 handoff)."""
+
+    cardinality: str | None = None  # e.g. '0..n', '1..1', '0..1', '1..n'
+    value_kind: ValueKind = 'unknown'
+    datatype_or_class: str | None = None
+    obligation: ObligationHint = 'unknown'
+
+
 class CandidateMetadataAction(BaseModel):
+    """Proposed profile-design action - the primary RQ1 -> RQ2 handoff object."""
+
     action: Literal[
         'reuse_existing_term',
         'specialize_existing_term',
@@ -142,6 +166,8 @@ class CandidateMetadataAction(BaseModel):
     target_class: str | None = None
     candidate_terms: list[str] = Field(default_factory=list)
     rationale: str
+    constraint_hint: ConstraintHint | None = None
+    source_requirement_id: str | None = None
 
 
 class SemanticCandidate(BaseModel):
@@ -306,4 +332,96 @@ class ConstraintGenerationRequest(BaseModel):
 class ConstraintGenerationResponse(BaseModel):
     shacl: str
     profile_draft: dict[str, Any]
+    validation_notes: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# RQ2: profile change proposals and profile generation
+# ---------------------------------------------------------------------------
+
+RQ2_SCHEMA_VERSION = 'rq2-profile-generation-package-v1'
+
+
+class ProfileChange(BaseModel):
+    """A single reviewable profile change proposal derived from an approved requirement."""
+
+    id: str
+    requirement_id: str
+    change_type: ProfileChangeType
+    target_class: str  # prefixed base class, e.g. dcat:Dataset
+    term_uri: str | None = None
+    slot_name: str | None = None
+    class_name: str | None = None
+    range: str | None = None
+    required: bool | None = None
+    multivalued: bool | None = None
+    obligation_level: ObligationLevel = 'unknown'
+    rationale: str = ''
+    source_vocabulary: str | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
+    source_requirement_ids: list[str] = Field(default_factory=list)
+    review_status: ProfileChangeReviewStatus = 'candidate'
+    warnings: list[str] = Field(default_factory=list)
+
+
+class ProfileChangeSet(BaseModel):
+    id: str
+    source_requirement_set_id: str | None = None
+    created_at: str = ''
+    profile_base: str = 'DCAT-AP'
+    profile_namespace: str = 'https://w3id.org/cx#'
+    profile_prefix: str = 'cx'
+    changes: list[ProfileChange] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    summary_metrics: dict[str, Any] = Field(default_factory=dict)
+
+
+class GenerateProfileChangesRequest(BaseModel):
+    requirement_set: RequirementSet | None = None
+    requirements: list[CandidateRequirement] = Field(default_factory=list)
+    approved_only: bool = True
+    base_profile: str = 'DCAT-AP'
+    profile_namespace: str = 'https://w3id.org/cx#'
+    profile_prefix: str = 'cx'
+
+
+class GenerateProfileDraftRequest(BaseModel):
+    profile_change_set: ProfileChangeSet
+    base_schema: dict[str, Any] | None = None
+    accepted_only: bool = True
+
+
+class ProfileGenerationResponse(BaseModel):
+    profile_change_set: ProfileChangeSet
+    profile_draft: dict[str, Any] = Field(default_factory=dict)
+    shacl: str = ''
+    validation_notes: list[str] = Field(default_factory=list)
+
+
+class ProvenanceMappingEntry(BaseModel):
+    requirement_id: str
+    profile_element: str
+    change_id: str
+    evidence_unit_ids: list[str] = Field(default_factory=list)
+
+
+class RQ2ExportRequest(BaseModel):
+    profile_change_set: ProfileChangeSet
+    base_schema: dict[str, Any] | None = None
+    source_requirement_set_id: str | None = None
+    approved_requirement_count: int | None = None
+    accepted_only: bool = True
+
+
+class RQ2Package(BaseModel):
+    schema_version: str = RQ2_SCHEMA_VERSION
+    generated_at: str = ''
+    base_profile: str = 'DCAT-AP'
+    source_requirement_set_id: str | None = None
+    approved_requirement_count: int = 0
+    profile_change_set: ProfileChangeSet
+    profile_draft_linkml: dict[str, Any] = Field(default_factory=dict)
+    shacl: str = ''
+    provenance_mapping: list[ProvenanceMappingEntry] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     validation_notes: list[str] = Field(default_factory=list)

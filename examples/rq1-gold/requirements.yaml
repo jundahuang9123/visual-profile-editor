@@ -1,0 +1,24 @@
+# Small manually curated gold standard for the formative RQ1 pilot.
+# Matched approximately (token containment) by scripts/evaluate_rq1.py.
+requirements:
+  - id: gold-1
+    statement: A dcat:Dataset must provide a title, a description, and at least one keyword for catalog search.
+    requirement_type: descriptive_metadata
+  - id: gold-2
+    statement: A dcat:Dataset must carry a license or access rights statement.
+    requirement_type: access_policy
+  - id: gold-3
+    statement: A dcat:Dataset should reference the AAS submodels it represents, including their semantic IDs.
+    requirement_type: semantic_anchor
+  - id: gold-4
+    statement: A dcat:Distribution must state the IFC schema version it conforms to and its file format.
+    requirement_type: technical_metadata
+  - id: gold-5
+    statement: A dcat:Dataset should indicate the construction lifecycle phase the data was produced in.
+    requirement_type: lifecycle_context
+  - id: gold-6
+    statement: A dcat:Dataset should indicate the construction asset type it describes.
+    requirement_type: semantic_anchor
+  - id: gold-7
+    statement: A dcat:Dataset should include provenance information about the source system.
+    requirement_type: quality_provenance

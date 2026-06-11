@@ -1,0 +1,47 @@
+# Generated from profile change set chg-c316743554 (DCAT-AP base).
+# Each property shape traces back to requirement ids via sh:description.
+@prefix cx: <https://w3id.org/cx#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+cx:ConstructionDatasetProfileShape
+    a sh:NodeShape ;
+    sh:targetClass dcat:Dataset ;
+    sh:property [
+        sh:path dcat:keyword ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Mandatory: provide descriptive dataset metadata can reuse established DCAT/DCAT-AP or provenance terms." ;
+        sh:description "Generated from requirement(s) req-922afd7b20 (change pchg-08fde779ab)." ;
+    ] ;
+    sh:property [
+        sh:path dcat:theme ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Warning ;
+        sh:message "Recommended: indicate construction lifecycle phase is construction-specific and may need Construct-DCAT profile terms or extensions." ;
+        sh:description "Generated from requirement(s) req-94b78d5d83, req-a872a62c16 (change pchg-dc6b009518)." ;
+    ] ;
+    sh:property [
+        sh:path dcterms:provenance ;
+        sh:severity sh:Info ;
+        sh:message "Optional: describe provenance and quality context is construction-specific and may need Construct-DCAT profile terms or extensions." ;
+        sh:description "Generated from requirement(s) req-b13c45efc3 (change pchg-b8e8ade8ca)." ;
+    ] ;
+    sh:property [
+        sh:path cx:hasAASSubmodel ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Warning ;
+        sh:message "Recommended: reference AAS submodels is construction-specific and may need Construct-DCAT profile terms or extensions." ;
+        sh:description "Generated from requirement(s) req-74f79dcdf2, req-cd3f3a5360 (change pchg-2cbb261b8e)." ;
+    ] ;
+    sh:property [
+        sh:path cx:hasIFCEntity ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Warning ;
+        sh:message "Recommended: reference IFC entity classes is construction-specific and may need Construct-DCAT profile terms or extensions." ;
+        sh:description "Generated from requirement(s) req-8ae35763ac (change pchg-76a0ae342c)." ;
+    ] .

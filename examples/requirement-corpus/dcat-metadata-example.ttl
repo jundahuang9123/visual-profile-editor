@@ -1,0 +1,23 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix cx: <https://w3id.org/cx#> .
+
+<https://example.org/catalog/datasets/bridge-sensors> a dcat:Dataset ;
+    dcterms:title "Bridge A12 structural sensor measurements" ;
+    dcterms:description "Strain and vibration measurements from the A12 bridge monitoring system, operation phase." ;
+    dcat:keyword "bridge", "sensor", "structural health monitoring" ;
+    dcterms:publisher <https://example.org/agents/contractor-nord> ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    cx:hasLifecyclePhase "operation" ;
+    cx:hasAASSubmodel <https://example.org/aas/bridge-a12/operational-data> ;
+    dcat:distribution <https://example.org/catalog/distributions/bridge-sensors-csv> .
+
+<https://example.org/catalog/distributions/bridge-sensors-csv> a dcat:Distribution ;
+    dcterms:format "CSV" ;
+    dcat:mediaType "text/csv" ;
+    dcat:downloadURL <https://example.org/data/bridge-sensors.csv> ;
+    dcterms:accessRights "restricted to project consortium" .
+
+<https://example.org/agents/contractor-nord> a foaf:Agent ;
+    foaf:name "Contractor Nord GmbH" .

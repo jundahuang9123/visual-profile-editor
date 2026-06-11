@@ -27,7 +27,8 @@ def test_json_schema_export():
     assert 'ConstructionDatasetProfile' in json_schema
 
 
-def test_profile_package_export():
+def test_profile_package_export(tmp_path, monkeypatch):
+    monkeypatch.setenv('VPE_PROFILE_WORKSPACE', str(tmp_path / 'profile-workspace'))
     root = Path(__file__).resolve().parents[1]
     package_bytes = create_profile_package(root)
     with zipfile.ZipFile(io.BytesIO(package_bytes)) as archive:

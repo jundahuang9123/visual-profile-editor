@@ -282,3 +282,89 @@ export function generateShacl(analysis: AnalysisResponse, recommendations: Reuse
     selected_recommendation_ids: selectedRecommendationIds,
   });
 }
+
+export type ProfileChange = {
+  id: string;
+  requirement_id: string;
+  change_type:
+    | 'reuse_property'
+    | 'specialize_property'
+    | 'create_extension_property'
+    | 'create_profile_class'
+    | 'add_constraint'
+    | 'add_usage_note'
+    | 'add_controlled_vocabulary';
+  target_class: string;
+  term_uri?: string | null;
+  slot_name?: string | null;
+  class_name?: string | null;
+  range?: string | null;
+  required?: boolean | null;
+  multivalued?: boolean | null;
+  obligation_level: 'mandatory' | 'recommended' | 'optional' | 'unknown';
+  rationale: string;
+  source_vocabulary?: string | null;
+  evidence_ids: string[];
+  source_requirement_ids: string[];
+  review_status: 'candidate' | 'accepted' | 'rejected' | 'needs_review';
+  warnings: string[];
+};
+
+export type ProfileChangeSet = {
+  id: string;
+  source_requirement_set_id?: string | null;
+  created_at: string;
+  profile_base: string;
+  profile_namespace: string;
+  profile_prefix: string;
+  changes: ProfileChange[];
+  warnings: string[];
+  summary_metrics: Record<string, unknown>;
+};
+
+export type ProfileGenerationResponse = {
+  profile_change_set: ProfileChangeSet;
+  profile_draft: SchemaModel;
+  shacl: string;
+  validation_notes: string[];
+};
+
+export type RQ2Package = {
+  schema_version: string;
+  generated_at: string;
+  base_profile: string;
+  source_requirement_set_id?: string | null;
+  approved_requirement_count: number;
+  profile_change_set: ProfileChangeSet;
+  profile_draft_linkml: SchemaModel;
+  shacl: string;
+  provenance_mapping: Array<{
+    requirement_id: string;
+    profile_element: string;
+    change_id: string;
+    evidence_unit_ids: string[];
+  }>;
+  warnings: string[];
+  validation_notes: string[];
+};
+
+export function generateProfileChanges(payload: {
+  requirements: CandidateRequirement[];
+  approved_only?: boolean;
+  base_profile?: string;
+}) {
+  return postJson<ProfileChangeSet>('generate-profile-changes', payload);
+}
+
+export function generateProfileDraft(payload: { profile_change_set: ProfileChangeSet; accepted_only?: boolean }) {
+  return postJson<ProfileGenerationResponse>('generate-profile-draft', payload);
+}
+
+export function exportRq2Package(payload: {
+  profile_change_set: ProfileChangeSet;
+  source_requirement_set_id?: string | null;
+  approved_requirement_count?: number;
+  accepted_only?: boolean;
+}) {
+  return postJson<RQ2Package>('export-rq2-package', payload);
+}

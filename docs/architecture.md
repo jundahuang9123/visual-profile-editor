@@ -26,7 +26,9 @@ The requirement/reuse component is intentionally separated from the profile edit
 frontend -> backend proxy (/api/requirements/*) -> requirement-reuse-service
 ```
 
-This keeps parser dependencies and LLM experiments isolated while preserving a single workbench experience. Extraction is strategy-based: a deterministic rule-based baseline, an LLM-assisted strategy (provider-agnostic, with verbatim evidence verification), and a hybrid of both. Inputs cover text, competency questions / user tasks, AAS JSON, `.aasx` packages, DCAT metadata, and lightweight IFC evidence. Requirements are traceable records (LinkML-defined) carrying source evidence, user-task links, FAIR relevance, candidate reuse terms, and extraction provenance; reviewed sets persist as YAML in the requirement-set registry. See `docs/requirement-extraction.md` for details.
+This keeps parser dependencies and LLM experiments isolated while preserving a single workbench experience. Extraction (RQ1) is strategy-based: a deterministic rule-based baseline, an LLM-assisted strategy (provider-agnostic, with verbatim evidence verification), and a hybrid of both. Inputs cover text, competency questions / user tasks, AAS JSON, `.aasx` packages, DCAT metadata, and lightweight IFC evidence. Requirements are traceable records (LinkML-defined) carrying source evidence, user-task links, FAIR relevance, candidate reuse terms, validation status, and extraction provenance including reviewer edit history; reviewed sets persist as YAML in the requirement-set registry. See `docs/requirement-extraction.md` for details.
+
+Profile generation (RQ2) consumes approved requirements only: it produces a reviewable `ProfileChangeSet`, then generates the LinkML profile draft and SHACL shapes from accepted changes, with provenance from every generated element back to requirement and evidence ids. The generated draft is merged into the visual editor only by explicit user action. See `docs/profile-generation.md`.
 
 The service follows a reuse-first ordering:
 

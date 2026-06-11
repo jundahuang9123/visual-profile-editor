@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react
 import { AlertTriangle, CheckCircle2, Download, FileCode, FileSearch, GitMerge, RefreshCw, Search, SplitSquareHorizontal, Wand2, XCircle } from 'lucide-react';
 import {
   analyzeArtifacts,
+  exportRq2Package,
   extractRequirements,
-  generateShacl,
+  generateProfileChanges,
+  generateProfileDraft,
   recommendReuse,
   type AnalysisRequest,
   type AnalysisResponse,
@@ -13,6 +15,7 @@ import {
   type ExtractionStrategy,
   type ExtractionProvenance,
   type NormalizedIntent,
+  type ProfileChangeSet,
   type RequirementScope,
   type Rq1DatasetExport,
   type Rq1LocalMergeEvent,
@@ -31,7 +34,7 @@ type RequirementWorkbenchProps = {
   onStatus: (status: string) => void;
 };
 
-type WorkbenchView = 'requirements' | 'reuse' | 'constraints';
+type WorkbenchView = 'requirements' | 'reuse' | 'changes' | 'constraints';
 type RequirementStatus = CandidateRequirement['status'];
 type RequirementType = CandidateRequirement['requirement_type'];
 type FairDimension = CandidateRequirement['fair_dimensions'][number];
@@ -89,8 +92,9 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
   const [recommendations, setRecommendations] = useState<ReuseRecommendation[]>([]);
   const [accepted, setAccepted] = useState<Record<string, boolean>>({});
   const [shacl, setShacl] = useState('');
-  const [profileDraft, setProfileDraft] = useState<AnalysisResponse | null>(null);
   const [generatedProfile, setGeneratedProfile] = useState<SchemaModel | null>(null);
+  const [profileChanges, setProfileChanges] = useState<ProfileChangeSet | null>(null);
+  const [validationNotes, setValidationNotes] = useState<string[]>([]);
   const [draggingArtifacts, setDraggingArtifacts] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -105,6 +109,8 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     setLocalSplitEvents([]);
     setSelectedRequirementId((current) => current ?? analysis.requirements[0]?.id ?? null);
     setMergeSelection({});
+    setProfileChanges(null);
+    setValidationNotes([]);
   }, [analysis]);
 
   const userTasks = useMemo<UserTask[]>(
@@ -215,37 +221,84 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     }
   }, [analysis, onStatus, requestPayload, requirements]);
 
-  const runGenerate = useCallback(async () => {
+  const runProfileChanges = useCallback(async () => {
+    // RQ2 step 1: approved requirements -> reviewable profile change proposals.
+    const approved = requirements.filter((requirement) => requirement.status === 'approved');
+    if (!approved.length) {
+      onStatus('Approve at least one requirement before generating profile changes (RQ2 consumes approved requirements only).');
+      setView('requirements');
+      return;
+    }
     setBusy(true);
-    setView('constraints');
-    onStatus('Generating SHACL and profile draft from approved requirements...');
+    setView('changes');
+    onStatus('Generating reviewable profile change proposals from approved requirements...');
     try {
-      const currentAnalysis = analysis ?? (await extractRequirements(requestPayload));
-      const activeRequirements = requirements.length ? requirements : currentAnalysis.requirements;
-      const approved = activeRequirements.filter((requirement) => requirement.status === 'approved');
-      if (!approved.length) {
-        onStatus('Approve at least one requirement before generating SHACL/profile drafts.');
-        setView('requirements');
-        return;
-      }
-      const reviewedAnalysis = withRequirements(currentAnalysis, approved);
-      const currentRecommendations = recommendations.length ? recommendations : (await recommendReuse(reviewedAnalysis)).recommendations;
-      if (!recommendations.length) {
-        setRecommendations(currentRecommendations);
-        setAccepted(Object.fromEntries(currentRecommendations.map((recommendation) => [recommendation.id, true])));
-      }
-      const result = await generateShacl(reviewedAnalysis, currentRecommendations, acceptedRecommendationIds);
-      setShacl(result.shacl);
-      setGeneratedProfile(result.profile_draft);
-      setProfileDraft(reviewedAnalysis);
-      onStatus(`Generated SHACL/profile draft from ${approved.length} approved requirement(s).`);
+      const result = await generateProfileChanges({ requirements, approved_only: true });
+      setProfileChanges(result);
+      setShacl('');
+      setGeneratedProfile(null);
+      setValidationNotes([]);
+      const needsReview = result.changes.filter((change) => change.review_status === 'needs_review').length;
+      onStatus(
+        `Generated ${result.changes.length} profile change proposal(s) from ${approved.length} approved requirement(s)` +
+          (needsReview ? ` - ${needsReview} need(s) review.` : '.'),
+      );
     } catch (error) {
-      onStatus(`Constraint generation failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+      onStatus(`Profile change generation failed: ${error instanceof Error ? error.message : 'unknown error'}`);
       throw error;
     } finally {
       setBusy(false);
     }
-  }, [acceptedRecommendationIds, analysis, onStatus, recommendations, requestPayload, requirements]);
+  }, [onStatus, requirements]);
+
+  const runGenerateDraft = useCallback(async () => {
+    // RQ2 step 2: accepted profile changes -> LinkML draft + SHACL (review before merging).
+    if (!profileChanges) return;
+    setBusy(true);
+    onStatus('Generating LinkML profile draft and SHACL from accepted profile changes...');
+    try {
+      const result = await generateProfileDraft({ profile_change_set: profileChanges, accepted_only: true });
+      setShacl(result.shacl);
+      setGeneratedProfile(result.profile_draft);
+      setValidationNotes(result.validation_notes);
+      setView('constraints');
+      onStatus('Generated profile draft and SHACL. Review them, then merge into the editor explicitly.');
+    } catch (error) {
+      onStatus(`Profile draft generation failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }, [onStatus, profileChanges]);
+
+  const runExportRq2 = useCallback(async () => {
+    if (!profileChanges) return;
+    setBusy(true);
+    onStatus('Exporting RQ2 profile generation package...');
+    try {
+      const approvedCount = requirements.filter((requirement) => requirement.status === 'approved').length;
+      const pkg = await exportRq2Package({
+        profile_change_set: profileChanges,
+        approved_requirement_count: approvedCount,
+        accepted_only: true,
+      });
+      downloadText(JSON.stringify(pkg, null, 2), 'rq2-profile-package.json', 'application/json');
+      onStatus('Exported RQ2 package (change set, LinkML draft, SHACL, provenance mapping).');
+    } catch (error) {
+      onStatus(`RQ2 export failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+      throw error;
+    } finally {
+      setBusy(false);
+    }
+  }, [onStatus, profileChanges, requirements]);
+
+  const updateProfileChange = useCallback((id: string, reviewStatus: 'candidate' | 'accepted' | 'rejected' | 'needs_review') => {
+    setProfileChanges((current) =>
+      current
+        ? { ...current, changes: current.changes.map((change) => (change.id === id ? { ...change, review_status: reviewStatus } : change)) }
+        : current,
+    );
+  }, []);
 
   const importFiles = useCallback(async (files: FileList | File[] | null) => {
     if (!files?.length) return;
@@ -448,9 +501,9 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
             <RefreshCw size={16} />
             Recommend
           </button>
-          <button className="primary" disabled={busy} onClick={() => void runGenerate()} type="button">
+          <button className="primary" disabled={busy} onClick={() => void runProfileChanges()} title="RQ2: generate reviewable profile change proposals from approved requirements" type="button">
             <Wand2 size={16} />
-            Generate
+            Profile changes
           </button>
         </div>
       </section>
@@ -460,7 +513,8 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
           {[
             ['requirements', 'Requirement Review'],
             ['reuse', 'Reuse'],
-            ['constraints', 'SHACL Draft'],
+            ['changes', 'Profile Changes'],
+            ['constraints', 'Generated Profile'],
           ].map(([id, label]) => (
             <button className={view === id ? 'active' : undefined} key={id} onClick={() => setView(id as WorkbenchView)} type="button">
               {label}
@@ -493,6 +547,15 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
           />
         ) : view === 'reuse' ? (
           <ReuseResults accepted={accepted} recommendations={recommendations} setAccepted={setAccepted} />
+        ) : view === 'changes' ? (
+          <ProfileChangesView
+            approvedCount={requirements.filter((requirement) => requirement.status === 'approved').length}
+            busy={busy}
+            changeSet={profileChanges}
+            onExportRq2={() => void runExportRq2()}
+            onGenerateDraft={() => void runGenerateDraft()}
+            updateProfileChange={updateProfileChange}
+          />
         ) : (
           <section className="constraint-preview">
             <div className="constraint-preview__actions">
@@ -500,13 +563,29 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
                 <FileCode size={16} />
                 SHACL
               </button>
+              <button
+                disabled={!generatedProfile}
+                onClick={() => generatedProfile && downloadText(JSON.stringify(generatedProfile, null, 2), 'generated-profile.linkml.json', 'application/json')}
+                type="button"
+              >
+                <Download size={16} />
+                LinkML
+              </button>
               <button disabled={!generatedProfile} onClick={mergeDraft} type="button">
                 <GitMerge size={16} />
                 Merge Draft
               </button>
             </div>
-            {profileDraft ? <p className="muted">Draft generated from {profileDraft.requirements.length} approved requirement(s).</p> : null}
-            <pre>{shacl || 'Generate SHACL to preview profile constraints.'}</pre>
+            {validationNotes.length ? (
+              <ul className="validation-notes">
+                {validationNotes.map((note) => (
+                  <li key={note}>
+                    <AlertTriangle size={13} /> {note}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <pre>{shacl || 'Generate a profile draft from accepted profile changes to preview SHACL and LinkML output.'}</pre>
           </section>
         )}
       </section>
@@ -1086,6 +1165,113 @@ function SummaryStrip({ analysis, requirements }: { analysis: AnalysisResponse; 
   );
 }
 
+function ProfileChangesView({
+  approvedCount,
+  busy,
+  changeSet,
+  onExportRq2,
+  onGenerateDraft,
+  updateProfileChange,
+}: {
+  approvedCount: number;
+  busy: boolean;
+  changeSet: ProfileChangeSet | null;
+  onExportRq2: () => void;
+  onGenerateDraft: () => void;
+  updateProfileChange: (id: string, reviewStatus: 'candidate' | 'accepted' | 'rejected' | 'needs_review') => void;
+}) {
+  if (!changeSet) {
+    return (
+      <EmptyState text="Approve requirements in Requirement Review, then click 'Profile changes' to generate reviewable DCAT-AP profile change proposals (RQ2)." />
+    );
+  }
+
+  const acceptedCount = changeSet.changes.filter((change) => change.review_status === 'accepted').length;
+  const needsReviewCount = changeSet.changes.filter((change) => change.review_status === 'needs_review').length;
+
+  return (
+    <section className="profile-changes-view">
+      <div className="review-overview">
+        <div>
+          <h3>Review proposed profile changes</h3>
+          <p>
+            Generated from {approvedCount} approved requirement(s) against the {changeSet.profile_base} base. Accept or reject each change; the
+            LinkML draft and SHACL are generated from accepted changes only.
+          </p>
+        </div>
+        <div className="review-overview__stats">
+          <span><strong>{changeSet.changes.length}</strong> proposed</span>
+          <span><strong>{acceptedCount}</strong> accepted</span>
+          <span><strong>{needsReviewCount}</strong> needs review</span>
+        </div>
+      </div>
+
+      {changeSet.warnings.length ? (
+        <ul className="validation-notes" aria-label="Profile change warnings">
+          {changeSet.warnings.map((warning) => (
+            <li key={warning}>
+              <AlertTriangle size={13} /> {warning}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <div className="candidate-list">
+        {changeSet.changes.map((change) => (
+          <article className={`profile-change-item profile-change-item--${change.review_status}`} key={change.id}>
+            <div className="profile-change-item__header">
+              <strong>{humanize(change.change_type)}</strong>
+              <span className={`status-pill status-pill--${change.review_status === 'accepted' ? 'approved' : change.review_status}`}>
+                {humanize(change.review_status)}
+              </span>
+            </div>
+            <code>
+              {change.target_class} . {change.slot_name || change.class_name || '?'}
+              {change.range ? ` : ${change.range}` : ''}
+            </code>
+            <small>
+              {change.source_vocabulary || 'unknown vocabulary'} - {change.obligation_level}
+              {change.required ? ' - required' : ''}
+              {change.multivalued ? ' - multivalued' : ''} - from {change.source_requirement_ids.join(', ')} - {change.evidence_ids.length} evidence ref(s)
+            </small>
+            <p>{change.rationale}</p>
+            {change.warnings.length ? (
+              <ul className="validation-notes">
+                {change.warnings.map((warning) => (
+                  <li key={warning}>
+                    <AlertTriangle size={13} /> {warning}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="review-actions">
+              <button onClick={() => updateProfileChange(change.id, 'accepted')} type="button">
+                <CheckCircle2 size={16} />
+                Accept
+              </button>
+              <button onClick={() => updateProfileChange(change.id, 'rejected')} type="button">
+                <XCircle size={16} />
+                Reject
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="constraint-preview__actions">
+        <button className="primary" disabled={busy || acceptedCount === 0} onClick={onGenerateDraft} type="button">
+          <Wand2 size={16} />
+          Generate draft + SHACL from accepted changes
+        </button>
+        <button disabled={busy} onClick={onExportRq2} type="button">
+          <Download size={16} />
+          Export RQ2 package
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function EmptyState({ text }: { text: string }) {
   return <p className="empty-state">{text}</p>;
 }
@@ -1193,6 +1379,7 @@ function buildRq1DatasetExport(
       ).length,
       local_merge_event_count: localMergeEvents.length,
       local_split_event_count: localSplitEvents.length,
+      competency_question_coverage: buildCqCoverage(requirements, analysis.user_tasks),
     },
     requirements,
     evidence_units: analysis.evidence_units,
@@ -1209,6 +1396,17 @@ function buildRq1DatasetExport(
       review_notes: requirement.review_notes ?? null,
       editor_history: requirement.provenance?.editor_history ?? [],
     })),
+  };
+}
+
+function buildCqCoverage(requirements: CandidateRequirement[], userTasks: UserTask[]) {
+  const active = requirements.filter((requirement) => requirement.status !== 'rejected' && requirement.status !== 'merged');
+  const covered = new Set(active.flatMap((requirement) => requirement.supports_user_tasks));
+  return {
+    task_count: userTasks.length,
+    covered_task_count: userTasks.filter((task) => covered.has(task.id)).length,
+    uncovered_task_ids: userTasks.filter((task) => !covered.has(task.id)).map((task) => task.id),
+    requirements_without_task_links: active.filter((requirement) => !requirement.supports_user_tasks.length).map((requirement) => requirement.id),
   };
 }
 

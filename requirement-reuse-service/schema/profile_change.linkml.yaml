@@ -1,0 +1,95 @@
+# Profile Change Set - LinkML schema (RQ2 contract)
+#
+# Normative definition of the intermediate representation between reviewed
+# RQ1 requirements and generated profile artifacts. RQ2 consumes approved
+# CandidateRequirement records (see requirement_record.linkml.yaml) and
+# produces a reviewable ProfileChangeSet; the LinkML profile draft and SHACL
+# shapes are generated from the SAME change set, and every generated profile
+# element keeps provenance back to requirement ids and evidence unit ids.
+id: https://w3id.org/construct-dcat/profile-change
+name: profile_change
+title: Profile Change Set
+description: >-
+  Reviewable profile change proposals generated from approved, evidence-
+  traceable requirements. The change set is the explainable RQ1 -> RQ2
+  transition: nothing is merged into the active profile until a human accepts
+  the changes and explicitly merges the generated draft in the editor.
+license: https://www.apache.org/licenses/LICENSE-2.0
+prefixes:
+  linkml: https://w3id.org/linkml/
+  pc: https://w3id.org/construct-dcat/profile-change/
+default_prefix: pc
+default_range: string
+imports:
+  - linkml:types
+
+classes:
+  ProfileChangeSet:
+    description: A set of reviewable profile change proposals derived from one reviewed requirement set.
+    attributes:
+      id:
+        identifier: true
+      source_requirement_set_id: {}
+      created_at:
+        range: datetime
+      profile_base:
+        description: Base profile being extended (DCAT-AP).
+      profile_namespace: {}
+      profile_prefix: {}
+      changes:
+        range: ProfileChange
+        multivalued: true
+      warnings:
+        multivalued: true
+      summary_metrics:
+        description: Counts by change type, target class, and review status.
+
+  ProfileChange:
+    description: A single reviewable profile change proposal.
+    attributes:
+      id:
+        identifier: true
+      requirement_id:
+        description: Primary source requirement.
+      change_type:
+        range: ProfileChangeType
+      target_class:
+        description: Prefixed base class, e.g. dcat:Dataset.
+      term_uri:
+        description: Expanded URI of the reused or proposed term.
+      slot_name: {}
+      class_name: {}
+      range: {}
+      required:
+        range: boolean
+      multivalued:
+        range: boolean
+      obligation_level:
+        range: ObligationLevel
+      rationale: {}
+      source_vocabulary: {}
+      evidence_ids:
+        multivalued: true
+        description: Evidence unit ids supporting the change (provenance to RQ1 evidence).
+      source_requirement_ids:
+        multivalued: true
+        description: All requirements folded into this change (duplicates share one slot).
+      review_status:
+        range: ProfileChangeReviewStatus
+      warnings:
+        multivalued: true
+
+enums:
+  ProfileChangeType:
+    permissible_values:
+      reuse_property: {}
+      specialize_property: {}
+      create_extension_property: {}
+      create_profile_class: {}
+      add_constraint: {}
+      add_usage_note: {}
+      add_controlled_vocabulary: {}
+  ProfileChangeReviewStatus:
+    permissible_values: {candidate: {}, accepted: {}, rejected: {}, needs_review: {}}
+  ObligationLevel:
+    permissible_values: {mandatory: {}, recommended: {}, optional: {}, unknown: {}}

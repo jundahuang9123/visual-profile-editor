@@ -132,15 +132,36 @@ classes:
         range: ObligationHint
 
   CandidateMetadataAction:
-    description: A proposed profile-design action derived from the requirement.
+    description: >-
+      A proposed profile-design action derived from the requirement - the
+      primary RQ1 -> RQ2 handoff object consumed by profile generation
+      (see profile_change.linkml.yaml).
     attributes:
       action:
         range: MetadataActionKind
-      target_class: {}
+      target_class:
+        description: Profiled base class, e.g. dcat:Dataset, dcat:Distribution, dcat:Catalog, dcat:DataService.
       candidate_terms:
         multivalued: true
         description: Prefixed candidate terms in reuse-priority order (dcterms:, dcat:, prov:, skos:, then cx: extensions).
       rationale: {}
+      constraint_hint:
+        range: ConstraintHint
+        description: Optional structured constraint hint for RQ2 (cardinality, value kind, datatype, obligation).
+      source_requirement_id:
+        description: Backlink to the owning requirement once actions are transformed into RQ2 proposals.
+
+  ConstraintHint:
+    description: Structured constraint hint derived from the normalized intent or supplied by the extractor/reviewer.
+    attributes:
+      cardinality:
+        description: Cardinality expression such as 0..n, 1..1, 0..1, 1..n.
+      value_kind:
+        range: ValueKind
+      datatype_or_class:
+        description: Optional explicit datatype or class for the slot range.
+      obligation:
+        range: ObligationHint
 
   ExtractionProvenance:
     description: Reproducibility and effort-measurement record (PROV-O-style, simplified).

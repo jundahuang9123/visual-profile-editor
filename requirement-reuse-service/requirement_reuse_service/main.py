@@ -7,20 +7,31 @@ from .llm import LLMConfig
 from .models import (
     AnalysisRequest,
     ConstraintGenerationRequest,
+    GenerateProfileChangesRequest,
+    GenerateProfileDraftRequest,
     RecommendationRequest,
     RequirementSetLoadRequest,
     RequirementSetSaveRequest,
+    RQ2ExportRequest,
+)
+from .profile_generation import (
+    build_rq2_package,
+    generate_profile_changes,
+    generate_profile_draft,
+    generate_shacl_from_changes,
+    select_changes,
 )
 from .registry import list_requirement_sets, load_requirement_set, save_requirement_set
 from .service import analyze_payload, export_rq1_dataset, extract_requirements, generate_constraints, recommend_reuse
 
 app = FastAPI(
     title='Requirement Extraction & Reuse Recommendation Service',
-    version='0.2.0',
+    version='0.3.0',
     description=(
-        'Semi-automated, reuse-first requirement extraction for DCAT profile engineering. '
-        'Supports a rule-based baseline strategy, an LLM-assisted strategy with verbatim '
-        'evidence verification, and a hybrid of both.'
+        'RQ1: semi-automated, reuse-first requirement extraction for DCAT/DCAT-AP profile '
+        'engineering (rule-based baseline, LLM-assisted with verbatim evidence verification, '
+        'and hybrid strategies). RQ2: reviewable profile change sets, LinkML profile drafts, '
+        'and SHACL generated from approved requirements only.'
     ),
 )
 
@@ -74,6 +85,33 @@ def recommend_reuse_candidates(payload: RecommendationRequest):
 @app.post('/generate-shacl')
 def generate_shacl(payload: ConstraintGenerationRequest):
     return generate_constraints(payload)
+
+
+@app.post('/generate-profile-changes')
+def profile_changes(payload: GenerateProfileChangesRequest):
+    """RQ2 step 1: convert approved requirements into a reviewable ProfileChangeSet."""
+    return generate_profile_changes(payload)
+
+
+@app.post('/generate-profile-draft')
+def profile_draft(payload: GenerateProfileDraftRequest):
+    """RQ2 step 2: LinkML profile draft + SHACL from a reviewed ProfileChangeSet."""
+    return generate_profile_draft(payload)
+
+
+@app.post('/generate-shacl-from-profile-changes')
+def shacl_from_changes(payload: GenerateProfileDraftRequest):
+    included, notes = select_changes(payload.profile_change_set, payload.accepted_only)
+    return {
+        'shacl': generate_shacl_from_changes(payload.profile_change_set, included) if included else '',
+        'validation_notes': notes,
+    }
+
+
+@app.post('/export-rq2-package')
+def export_rq2(payload: RQ2ExportRequest):
+    """RQ2 export: change set + LinkML draft + SHACL + provenance mapping."""
+    return build_rq2_package(payload)
 
 
 @app.post('/save-requirement-set')

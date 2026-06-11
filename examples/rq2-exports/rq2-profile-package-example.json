@@ -1,0 +1,525 @@
+{
+  "schema_version": "rq2-profile-generation-package-v1",
+  "generated_at": "2026-06-11T15:32:01+00:00",
+  "base_profile": "DCAT-AP",
+  "source_requirement_set_id": null,
+  "approved_requirement_count": 8,
+  "profile_change_set": {
+    "id": "chg-c316743554",
+    "source_requirement_set_id": null,
+    "created_at": "2026-06-11T15:32:01+00:00",
+    "profile_base": "DCAT-AP",
+    "profile_namespace": "https://w3id.org/cx#",
+    "profile_prefix": "cx",
+    "changes": [
+      {
+        "id": "pchg-f0fc80d8af",
+        "requirement_id": "req-5246550764",
+        "change_type": "reuse_property",
+        "target_class": "dcat:Dataset",
+        "term_uri": "http://www.w3.org/ns/dcat#accessURL",
+        "slot_name": "accessURL",
+        "class_name": null,
+        "range": "anyURI",
+        "required": false,
+        "multivalued": true,
+        "obligation_level": "recommended",
+        "rationale": "describe access and reuse conditions can reuse established DCAT/DCAT-AP or provenance terms.",
+        "source_vocabulary": "DCAT/DCAT-AP",
+        "evidence_ids": [
+          "ev-fcfb235985",
+          "ev-da91ff274e",
+          "ev-222194bc13",
+          "ev-fd55e0c171",
+          "ev-12dc6f63a7"
+        ],
+        "source_requirement_ids": [
+          "req-5246550764"
+        ],
+        "review_status": "needs_review",
+        "warnings": [
+          "Term 'dcat:accessURL' has domain Distribution but targets dcat:Dataset; needs review."
+        ]
+      },
+      {
+        "id": "pchg-08fde779ab",
+        "requirement_id": "req-922afd7b20",
+        "change_type": "reuse_property",
+        "target_class": "dcat:Dataset",
+        "term_uri": "http://www.w3.org/ns/dcat#keyword",
+        "slot_name": "keyword",
+        "class_name": null,
+        "range": "string",
+        "required": true,
+        "multivalued": false,
+        "obligation_level": "mandatory",
+        "rationale": "provide descriptive dataset metadata can reuse established DCAT/DCAT-AP or provenance terms.",
+        "source_vocabulary": "DCAT/DCAT-AP",
+        "evidence_ids": [
+          "ev-80229ece82",
+          "ev-4b9715ed7a",
+          "ev-e15f89cdb1",
+          "ev-bb4cdb333e",
+          "ev-4e55852864",
+          "ev-f13bf1742e",
+          "ev-9a4c1cee02",
+          "ev-061b7ebcd1"
+        ],
+        "source_requirement_ids": [
+          "req-922afd7b20"
+        ],
+        "review_status": "accepted",
+        "warnings": []
+      },
+      {
+        "id": "pchg-dc6b009518",
+        "requirement_id": "req-94b78d5d83",
+        "change_type": "add_controlled_vocabulary",
+        "target_class": "dcat:Dataset",
+        "term_uri": "http://www.w3.org/ns/dcat#theme",
+        "slot_name": "theme",
+        "class_name": null,
+        "range": "SkosConcept",
+        "required": false,
+        "multivalued": true,
+        "obligation_level": "recommended",
+        "rationale": "indicate construction lifecycle phase is construction-specific and may need Construct-DCAT profile terms or extensions.",
+        "source_vocabulary": "DCAT/DCAT-AP",
+        "evidence_ids": [
+          "ev-aea2672bd0",
+          "ev-70d39cbc0b",
+          "ev-943c63d99e",
+          "ev-cc1b140ca6",
+          "ev-f77077dfee",
+          "ev-8e52b7191b",
+          "ev-ce4bde05ca",
+          "ev-73b2b00eaa"
+        ],
+        "source_requirement_ids": [
+          "req-94b78d5d83",
+          "req-a872a62c16"
+        ],
+        "review_status": "accepted",
+        "warnings": []
+      },
+      {
+        "id": "pchg-b8e8ade8ca",
+        "requirement_id": "req-b13c45efc3",
+        "change_type": "reuse_property",
+        "target_class": "dcat:Dataset",
+        "term_uri": "http://purl.org/dc/terms/provenance",
+        "slot_name": "provenance",
+        "class_name": null,
+        "range": "string",
+        "required": false,
+        "multivalued": false,
+        "obligation_level": "optional",
+        "rationale": "describe provenance and quality context is construction-specific and may need Construct-DCAT profile terms or extensions.",
+        "source_vocabulary": "DCAT-AP / DCTERMS",
+        "evidence_ids": [
+          "ev-582a4f6c20",
+          "ev-ce23cda506"
+        ],
+        "source_requirement_ids": [
+          "req-b13c45efc3"
+        ],
+        "review_status": "accepted",
+        "warnings": []
+      },
+      {
+        "id": "pchg-2cbb261b8e",
+        "requirement_id": "req-74f79dcdf2",
+        "change_type": "create_extension_property",
+        "target_class": "dcat:Dataset",
+        "term_uri": "https://w3id.org/cx#hasAASSubmodel",
+        "slot_name": "hasAASSubmodel",
+        "class_name": null,
+        "range": "anyURI",
+        "required": false,
+        "multivalued": true,
+        "obligation_level": "recommended",
+        "rationale": "reference AAS submodels is construction-specific and may need Construct-DCAT profile terms or extensions.",
+        "source_vocabulary": "Construct-DCAT extension",
+        "evidence_ids": [
+          "ev-0ea24b6939",
+          "ev-11e2aba27e",
+          "ev-f13bf1742e",
+          "ev-9a4c1cee02",
+          "ev-40f9dfd8d7",
+          "ev-ca89032a22",
+          "ev-815dc53b43",
+          "ev-8a4738fa4c",
+          "ev-88513b498a",
+          "ev-377ab6de42",
+          "ev-622de1ec5f",
+          "ev-1c31ef42da"
+        ],
+        "source_requirement_ids": [
+          "req-74f79dcdf2",
+          "req-cd3f3a5360"
+        ],
+        "review_status": "accepted",
+        "warnings": []
+      },
+      {
+        "id": "pchg-76a0ae342c",
+        "requirement_id": "req-8ae35763ac",
+        "change_type": "create_extension_property",
+        "target_class": "dcat:Dataset",
+        "term_uri": "https://w3id.org/cx#hasIFCEntity",
+        "slot_name": "hasIFCEntity",
+        "class_name": null,
+        "range": "anyURI",
+        "required": false,
+        "multivalued": true,
+        "obligation_level": "recommended",
+        "rationale": "reference IFC entity classes is construction-specific and may need Construct-DCAT profile terms or extensions.",
+        "source_vocabulary": "Construct-DCAT extension",
+        "evidence_ids": [
+          "ev-aea2672bd0",
+          "ev-70d39cbc0b",
+          "ev-943c63d99e",
+          "ev-cc1b140ca6",
+          "ev-f77077dfee",
+          "ev-8e52b7191b",
+          "ev-ce4bde05ca",
+          "ev-73b2b00eaa"
+        ],
+        "source_requirement_ids": [
+          "req-8ae35763ac"
+        ],
+        "review_status": "accepted",
+        "warnings": []
+      }
+    ],
+    "warnings": [
+      "13 requirement(s) were not approved and were excluded from profile generation."
+    ],
+    "summary_metrics": {
+      "source_requirement_count": 21,
+      "approved_requirement_count": 8,
+      "change_count": 6,
+      "needs_review_change_count": 1,
+      "changes_by_type": {
+        "reuse_property": 3,
+        "add_controlled_vocabulary": 1,
+        "create_extension_property": 2
+      },
+      "changes_by_target_class": {
+        "dcat:Dataset": 6
+      }
+    }
+  },
+  "profile_draft_linkml": {
+    "id": "https://w3id.org/construct-dcat/profile/generated-from-requirements",
+    "name": "generated_requirement_profile",
+    "title": "Generated DCAT-AP Profile Extension Draft",
+    "description": "Reviewable profile draft generated from approved, evidence-traceable requirements (profile change set chg-c316743554). Merge into the visual editor only after review.",
+    "prefixes": {
+      "linkml": "https://w3id.org/linkml/",
+      "dcat": "http://www.w3.org/ns/dcat#",
+      "dcterms": "http://purl.org/dc/terms/",
+      "skos": "http://www.w3.org/2004/02/skos/core#",
+      "prov": "http://www.w3.org/ns/prov#",
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "cx": "https://w3id.org/cx#"
+    },
+    "imports": [
+      "linkml:types"
+    ],
+    "default_prefix": "cx",
+    "default_range": "string",
+    "classes": {
+      "ConstructionDatasetProfile": {
+        "title": "Construction Dataset Profile",
+        "is_a": "DcatDataset",
+        "class_uri": "cx:ConstructionDataset",
+        "slots": [
+          "keyword",
+          "theme",
+          "provenance",
+          "hasAASSubmodel",
+          "hasIFCEntity"
+        ],
+        "annotations": {
+          "term_kind": {
+            "value": "profile"
+          },
+          "profile_of": {
+            "value": "dcat:Dataset"
+          },
+          "profile_base": {
+            "value": "DCAT-AP"
+          },
+          "generated_from_requirements": {
+            "value": "req-922afd7b20, req-94b78d5d83, req-a872a62c16, req-b13c45efc3, req-74f79dcdf2, req-cd3f3a5360, req-8ae35763ac"
+          }
+        }
+      }
+    },
+    "slots": {
+      "keyword": {
+        "title": "Keyword",
+        "slot_uri": "dcat:keyword",
+        "range": "string",
+        "annotations": {
+          "term_kind": {
+            "value": "profile"
+          },
+          "source_vocabulary": {
+            "value": "DCAT/DCAT-AP"
+          },
+          "obligation_level": {
+            "value": "mandatory"
+          },
+          "rationale": {
+            "value": "provide descriptive dataset metadata can reuse established DCAT/DCAT-AP or provenance terms."
+          },
+          "source_requirement_ids": {
+            "value": "req-922afd7b20"
+          },
+          "source_evidence_ids": {
+            "value": "ev-80229ece82, ev-4b9715ed7a, ev-e15f89cdb1, ev-bb4cdb333e, ev-4e55852864, ev-f13bf1742e, ev-9a4c1cee02, ev-061b7ebcd1"
+          },
+          "generated_from_change": {
+            "value": "pchg-08fde779ab"
+          }
+        },
+        "required": true
+      },
+      "theme": {
+        "title": "Theme",
+        "slot_uri": "dcat:theme",
+        "range": "SkosConcept",
+        "annotations": {
+          "term_kind": {
+            "value": "profile"
+          },
+          "source_vocabulary": {
+            "value": "DCAT/DCAT-AP"
+          },
+          "obligation_level": {
+            "value": "recommended"
+          },
+          "rationale": {
+            "value": "indicate construction lifecycle phase is construction-specific and may need Construct-DCAT profile terms or extensions."
+          },
+          "source_requirement_ids": {
+            "value": "req-94b78d5d83, req-a872a62c16"
+          },
+          "source_evidence_ids": {
+            "value": "ev-aea2672bd0, ev-70d39cbc0b, ev-943c63d99e, ev-cc1b140ca6, ev-f77077dfee, ev-8e52b7191b, ev-ce4bde05ca, ev-73b2b00eaa"
+          },
+          "generated_from_change": {
+            "value": "pchg-dc6b009518"
+          }
+        },
+        "multivalued": true
+      },
+      "provenance": {
+        "title": "Provenance",
+        "slot_uri": "dcterms:provenance",
+        "range": "string",
+        "annotations": {
+          "term_kind": {
+            "value": "profile"
+          },
+          "source_vocabulary": {
+            "value": "DCAT-AP / DCTERMS"
+          },
+          "obligation_level": {
+            "value": "optional"
+          },
+          "rationale": {
+            "value": "describe provenance and quality context is construction-specific and may need Construct-DCAT profile terms or extensions."
+          },
+          "source_requirement_ids": {
+            "value": "req-b13c45efc3"
+          },
+          "source_evidence_ids": {
+            "value": "ev-582a4f6c20, ev-ce23cda506"
+          },
+          "generated_from_change": {
+            "value": "pchg-b8e8ade8ca"
+          }
+        }
+      },
+      "hasAASSubmodel": {
+        "title": "Has a a s submodel",
+        "slot_uri": "cx:hasAASSubmodel",
+        "range": "anyURI",
+        "annotations": {
+          "term_kind": {
+            "value": "extension"
+          },
+          "source_vocabulary": {
+            "value": "Construct-DCAT extension"
+          },
+          "obligation_level": {
+            "value": "recommended"
+          },
+          "rationale": {
+            "value": "reference AAS submodels is construction-specific and may need Construct-DCAT profile terms or extensions."
+          },
+          "source_requirement_ids": {
+            "value": "req-74f79dcdf2, req-cd3f3a5360"
+          },
+          "source_evidence_ids": {
+            "value": "ev-0ea24b6939, ev-11e2aba27e, ev-f13bf1742e, ev-9a4c1cee02, ev-40f9dfd8d7, ev-ca89032a22, ev-815dc53b43, ev-8a4738fa4c, ev-88513b498a, ev-377ab6de42, ev-622de1ec5f, ev-1c31ef42da"
+          },
+          "generated_from_change": {
+            "value": "pchg-2cbb261b8e"
+          }
+        },
+        "multivalued": true
+      },
+      "hasIFCEntity": {
+        "title": "Has i f c entity",
+        "slot_uri": "cx:hasIFCEntity",
+        "range": "anyURI",
+        "annotations": {
+          "term_kind": {
+            "value": "extension"
+          },
+          "source_vocabulary": {
+            "value": "Construct-DCAT extension"
+          },
+          "obligation_level": {
+            "value": "recommended"
+          },
+          "rationale": {
+            "value": "reference IFC entity classes is construction-specific and may need Construct-DCAT profile terms or extensions."
+          },
+          "source_requirement_ids": {
+            "value": "req-8ae35763ac"
+          },
+          "source_evidence_ids": {
+            "value": "ev-aea2672bd0, ev-70d39cbc0b, ev-943c63d99e, ev-cc1b140ca6, ev-f77077dfee, ev-8e52b7191b, ev-ce4bde05ca, ev-73b2b00eaa"
+          },
+          "generated_from_change": {
+            "value": "pchg-76a0ae342c"
+          }
+        },
+        "multivalued": true
+      }
+    },
+    "enums": {}
+  },
+  "shacl": "# Generated from profile change set chg-c316743554 (DCAT-AP base).\n# Each property shape traces back to requirement ids via sh:description.\n@prefix cx: <https://w3id.org/cx#> .\n@prefix dcat: <http://www.w3.org/ns/dcat#> .\n@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n@prefix prov: <http://www.w3.org/ns/prov#> .\n@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n@prefix sh: <http://www.w3.org/ns/shacl#> .\n\ncx:ConstructionDatasetProfileShape\n    a sh:NodeShape ;\n    sh:targetClass dcat:Dataset ;\n    sh:property [\n        sh:path dcat:keyword ;\n        sh:minCount 1 ;\n        sh:severity sh:Violation ;\n        sh:message \"Mandatory: provide descriptive dataset metadata can reuse established DCAT/DCAT-AP or provenance terms.\" ;\n        sh:description \"Generated from requirement(s) req-922afd7b20 (change pchg-08fde779ab).\" ;\n    ] ;\n    sh:property [\n        sh:path dcat:theme ;\n        sh:nodeKind sh:IRI ;\n        sh:severity sh:Warning ;\n        sh:message \"Recommended: indicate construction lifecycle phase is construction-specific and may need Construct-DCAT profile terms or extensions.\" ;\n        sh:description \"Generated from requirement(s) req-94b78d5d83, req-a872a62c16 (change pchg-dc6b009518).\" ;\n    ] ;\n    sh:property [\n        sh:path dcterms:provenance ;\n        sh:severity sh:Info ;\n        sh:message \"Optional: describe provenance and quality context is construction-specific and may need Construct-DCAT profile terms or extensions.\" ;\n        sh:description \"Generated from requirement(s) req-b13c45efc3 (change pchg-b8e8ade8ca).\" ;\n    ] ;\n    sh:property [\n        sh:path cx:hasAASSubmodel ;\n        sh:nodeKind sh:IRI ;\n        sh:severity sh:Warning ;\n        sh:message \"Recommended: reference AAS submodels is construction-specific and may need Construct-DCAT profile terms or extensions.\" ;\n        sh:description \"Generated from requirement(s) req-74f79dcdf2, req-cd3f3a5360 (change pchg-2cbb261b8e).\" ;\n    ] ;\n    sh:property [\n        sh:path cx:hasIFCEntity ;\n        sh:nodeKind sh:IRI ;\n        sh:severity sh:Warning ;\n        sh:message \"Recommended: reference IFC entity classes is construction-specific and may need Construct-DCAT profile terms or extensions.\" ;\n        sh:description \"Generated from requirement(s) req-8ae35763ac (change pchg-76a0ae342c).\" ;\n    ] .\n",
+  "provenance_mapping": [
+    {
+      "requirement_id": "req-922afd7b20",
+      "profile_element": "dcat:keyword",
+      "change_id": "pchg-08fde779ab",
+      "evidence_unit_ids": [
+        "ev-80229ece82",
+        "ev-4b9715ed7a",
+        "ev-e15f89cdb1",
+        "ev-bb4cdb333e",
+        "ev-4e55852864",
+        "ev-f13bf1742e",
+        "ev-9a4c1cee02",
+        "ev-061b7ebcd1"
+      ]
+    },
+    {
+      "requirement_id": "req-94b78d5d83",
+      "profile_element": "dcat:theme",
+      "change_id": "pchg-dc6b009518",
+      "evidence_unit_ids": [
+        "ev-aea2672bd0",
+        "ev-70d39cbc0b",
+        "ev-943c63d99e",
+        "ev-cc1b140ca6",
+        "ev-f77077dfee",
+        "ev-8e52b7191b",
+        "ev-ce4bde05ca",
+        "ev-73b2b00eaa"
+      ]
+    },
+    {
+      "requirement_id": "req-a872a62c16",
+      "profile_element": "dcat:theme",
+      "change_id": "pchg-dc6b009518",
+      "evidence_unit_ids": [
+        "ev-aea2672bd0",
+        "ev-70d39cbc0b",
+        "ev-943c63d99e",
+        "ev-cc1b140ca6",
+        "ev-f77077dfee",
+        "ev-8e52b7191b",
+        "ev-ce4bde05ca",
+        "ev-73b2b00eaa"
+      ]
+    },
+    {
+      "requirement_id": "req-b13c45efc3",
+      "profile_element": "dcterms:provenance",
+      "change_id": "pchg-b8e8ade8ca",
+      "evidence_unit_ids": [
+        "ev-582a4f6c20",
+        "ev-ce23cda506"
+      ]
+    },
+    {
+      "requirement_id": "req-74f79dcdf2",
+      "profile_element": "cx:hasAASSubmodel",
+      "change_id": "pchg-2cbb261b8e",
+      "evidence_unit_ids": [
+        "ev-0ea24b6939",
+        "ev-11e2aba27e",
+        "ev-f13bf1742e",
+        "ev-9a4c1cee02",
+        "ev-40f9dfd8d7",
+        "ev-ca89032a22",
+        "ev-815dc53b43",
+        "ev-8a4738fa4c",
+        "ev-88513b498a",
+        "ev-377ab6de42",
+        "ev-622de1ec5f",
+        "ev-1c31ef42da"
+      ]
+    },
+    {
+      "requirement_id": "req-cd3f3a5360",
+      "profile_element": "cx:hasAASSubmodel",
+      "change_id": "pchg-2cbb261b8e",
+      "evidence_unit_ids": [
+        "ev-0ea24b6939",
+        "ev-11e2aba27e",
+        "ev-f13bf1742e",
+        "ev-9a4c1cee02",
+        "ev-40f9dfd8d7",
+        "ev-ca89032a22",
+        "ev-815dc53b43",
+        "ev-8a4738fa4c",
+        "ev-88513b498a",
+        "ev-377ab6de42",
+        "ev-622de1ec5f",
+        "ev-1c31ef42da"
+      ]
+    },
+    {
+      "requirement_id": "req-8ae35763ac",
+      "profile_element": "cx:hasIFCEntity",
+      "change_id": "pchg-76a0ae342c",
+      "evidence_unit_ids": [
+        "ev-aea2672bd0",
+        "ev-70d39cbc0b",
+        "ev-943c63d99e",
+        "ev-cc1b140ca6",
+        "ev-f77077dfee",
+        "ev-8e52b7191b",
+        "ev-ce4bde05ca",
+        "ev-73b2b00eaa"
+      ]
+    }
+  ],
+  "warnings": [
+    "13 requirement(s) were not approved and were excluded from profile generation."
+  ],
+  "validation_notes": [
+    "Review generated artifacts before merging them into the active profile.",
+    "1 change(s) marked needs_review were excluded: pchg-f0fc80d8af"
+  ]
+}

@@ -1,0 +1,3623 @@
+{
+  "schema_version": "rq1-requirement-dataset-v1",
+  "export_kind": "reproducible_run",
+  "generated_at": "2026-06-11T15:32:01+00:00",
+  "strategy_requested": "rules",
+  "strategy_used": "rules",
+  "summary_metrics": {
+    "competency_question_coverage": {
+      "task_count": 8,
+      "covered_task_count": 4,
+      "uncovered_task_ids": [
+        "competency-questions-4",
+        "competency-questions-5",
+        "competency-questions-10",
+        "competency-questions-11"
+      ],
+      "requirements_without_task_links": [
+        "req-1bb1f62920",
+        "req-922afd7b20",
+        "req-5d4e3fb49e",
+        "req-474b7eda2b",
+        "req-b13c45efc3",
+        "req-f76971f12b",
+        "req-a872a62c16",
+        "req-2a7ec0ca13",
+        "req-1fdb6af04e",
+        "req-46703e7151",
+        "req-1892536460"
+      ]
+    },
+    "requirement_count": 21,
+    "evidence_unit_count": 72,
+    "duplicate_group_count": 7,
+    "user_task_count": 8,
+    "warning_count": 0,
+    "requirements_by_type": {
+      "access_policy": 2,
+      "descriptive_metadata": 3,
+      "lifecycle_context": 2,
+      "quality_provenance": 2,
+      "semantic_anchor": 8,
+      "technical_metadata": 4
+    },
+    "requirements_by_scope": {
+      "profile_element": 18,
+      "controlled_vocabulary": 3
+    },
+    "requirements_by_validation_status": {
+      "resource_mismatch": 6,
+      "valid": 15
+    },
+    "requirements_with_editor_history": 0
+  },
+  "requirements": [
+    {
+      "id": "req-5246550764",
+      "raw_statement": "http://purl.org/dc/terms/accessRights used 1 time(s); http://purl.org/dc/terms/license used 1 time(s); Access conditions are critical: each dataset must carry a license or access",
+      "normalized_statement": "A dcat:Dataset or dcat:Distribution should describe access conditions, license, rights, or reuse policy.",
+      "requirement_type": "access_policy",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-fcfb235985",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/accessRights",
+          "evidence_text": "http://purl.org/dc/terms/accessRights used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests accessRights profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-da91ff274e",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/license",
+          "evidence_text": "http://purl.org/dc/terms/license used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests license profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-222194bc13",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:15",
+          "evidence_text": "Access conditions are critical: each dataset must carry a license or access",
+          "extracted_facts": [
+            "Mentions access policy requirement evidence"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-fd55e0c171",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:16",
+          "evidence_text": "rights statement, and restricted datasets should expose an access URL where the",
+          "extracted_facts": [
+            "Mentions access policy requirement evidence"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-12dc6f63a7",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:17",
+          "evidence_text": "access procedure is described.",
+          "extracted_facts": [
+            "Mentions access policy requirement evidence"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "describe access and reuse conditions",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "A",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR A, R by clarifying access, licensing, and reuse conditions.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:license",
+            "dcterms:accessRights",
+            "dcat:accessURL"
+          ],
+          "rationale": "describe access and reuse conditions can reuse established DCAT/DCAT-AP or provenance terms.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-5246550764"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-8"
+      ],
+      "validation_evidence": [],
+      "validation_status": "resource_mismatch",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset or dcat:Distribution should describe access conditions, license, rights, or r...",
+      "description": "A dcat:Dataset or dcat:Distribution should describe access conditions, license, rights, or reuse policy.",
+      "category": "Access/Policy",
+      "source": "dcat-metadata-example.ttl, stakeholder-needs.md",
+      "evidence": [
+        "http://purl.org/dc/terms/accessRights used 1 time(s)",
+        "http://purl.org/dc/terms/license used 1 time(s)",
+        "Access conditions are critical: each dataset must carry a license or access",
+        "rights statement, and restricted datasets should expose an access URL where the",
+        "access procedure is described."
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "req-1bb1f62920",
+      "raw_statement": "The artifact mentions license, rights, access URL, access rights, policy, or usage constraints.",
+      "normalized_statement": "The artifact mentions license, rights, access URL, access rights, policy, or usage constraints.",
+      "requirement_type": "access_policy",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-1b0d0030f6",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Access conditions are critical: each dataset must carry a license or access",
+          "extracted_facts": [
+            "Legacy analyzer suggested Access/Policy"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-16f98cad9a",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "rights statement, and restricted datasets should expose an access URL where the",
+          "extracted_facts": [
+            "Legacy analyzer suggested Access/Policy"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-07eb35a518",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "access procedure is described.",
+          "extracted_facts": [
+            "Legacy analyzer suggested Access/Policy"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "describe access and reuse conditions",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "A",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR A, R by clarifying access, licensing, and reuse conditions.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:license",
+            "dcterms:accessRights",
+            "dcat:accessURL"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-1bb1f62920"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "resource_mismatch",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Capture access and policy conditions",
+      "description": "The artifact mentions license, rights, access URL, access rights, policy, or usage constraints.",
+      "category": "Access/Policy",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "Access conditions are critical: each dataset must carry a license or access",
+        "rights statement, and restricted datasets should expose an access URL where the",
+        "access procedure is described."
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "req-922afd7b20",
+      "raw_statement": "http://purl.org/dc/terms/description used 1 time(s); http://purl.org/dc/terms/publisher used 1 time(s); http://purl.org/dc/terms/title used 1 time(s)",
+      "normalized_statement": "A dcat:Dataset should provide reusable descriptive metadata such as title, description, keywords, themes, and publisher.",
+      "requirement_type": "descriptive_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-80229ece82",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/description",
+          "evidence_text": "http://purl.org/dc/terms/description used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests description profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-4b9715ed7a",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/publisher",
+          "evidence_text": "http://purl.org/dc/terms/publisher used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests publisher profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-e15f89cdb1",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/title",
+          "evidence_text": "http://purl.org/dc/terms/title used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests title profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-bb4cdb333e",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://www.w3.org/ns/dcat#keyword",
+          "evidence_text": "http://www.w3.org/ns/dcat#keyword used 3 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests keyword profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-4e55852864",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.conceptDescriptions[0].embeddedDataSpecifications[0].dataSpecificationContent.preferredName",
+          "evidence_text": "preferredName = maximum flow rate",
+          "extracted_facts": [
+            "AAS concept description contains human-readable label"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-f13bf1742e",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.conceptDescriptions[0].id",
+          "evidence_text": "id = 0173-1#02-AAB713#005",
+          "extracted_facts": [
+            "AAS submodel or concept has stable identifier"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-9a4c1cee02",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.conceptDescriptions[0].idShort",
+          "evidence_text": "idShort = MaxFlowRate",
+          "extracted_facts": [
+            "AAS model contains idShort value"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-061b7ebcd1",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:5",
+          "evidence_text": "Data providers must publish a title, a description, and at least one keyword for",
+          "extracted_facts": [
+            "Mentions descriptive metadata requirement evidence"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "provide descriptive dataset metadata",
+        "value_kind": "literal",
+        "obligation_hint": "mandatory"
+      },
+      "fair_dimensions": [
+        "F"
+      ],
+      "fair_rationale": "Supports FAIR F by improving discovery through reusable catalog metadata.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:title",
+            "dcterms:description",
+            "dcat:keyword",
+            "dcat:theme",
+            "dcterms:publisher"
+          ],
+          "rationale": "provide descriptive dataset metadata can reuse established DCAT/DCAT-AP or provenance terms.",
+          "constraint_hint": {
+            "value_kind": "literal",
+            "obligation": "mandatory"
+          },
+          "source_requirement_id": "req-922afd7b20"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should provide reusable descriptive metadata such as title, description, keyw...",
+      "description": "A dcat:Dataset should provide reusable descriptive metadata such as title, description, keywords, themes, and publisher.",
+      "category": "Dataset Metadata",
+      "source": "dcat-metadata-example.ttl, pump-aas.json, stakeholder-needs.md",
+      "evidence": [
+        "http://purl.org/dc/terms/description used 1 time(s)",
+        "http://purl.org/dc/terms/publisher used 1 time(s)",
+        "http://purl.org/dc/terms/title used 1 time(s)",
+        "http://www.w3.org/ns/dcat#keyword used 3 time(s)",
+        "preferredName = maximum flow rate",
+        "id = 0173-1#02-AAB713#005",
+        "idShort = MaxFlowRate",
+        "Data providers must publish a title, a description, and at least one keyword for"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": "req-5d4e3fb49e",
+      "raw_statement": "The artifact asks for dataset-level description, title, keywords, publisher, or thematic metadata.",
+      "normalized_statement": "The artifact asks for dataset-level description, title, keywords, publisher, or thematic metadata.",
+      "requirement_type": "descriptive_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-dd08c9497e",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "describe, for example pumps, air handling units, walls, or spaces, without",
+          "extracted_facts": [
+            "Legacy analyzer suggested Dataset Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-e5ff563f11",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Data providers must publish a title, a description, and at least one keyword for",
+          "extracted_facts": [
+            "Legacy analyzer suggested Dataset Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-9ab463dfc9",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "every dataset so that catalog search works across portals.",
+          "extracted_facts": [
+            "Legacy analyzer suggested Dataset Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-4d6afc77f1",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "indicate its publisher organization.",
+          "extracted_facts": [
+            "Legacy analyzer suggested Dataset Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-07eb35a518",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "access procedure is described.",
+          "extracted_facts": [
+            "Legacy analyzer suggested Dataset Metadata"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "provide descriptive dataset metadata",
+        "value_kind": "literal",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F"
+      ],
+      "fair_rationale": "Supports FAIR F by improving discovery through reusable catalog metadata.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:title",
+            "dcterms:description",
+            "dcat:keyword",
+            "dcat:theme"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "literal",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-5d4e3fb49e"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Describe datasets with reusable catalog metadata",
+      "description": "The artifact asks for dataset-level description, title, keywords, publisher, or thematic metadata.",
+      "category": "Dataset Metadata",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "describe, for example pumps, air handling units, walls, or spaces, without",
+        "Data providers must publish a title, a description, and at least one keyword for",
+        "every dataset so that catalog search works across portals.",
+        "indicate its publisher organization.",
+        "access procedure is described."
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "req-474b7eda2b",
+      "raw_statement": "Existing metadata examples contain properties that can seed a reusable profile.",
+      "normalized_statement": "Existing metadata examples contain properties that can seed a reusable profile.",
+      "requirement_type": "descriptive_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-0bd152f126",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "unknown",
+          "evidence_text": "Keyword; Download URL; Description; Access rights; Title; Format",
+          "extracted_facts": [
+            "Legacy analyzer suggested Dataset Metadata"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "provide descriptive dataset metadata",
+        "value_kind": "literal",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F"
+      ],
+      "fair_rationale": "Supports FAIR F by improving discovery through reusable catalog metadata.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:title",
+            "dcterms:description",
+            "dcat:keyword",
+            "dcat:theme"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "literal",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-474b7eda2b"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Reuse existing DCAT metadata patterns",
+      "description": "Existing metadata examples contain properties that can seed a reusable profile.",
+      "category": "Dataset Metadata",
+      "source": "dcat-metadata-example.ttl",
+      "evidence": [
+        "Keyword",
+        "Download URL",
+        "Description",
+        "Access rights",
+        "Title",
+        "Format"
+      ],
+      "confidence": 0.82
+    },
+    {
+      "id": "req-94b78d5d83",
+      "raw_statement": "IFCAXIS2PLACEMENT3D occurs 1 time(s); IFCBOOLEAN occurs 1 time(s); IFCBUILDING occurs 1 time(s)",
+      "normalized_statement": "A dcat:Dataset should indicate the construction lifecycle phase to which the data relates.",
+      "requirement_type": "lifecycle_context",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-aea2672bd0",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCAXIS2PLACEMENT3D",
+          "evidence_text": "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-70d39cbc0b",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBOOLEAN",
+          "evidence_text": "IFCBOOLEAN occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-943c63d99e",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBUILDING",
+          "evidence_text": "IFCBUILDING occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-cc1b140ca6",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBUILDINGSTOREY",
+          "evidence_text": "IFCBUILDINGSTOREY occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-f77077dfee",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCCARTESIANPOINT",
+          "evidence_text": "IFCCARTESIANPOINT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-8e52b7191b",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCFLOWSEGMENT",
+          "evidence_text": "IFCFLOWSEGMENT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-ce4bde05ca",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCGEOMETRICREPRESENTATIONCONTEXT",
+          "evidence_text": "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-73b2b00eaa",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCPROJECT",
+          "evidence_text": "IFCPROJECT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "indicate construction lifecycle phase",
+        "value_kind": "controlled_concept",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, R by making construction phase context searchable and reusable.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:hasLifecyclePhase",
+            "dcat:theme"
+          ],
+          "rationale": "indicate construction lifecycle phase is construction-specific and may need Construct-DCAT profile terms or extensions.",
+          "constraint_hint": {
+            "value_kind": "controlled_concept",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-94b78d5d83"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-9"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "controlled_vocabulary",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should indicate the construction lifecycle phase to which the data relates.",
+      "description": "A dcat:Dataset should indicate the construction lifecycle phase to which the data relates.",
+      "category": "Lifecycle Information",
+      "source": "building-snippet.ifc, dcat-metadata-example.ttl, pump-aas.json, stakeholder-needs.md",
+      "evidence": [
+        "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+        "IFCBOOLEAN occurs 1 time(s)",
+        "IFCBUILDING occurs 1 time(s)",
+        "IFCBUILDINGSTOREY occurs 1 time(s)",
+        "IFCCARTESIANPOINT occurs 1 time(s)",
+        "IFCFLOWSEGMENT occurs 1 time(s)",
+        "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+        "IFCPROJECT occurs 1 time(s)"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "req-451d86ee19",
+      "raw_statement": "The artifact indicates lifecycle phases such as design, construction, operation, or maintenance.",
+      "normalized_statement": "The artifact indicates lifecycle phases such as design, construction, operation, or maintenance.",
+      "requirement_type": "lifecycle_context",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-cc61356371",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "# Stakeholder needs - construction dataspace onboarding (pilot excerpt)",
+          "extracted_facts": [
+            "Legacy analyzer suggested Lifecycle Information"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-9b23a34f8c",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Facility managers need to discover datasets by the construction asset type they",
+          "extracted_facts": [
+            "Legacy analyzer suggested Lifecycle Information"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-998f77797b",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Datasets should state the construction lifecycle phase the data was produced",
+          "extracted_facts": [
+            "Legacy analyzer suggested Lifecycle Information"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-a5bf160010",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "in, such as design, construction, or operation, because reuse decisions depend",
+          "extracted_facts": [
+            "Legacy analyzer suggested Lifecycle Information"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "indicate construction lifecycle phase",
+        "value_kind": "controlled_concept",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, R by making construction phase context searchable and reusable.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:hasLifecyclePhase",
+            "dcat:theme"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "controlled_concept",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-451d86ee19"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-9"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "controlled_vocabulary",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Represent construction lifecycle context",
+      "description": "The artifact indicates lifecycle phases such as design, construction, operation, or maintenance.",
+      "category": "Lifecycle Information",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "# Stakeholder needs - construction dataspace onboarding (pilot excerpt)",
+        "Facility managers need to discover datasets by the construction asset type they",
+        "Datasets should state the construction lifecycle phase the data was produced",
+        "in, such as design, construction, or operation, because reuse decisions depend"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "req-b13c45efc3",
+      "raw_statement": "Where possible, provenance information about the source system (for example the; BIM authoring tool or the sensor gateway) should be included to support quality",
+      "normalized_statement": "A dcat:Dataset should expose provenance, quality, completeness, confidence, or source-system metadata where available.",
+      "requirement_type": "quality_provenance",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-582a4f6c20",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:21",
+          "evidence_text": "Where possible, provenance information about the source system (for example the",
+          "extracted_facts": [
+            "Mentions technical metadata requirement evidence",
+            "Mentions quality provenance requirement evidence"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-ce23cda506",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:22",
+          "evidence_text": "BIM authoring tool or the sensor gateway) should be included to support quality",
+          "extracted_facts": [
+            "Mentions asset semantics requirement evidence",
+            "Mentions quality provenance requirement evidence"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "describe provenance and quality context",
+        "value_kind": "literal",
+        "obligation_hint": "optional"
+      },
+      "fair_dimensions": [
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR R by documenting origin, quality, and trust context.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:provenance",
+            "prov:wasDerivedFrom",
+            "cx:hasDataSourceSystem"
+          ],
+          "rationale": "describe provenance and quality context is construction-specific and may need Construct-DCAT profile terms or extensions.",
+          "constraint_hint": {
+            "value_kind": "literal",
+            "obligation": "optional"
+          },
+          "source_requirement_id": "req-b13c45efc3"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should expose provenance, quality, completeness, confidence, or source-system...",
+      "description": "A dcat:Dataset should expose provenance, quality, completeness, confidence, or source-system metadata where available.",
+      "category": "Quality Metadata",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "Where possible, provenance information about the source system (for example the",
+        "BIM authoring tool or the sensor gateway) should be included to support quality"
+      ],
+      "confidence": 0.76
+    },
+    {
+      "id": "req-f76971f12b",
+      "raw_statement": "The artifact asks for provenance, completeness, confidence, quality, or source system information.",
+      "normalized_statement": "The artifact asks for provenance, completeness, confidence, quality, or source system information.",
+      "requirement_type": "quality_provenance",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-6b20002b66",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Where possible, provenance information about the source system (for example the",
+          "extracted_facts": [
+            "Legacy analyzer suggested Quality Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-3dffb565d6",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "BIM authoring tool or the sensor gateway) should be included to support quality",
+          "extracted_facts": [
+            "Legacy analyzer suggested Quality Metadata"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "describe distribution format and representation",
+        "value_kind": "literal",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR R by documenting origin, quality, and trust context.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcat:distribution",
+            "dcterms:format",
+            "dcat:mediaType",
+            "dcat:downloadURL"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "literal",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-f76971f12b"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "resource_mismatch",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Capture provenance and quality metadata",
+      "description": "The artifact asks for provenance, completeness, confidence, quality, or source system information.",
+      "category": "Quality Metadata",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "Where possible, provenance information about the source system (for example the",
+        "BIM authoring tool or the sensor gateway) should be included to support quality"
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "req-74f79dcdf2",
+      "raw_statement": "https://w3id.org/cx#hasAASSubmodel used 1 time(s); idShort = Pump_AAS_001; id = 0173-1#02-AAB713#005",
+      "normalized_statement": "A dcat:Dataset should be able to indicate which AAS submodels are represented or referenced by the dataset.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-0ea24b6939",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:https://w3id.org/cx#hasAASSubmodel",
+          "evidence_text": "https://w3id.org/cx#hasAASSubmodel used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-11e2aba27e",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.assetAdministrationShells[0].idShort",
+          "evidence_text": "idShort = Pump_AAS_001",
+          "extracted_facts": [
+            "AAS model contains idShort value"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-f13bf1742e",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.conceptDescriptions[0].id",
+          "evidence_text": "id = 0173-1#02-AAB713#005",
+          "extracted_facts": [
+            "AAS submodel or concept has stable identifier"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-9a4c1cee02",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.conceptDescriptions[0].idShort",
+          "evidence_text": "idShort = MaxFlowRate",
+          "extracted_facts": [
+            "AAS model contains idShort value"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-40f9dfd8d7",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].id",
+          "evidence_text": "id = https://example.org/aas/pump-001/technical-data",
+          "extracted_facts": [
+            "AAS submodel or concept has stable identifier"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-ca89032a22",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].idShort",
+          "evidence_text": "idShort = TechnicalData",
+          "extracted_facts": [
+            "AAS model contains idShort value",
+            "AAS submodel can be referenced by profile metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-815dc53b43",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].semanticId",
+          "evidence_text": "semanticId = GlobalReference",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-8a4738fa4c",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].semanticId",
+          "evidence_text": "semanticId = https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "reference AAS submodels",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "create_extension",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:hasAASSubmodel"
+          ],
+          "rationale": "reference AAS submodels is construction-specific and may need Construct-DCAT profile terms or extensions.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-74f79dcdf2"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-7"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should be able to indicate which AAS submodels are represented or referenced ...",
+      "description": "A dcat:Dataset should be able to indicate which AAS submodels are represented or referenced by the dataset.",
+      "category": "Semantic Anchors",
+      "source": "dcat-metadata-example.ttl, pump-aas.json, stakeholder-needs.md",
+      "evidence": [
+        "https://w3id.org/cx#hasAASSubmodel used 1 time(s)",
+        "idShort = Pump_AAS_001",
+        "id = 0173-1#02-AAB713#005",
+        "idShort = MaxFlowRate",
+        "id = https://example.org/aas/pump-001/technical-data",
+        "idShort = TechnicalData",
+        "semanticId = GlobalReference",
+        "semanticId = https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "req-cd3f3a5360",
+      "raw_statement": "semanticId = GlobalReference; semanticId = https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2; semanticId = 0173-1#02-AAB713#005",
+      "normalized_statement": "A dcat:Dataset should be able to reference one or more AAS semantic identifiers to support discovery and semantic interpretation.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-815dc53b43",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].semanticId",
+          "evidence_text": "semanticId = GlobalReference",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-8a4738fa4c",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].semanticId",
+          "evidence_text": "semanticId = https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-88513b498a",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].submodelElements[0].semanticId",
+          "evidence_text": "semanticId = 0173-1#02-AAB713#005",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-377ab6de42",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[0].submodelElements[0].semanticId",
+          "evidence_text": "semanticId = GlobalReference",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-622de1ec5f",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[1].semanticId",
+          "evidence_text": "semanticId = GlobalReference",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-1c31ef42da",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "aas-json",
+          "locator": "$.submodels[1].semanticId",
+          "evidence_text": "semanticId = https://example.org/semantics/PumpOperationalData/1/0",
+          "extracted_facts": [
+            "AAS submodel has semantic identifier",
+            "Potential dataset-level semantic anchor"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "reference AAS semantic identifiers",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "create_extension",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:semanticAnchor",
+            "cx:hasAASSubmodel"
+          ],
+          "rationale": "reference AAS semantic identifiers is construction-specific and may need Construct-DCAT profile terms or extensions.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-cd3f3a5360"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-7"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should be able to reference one or more AAS semantic identifiers to support d...",
+      "description": "A dcat:Dataset should be able to reference one or more AAS semantic identifiers to support discovery and semantic interpretation.",
+      "category": "Semantic Anchors",
+      "source": "pump-aas.json",
+      "evidence": [
+        "semanticId = GlobalReference",
+        "semanticId = https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2",
+        "semanticId = 0173-1#02-AAB713#005",
+        "semanticId = GlobalReference",
+        "semanticId = GlobalReference",
+        "semanticId = https://example.org/semantics/PumpOperationalData/1/0"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "req-8ae35763ac",
+      "raw_statement": "IFCAXIS2PLACEMENT3D occurs 1 time(s); IFCBOOLEAN occurs 1 time(s); IFCBUILDING occurs 1 time(s)",
+      "normalized_statement": "A dcat:Dataset should be able to reference relevant IFC entity classes as lightweight semantic anchors for discovery.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-aea2672bd0",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCAXIS2PLACEMENT3D",
+          "evidence_text": "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-70d39cbc0b",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBOOLEAN",
+          "evidence_text": "IFCBOOLEAN occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-943c63d99e",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBUILDING",
+          "evidence_text": "IFCBUILDING occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-cc1b140ca6",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBUILDINGSTOREY",
+          "evidence_text": "IFCBUILDINGSTOREY occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-f77077dfee",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCCARTESIANPOINT",
+          "evidence_text": "IFCCARTESIANPOINT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-8e52b7191b",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCFLOWSEGMENT",
+          "evidence_text": "IFCFLOWSEGMENT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-ce4bde05ca",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCGEOMETRICREPRESENTATIONCONTEXT",
+          "evidence_text": "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-73b2b00eaa",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCPROJECT",
+          "evidence_text": "IFCPROJECT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "reference IFC entity classes",
+        "value_kind": "class_reference",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "create_extension",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:hasIFCEntity"
+          ],
+          "rationale": "reference IFC entity classes is construction-specific and may need Construct-DCAT profile terms or extensions.",
+          "constraint_hint": {
+            "value_kind": "class_reference",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-8ae35763ac"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-7"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should be able to reference relevant IFC entity classes as lightweight semant...",
+      "description": "A dcat:Dataset should be able to reference relevant IFC entity classes as lightweight semantic anchors for discovery.",
+      "category": "Semantic Anchors",
+      "source": "building-snippet.ifc",
+      "evidence": [
+        "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+        "IFCBOOLEAN occurs 1 time(s)",
+        "IFCBUILDING occurs 1 time(s)",
+        "IFCBUILDINGSTOREY occurs 1 time(s)",
+        "IFCCARTESIANPOINT occurs 1 time(s)",
+        "IFCFLOWSEGMENT occurs 1 time(s)",
+        "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+        "IFCPROJECT occurs 1 time(s)"
+      ],
+      "confidence": 0.77
+    },
+    {
+      "id": "req-a872a62c16",
+      "raw_statement": "IFCAXIS2PLACEMENT3D occurs 1 time(s); IFCBOOLEAN occurs 1 time(s); IFCBUILDING occurs 1 time(s)",
+      "normalized_statement": "A dcat:Dataset should indicate the construction asset type or asset category it describes.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-aea2672bd0",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCAXIS2PLACEMENT3D",
+          "evidence_text": "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-70d39cbc0b",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBOOLEAN",
+          "evidence_text": "IFCBOOLEAN occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-943c63d99e",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBUILDING",
+          "evidence_text": "IFCBUILDING occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-cc1b140ca6",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCBUILDINGSTOREY",
+          "evidence_text": "IFCBUILDINGSTOREY occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-f77077dfee",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCCARTESIANPOINT",
+          "evidence_text": "IFCCARTESIANPOINT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-8e52b7191b",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCFLOWSEGMENT",
+          "evidence_text": "IFCFLOWSEGMENT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-ce4bde05ca",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCGEOMETRICREPRESENTATIONCONTEXT",
+          "evidence_text": "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-73b2b00eaa",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "IFC_CLASS:IFCPROJECT",
+          "evidence_text": "IFCPROJECT occurs 1 time(s)",
+          "extracted_facts": [
+            "IFC entity can support semantic anchoring",
+            "IFC entity can support construction asset type discovery"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "indicate construction asset type",
+        "value_kind": "controlled_concept",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:describesAssetType",
+            "dcat:theme"
+          ],
+          "rationale": "indicate construction asset type is construction-specific and may need Construct-DCAT profile terms or extensions.",
+          "constraint_hint": {
+            "value_kind": "controlled_concept",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-a872a62c16"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "controlled_vocabulary",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset should indicate the construction asset type or asset category it describes.",
+      "description": "A dcat:Dataset should indicate the construction asset type or asset category it describes.",
+      "category": "Semantic Anchors",
+      "source": "building-snippet.ifc, pump-aas.json, stakeholder-needs.md",
+      "evidence": [
+        "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+        "IFCBOOLEAN occurs 1 time(s)",
+        "IFCBUILDING occurs 1 time(s)",
+        "IFCBUILDINGSTOREY occurs 1 time(s)",
+        "IFCCARTESIANPOINT occurs 1 time(s)",
+        "IFCFLOWSEGMENT occurs 1 time(s)",
+        "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+        "IFCPROJECT occurs 1 time(s)"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "req-2a7ec0ca13",
+      "raw_statement": "The artifact mentions construction assets, element types, systems, sensors, spaces, or equipment.",
+      "normalized_statement": "The artifact mentions construction assets, element types, systems, sensors, spaces, or equipment.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-cc61356371",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "# Stakeholder needs - construction dataspace onboarding (pilot excerpt)",
+          "extracted_facts": [
+            "Legacy analyzer suggested Asset Semantics"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-9b23a34f8c",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Facility managers need to discover datasets by the construction asset type they",
+          "extracted_facts": [
+            "Legacy analyzer suggested Asset Semantics"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-dd08c9497e",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "describe, for example pumps, air handling units, walls, or spaces, without",
+          "extracted_facts": [
+            "Legacy analyzer suggested Asset Semantics"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-baa8913b8e",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Datasets exchanged in the dataspace should reference the AAS submodels they",
+          "extracted_facts": [
+            "Legacy analyzer suggested Asset Semantics"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-3dffb565d6",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "BIM authoring tool or the sensor gateway) should be included to support quality",
+          "extracted_facts": [
+            "Legacy analyzer suggested Asset Semantics"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "provide semantic anchors",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:title",
+            "dcterms:description",
+            "dcat:keyword",
+            "dcat:theme"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-2a7ec0ca13"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Capture construction asset semantics",
+      "description": "The artifact mentions construction assets, element types, systems, sensors, spaces, or equipment.",
+      "category": "Semantic Anchors",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "# Stakeholder needs - construction dataspace onboarding (pilot excerpt)",
+        "Facility managers need to discover datasets by the construction asset type they",
+        "describe, for example pumps, air handling units, walls, or spaces, without",
+        "Datasets exchanged in the dataspace should reference the AAS submodels they",
+        "BIM authoring tool or the sensor gateway) should be included to support quality"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "req-3450f9f380",
+      "raw_statement": "The artifact refers to semantic IDs, ontology concepts, controlled terms, AAS submodels, IFC entities, or SKOS concepts.",
+      "normalized_statement": "The artifact refers to semantic IDs, ontology concepts, controlled terms, AAS submodels, IFC entities, or SKOS concepts.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-c3c7e38e8e",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "opening the underlying BIM or AAS files.",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-baa8913b8e",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Datasets exchanged in the dataspace should reference the AAS submodels they",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-26208ed7c7",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "represent, including the semantic IDs of the submodel, so that consumers can",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-69cf0e1779",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "For BIM exchanges, every distribution must state the IFC schema version it",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-df3abaf489",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "conforms to (for example IFC4 or IFC4X3) and the file format of the",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "reference AAS semantic identifiers",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:semanticAnchor",
+            "cx:hasAASSubmodel"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-3450f9f380"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-7"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Provide semantic anchors to external concepts",
+      "description": "The artifact refers to semantic IDs, ontology concepts, controlled terms, AAS submodels, IFC entities, or SKOS concepts.",
+      "category": "Semantic Anchors",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "opening the underlying BIM or AAS files.",
+        "Datasets exchanged in the dataspace should reference the AAS submodels they",
+        "represent, including the semantic IDs of the submodel, so that consumers can",
+        "For BIM exchanges, every distribution must state the IFC schema version it",
+        "conforms to (for example IFC4 or IFC4X3) and the file format of the"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "req-66fa696720",
+      "raw_statement": "AAS submodels, semantic IDs, concept descriptions, and idShort values can support discovery-level semantic anchoring.",
+      "normalized_statement": "AAS submodels, semantic IDs, concept descriptions, and idShort values can support discovery-level semantic anchoring.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-4859503ce9",
+          "source_id": "source-579512a75c",
+          "artifact_name": "pump-aas.json",
+          "artifact_kind": "unknown",
+          "evidence_text": "AAS JSON structure detected",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "reference AAS semantic identifiers",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:semanticAnchor",
+            "cx:hasAASSubmodel"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-66fa696720"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-7"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Reuse AAS semantic identifiers as metadata anchors",
+      "description": "AAS submodels, semantic IDs, concept descriptions, and idShort values can support discovery-level semantic anchoring.",
+      "category": "Semantic Anchors",
+      "source": "pump-aas.json",
+      "evidence": [
+        "AAS JSON structure detected"
+      ],
+      "confidence": 0.88
+    },
+    {
+      "id": "req-1fdb6af04e",
+      "raw_statement": "Frequent IFC classes can be reused as discovery-level semantic anchors without transforming the full model.",
+      "normalized_statement": "Frequent IFC classes can be reused as discovery-level semantic anchors without transforming the full model.",
+      "requirement_type": "semantic_anchor",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-49ada3016d",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "unknown",
+          "evidence_text": "IFCWALL; IFCPROPERTYSET; IFCPROPERTYSINGLEVALUE; IFCPROJECT; IFCUNITASSIGNMENT; IFCSIUNIT; IFCGEOMETRICREPRESENTATIONCONTEXT; IFCAXIS2PLACEMENT3D",
+          "extracted_facts": [
+            "Legacy analyzer suggested Semantic Anchors"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "reference IFC entity classes",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "F",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR F, I, R by linking records to reusable semantic identifiers and interpretation anchors.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "cx:hasIFCEntity"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-1fdb6af04e"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Use IFC classes as semantic anchors",
+      "description": "Frequent IFC classes can be reused as discovery-level semantic anchors without transforming the full model.",
+      "category": "Semantic Anchors",
+      "source": "building-snippet.ifc",
+      "evidence": [
+        "IFCWALL",
+        "IFCPROPERTYSET",
+        "IFCPROPERTYSINGLEVALUE",
+        "IFCPROJECT",
+        "IFCUNITASSIGNMENT",
+        "IFCSIUNIT",
+        "IFCGEOMETRICREPRESENTATIONCONTEXT",
+        "IFCAXIS2PLACEMENT3D"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "req-7afec074c9",
+      "raw_statement": "IFC schema detected: IFC4; For BIM exchanges, every distribution must state the IFC schema version it",
+      "normalized_statement": "A dcat:Dataset or dcat:Distribution should expose the IFC schema version or conformance target of the represented file.",
+      "requirement_type": "technical_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-f049bd9398",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "FILE_SCHEMA",
+          "evidence_text": "IFC schema detected: IFC4",
+          "extracted_facts": [
+            "Dataset should expose schema/conformance information"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-a370f3a075",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "text",
+          "locator": "sentence:12",
+          "evidence_text": "For BIM exchanges, every distribution must state the IFC schema version it",
+          "extracted_facts": [
+            "Mentions semantic anchor requirement evidence",
+            "Mentions technical metadata requirement evidence"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Distribution",
+        "metadata_need": "indicate IFC schema version or conformance target",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR I, R by exposing representation and conformance details needed for reuse.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Distribution",
+          "candidate_terms": [
+            "dcterms:conformsTo",
+            "dcterms:format",
+            "dcat:mediaType"
+          ],
+          "rationale": "indicate IFC schema version or conformance target can reuse established DCAT/DCAT-AP or provenance terms.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-7afec074c9"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-6"
+      ],
+      "validation_evidence": [],
+      "validation_status": "valid",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Dataset or dcat:Distribution should expose the IFC schema version or conformance targ...",
+      "description": "A dcat:Dataset or dcat:Distribution should expose the IFC schema version or conformance target of the represented file.",
+      "category": "Technical Metadata",
+      "source": "building-snippet.ifc, stakeholder-needs.md",
+      "evidence": [
+        "IFC schema detected: IFC4",
+        "For BIM exchanges, every distribution must state the IFC schema version it"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "req-46703e7151",
+      "raw_statement": "IFC schema detected: IFC4; Linked semantic resource: https://example.org/aas/bridge-a12/operational-data; http://purl.org/dc/terms/accessRights used 1 time(s)",
+      "normalized_statement": "A dcat:Distribution should expose technical representation metadata such as format, media type, download URL, and schema version.",
+      "requirement_type": "technical_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-f049bd9398",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "ifc",
+          "locator": "FILE_SCHEMA",
+          "evidence_text": "IFC schema detected: IFC4",
+          "extracted_facts": [
+            "Dataset should expose schema/conformance information"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-1f2b60fe74",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "object:https://example.org/aas/bridge-a12/operational-data",
+          "evidence_text": "Linked semantic resource: https://example.org/aas/bridge-a12/operational-data",
+          "extracted_facts": [
+            "Existing metadata links to an external semantic resource"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-fcfb235985",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/accessRights",
+          "evidence_text": "http://purl.org/dc/terms/accessRights used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests accessRights profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-80229ece82",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/description",
+          "evidence_text": "http://purl.org/dc/terms/description used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests description profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-531bc1a35b",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/format",
+          "evidence_text": "http://purl.org/dc/terms/format used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests format profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-da91ff274e",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/license",
+          "evidence_text": "http://purl.org/dc/terms/license used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests license profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-4b9715ed7a",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/publisher",
+          "evidence_text": "http://purl.org/dc/terms/publisher used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests publisher profile term"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-e15f89cdb1",
+          "source_id": "source-f911ce8003",
+          "artifact_name": "dcat-metadata-example.ttl",
+          "artifact_kind": "dcat-rdf",
+          "locator": "predicate:http://purl.org/dc/terms/title",
+          "evidence_text": "http://purl.org/dc/terms/title used 1 time(s)",
+          "extracted_facts": [
+            "Existing metadata uses reusable predicate or key",
+            "Existing metadata suggests title profile term"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "describe distribution format and representation",
+        "value_kind": "distribution",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "A",
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR A, I, R by exposing representation and conformance details needed for reuse.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcat:distribution",
+            "dcterms:format",
+            "dcat:mediaType",
+            "dcat:downloadURL"
+          ],
+          "rationale": "describe distribution format and representation can reuse established DCAT/DCAT-AP or provenance terms.",
+          "constraint_hint": {
+            "value_kind": "distribution",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-46703e7151"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "resource_mismatch",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "A dcat:Distribution should expose technical representation metadata such as format, media ty...",
+      "description": "A dcat:Distribution should expose technical representation metadata such as format, media type, download URL, and schema version.",
+      "category": "Technical Metadata",
+      "source": "building-snippet.ifc, dcat-metadata-example.ttl, pump-aas.json, stakeholder-needs.md",
+      "evidence": [
+        "IFC schema detected: IFC4",
+        "Linked semantic resource: https://example.org/aas/bridge-a12/operational-data",
+        "http://purl.org/dc/terms/accessRights used 1 time(s)",
+        "http://purl.org/dc/terms/description used 1 time(s)",
+        "http://purl.org/dc/terms/format used 1 time(s)",
+        "http://purl.org/dc/terms/license used 1 time(s)",
+        "http://purl.org/dc/terms/publisher used 1 time(s)",
+        "http://purl.org/dc/terms/title used 1 time(s)"
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "req-0c4979a7af",
+      "raw_statement": "IFC artifacts should contribute schema version, entity class, and property set statistics as metadata requirements.",
+      "normalized_statement": "IFC artifacts should contribute schema version, entity class, and property set statistics as metadata requirements.",
+      "requirement_type": "technical_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-fc114afb62",
+          "source_id": "source-bdf6217ea0",
+          "artifact_name": "building-snippet.ifc",
+          "artifact_kind": "unknown",
+          "evidence_text": "IFC4",
+          "extracted_facts": [
+            "Legacy analyzer suggested Technical Metadata"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "indicate IFC schema version or conformance target",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR I, R by exposing representation and conformance details needed for reuse.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcterms:conformsTo",
+            "dcterms:format",
+            "dcat:mediaType"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-0c4979a7af"
+        }
+      ],
+      "supports_user_tasks": [
+        "competency-questions-6"
+      ],
+      "validation_evidence": [],
+      "validation_status": "resource_mismatch",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Expose lightweight IFC discovery metadata",
+      "description": "IFC artifacts should contribute schema version, entity class, and property set statistics as metadata requirements.",
+      "category": "Technical Metadata",
+      "source": "building-snippet.ifc",
+      "evidence": [
+        "IFC4"
+      ],
+      "confidence": 0.6
+    },
+    {
+      "id": "req-1892536460",
+      "raw_statement": "The artifact asks for format, media type, schema version, distribution, or downloadable representation metadata.",
+      "normalized_statement": "The artifact asks for format, media type, schema version, distribution, or downloadable representation metadata.",
+      "requirement_type": "technical_metadata",
+      "source_evidence": [
+        {
+          "evidence_unit_id": "ev-69cf0e1779",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "For BIM exchanges, every distribution must state the IFC schema version it",
+          "extracted_facts": [
+            "Legacy analyzer suggested Technical Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-df3abaf489",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "conforms to (for example IFC4 or IFC4X3) and the file format of the",
+          "extracted_facts": [
+            "Legacy analyzer suggested Technical Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-980f80588d",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "distribution, so that consumers can check tool compatibility before download.",
+          "extracted_facts": [
+            "Legacy analyzer suggested Technical Metadata"
+          ]
+        },
+        {
+          "evidence_unit_id": "ev-6b20002b66",
+          "source_id": "source-9fe3b78b6a",
+          "artifact_name": "stakeholder-needs.md",
+          "artifact_kind": "unknown",
+          "evidence_text": "Where possible, provenance information about the source system (for example the",
+          "extracted_facts": [
+            "Legacy analyzer suggested Technical Metadata"
+          ]
+        }
+      ],
+      "normalized_intent": {
+        "resource_type": "Dataset",
+        "metadata_need": "describe distribution format and representation",
+        "value_kind": "uri",
+        "obligation_hint": "recommended"
+      },
+      "fair_dimensions": [
+        "I",
+        "R"
+      ],
+      "fair_rationale": "Supports FAIR I, R by exposing representation and conformance details needed for reuse.",
+      "candidate_metadata_actions": [
+        {
+          "action": "reuse_existing_term",
+          "target_class": "Dataset",
+          "candidate_terms": [
+            "dcat:distribution",
+            "dcterms:format",
+            "dcat:mediaType",
+            "dcat:downloadURL"
+          ],
+          "rationale": "Legacy analyzer output was normalized into a reviewable requirement record.",
+          "constraint_hint": {
+            "value_kind": "uri",
+            "obligation": "recommended"
+          },
+          "source_requirement_id": "req-1892536460"
+        }
+      ],
+      "supports_user_tasks": [],
+      "validation_evidence": [],
+      "validation_status": "resource_mismatch",
+      "requirement_scope": "profile_element",
+      "provenance": {
+        "strategy": "rules",
+        "extractor": "rule-based-v1",
+        "created_at": "2026-06-11T15:32:01+00:00",
+        "evidence_verified": true,
+        "notes": [],
+        "editor_history": []
+      },
+      "status": "candidate",
+      "merged_from": [],
+      "title": "Expose technical representation details",
+      "description": "The artifact asks for format, media type, schema version, distribution, or downloadable representation metadata.",
+      "category": "Technical Metadata",
+      "source": "stakeholder-needs.md",
+      "evidence": [
+        "For BIM exchanges, every distribution must state the IFC schema version it",
+        "conforms to (for example IFC4 or IFC4X3) and the file format of the",
+        "distribution, so that consumers can check tool compatibility before download.",
+        "Where possible, provenance information about the source system (for example the"
+      ],
+      "confidence": 0.6
+    }
+  ],
+  "evidence_units": [
+    {
+      "id": "ev-f049bd9398",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "FILE_SCHEMA",
+      "content": "IFC schema detected: IFC4",
+      "extracted_facts": [
+        "Dataset should expose schema/conformance information"
+      ],
+      "confidence": 0.82
+    },
+    {
+      "id": "ev-aea2672bd0",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCAXIS2PLACEMENT3D",
+      "content": "IFCAXIS2PLACEMENT3D occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-70d39cbc0b",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCBOOLEAN",
+      "content": "IFCBOOLEAN occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-943c63d99e",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCBUILDING",
+      "content": "IFCBUILDING occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-cc1b140ca6",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCBUILDINGSTOREY",
+      "content": "IFCBUILDINGSTOREY occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-f77077dfee",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCCARTESIANPOINT",
+      "content": "IFCCARTESIANPOINT occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-8e52b7191b",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCFLOWSEGMENT",
+      "content": "IFCFLOWSEGMENT occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-ce4bde05ca",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCGEOMETRICREPRESENTATIONCONTEXT",
+      "content": "IFCGEOMETRICREPRESENTATIONCONTEXT occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-73b2b00eaa",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCPROJECT",
+      "content": "IFCPROJECT occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-142a0651a8",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCPROPERTYSET",
+      "content": "IFCPROPERTYSET occurs 2 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.67
+    },
+    {
+      "id": "ev-1018d3f8b8",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCPROPERTYSINGLEVALUE",
+      "content": "IFCPROPERTYSINGLEVALUE occurs 2 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.67
+    },
+    {
+      "id": "ev-7ca5974976",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCPUMP",
+      "content": "IFCPUMP occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-b95a51f7ab",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCREAL",
+      "content": "IFCREAL occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-1fc61a7bb1",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCSIUNIT",
+      "content": "IFCSIUNIT occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-7b6cbbc310",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCSPACE",
+      "content": "IFCSPACE occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-2eb6e1b70f",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCUNITASSIGNMENT",
+      "content": "IFCUNITASSIGNMENT occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.66
+    },
+    {
+      "id": "ev-1bb8a02aaf",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "IFC_CLASS:IFCWALL",
+      "content": "IFCWALL occurs 2 time(s)",
+      "extracted_facts": [
+        "IFC entity can support semantic anchoring",
+        "IFC entity can support construction asset type discovery"
+      ],
+      "confidence": 0.67
+    },
+    {
+      "id": "ev-681e9cd60f",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "PSET:Pset_PumpTypeCommon",
+      "content": "Pset_PumpTypeCommon occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC property set can support metadata requirement discovery"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "ev-b72e476f94",
+      "source_id": "source-bdf6217ea0",
+      "artifact_name": "building-snippet.ifc",
+      "artifact_kind": "ifc",
+      "locator": "PSET:Pset_WallCommon",
+      "content": "Pset_WallCommon occurs 1 time(s)",
+      "extracted_facts": [
+        "IFC property set can support metadata requirement discovery"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "ev-1f2b60fe74",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "object:https://example.org/aas/bridge-a12/operational-data",
+      "content": "Linked semantic resource: https://example.org/aas/bridge-a12/operational-data",
+      "extracted_facts": [
+        "Existing metadata links to an external semantic resource"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-fcfb235985",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://purl.org/dc/terms/accessRights",
+      "content": "http://purl.org/dc/terms/accessRights used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests accessRights profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-80229ece82",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://purl.org/dc/terms/description",
+      "content": "http://purl.org/dc/terms/description used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests description profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-531bc1a35b",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://purl.org/dc/terms/format",
+      "content": "http://purl.org/dc/terms/format used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests format profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-da91ff274e",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://purl.org/dc/terms/license",
+      "content": "http://purl.org/dc/terms/license used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests license profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-4b9715ed7a",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://purl.org/dc/terms/publisher",
+      "content": "http://purl.org/dc/terms/publisher used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests publisher profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-e15f89cdb1",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://purl.org/dc/terms/title",
+      "content": "http://purl.org/dc/terms/title used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests title profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-ee72ee4181",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      "content": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type used 3 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-8fa51c16f7",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://www.w3.org/ns/dcat#distribution",
+      "content": "http://www.w3.org/ns/dcat#distribution used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests distribution profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-94b0fab937",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://www.w3.org/ns/dcat#downloadURL",
+      "content": "http://www.w3.org/ns/dcat#downloadURL used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests downloadURL profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-bb4cdb333e",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://www.w3.org/ns/dcat#keyword",
+      "content": "http://www.w3.org/ns/dcat#keyword used 3 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests keyword profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-249045ea8f",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://www.w3.org/ns/dcat#mediaType",
+      "content": "http://www.w3.org/ns/dcat#mediaType used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key",
+        "Existing metadata suggests mediaType profile term"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-2c8f5e410d",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:http://xmlns.com/foaf/0.1/name",
+      "content": "http://xmlns.com/foaf/0.1/name used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-0ea24b6939",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:https://w3id.org/cx#hasAASSubmodel",
+      "content": "https://w3id.org/cx#hasAASSubmodel used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-4d0e9b1185",
+      "source_id": "source-f911ce8003",
+      "artifact_name": "dcat-metadata-example.ttl",
+      "artifact_kind": "dcat-rdf",
+      "locator": "predicate:https://w3id.org/cx#hasLifecyclePhase",
+      "content": "https://w3id.org/cx#hasLifecyclePhase used 1 time(s)",
+      "extracted_facts": [
+        "Existing metadata uses reusable predicate or key"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-3474adbc0f",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.assetAdministrationShells[0].assetInformation.assetKind",
+      "content": "assetKind = Instance",
+      "extracted_facts": [
+        "AAS asset identity can support asset-level discovery"
+      ],
+      "confidence": 0.82
+    },
+    {
+      "id": "ev-8f67820ff7",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.assetAdministrationShells[0].assetInformation.globalAssetId",
+      "content": "globalAssetId = https://example.org/assets/pump-001",
+      "extracted_facts": [
+        "AAS asset identity can support asset-level discovery"
+      ],
+      "confidence": 0.82
+    },
+    {
+      "id": "ev-11e2aba27e",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.assetAdministrationShells[0].idShort",
+      "content": "idShort = Pump_AAS_001",
+      "extracted_facts": [
+        "AAS model contains idShort value"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "id": "ev-4e55852864",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.conceptDescriptions[0].embeddedDataSpecifications[0].dataSpecificationContent.preferredName",
+      "content": "preferredName = maximum flow rate",
+      "extracted_facts": [
+        "AAS concept description contains human-readable label"
+      ],
+      "confidence": 0.74
+    },
+    {
+      "id": "ev-f13bf1742e",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.conceptDescriptions[0].id",
+      "content": "id = 0173-1#02-AAB713#005",
+      "extracted_facts": [
+        "AAS submodel or concept has stable identifier"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-9a4c1cee02",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.conceptDescriptions[0].idShort",
+      "content": "idShort = MaxFlowRate",
+      "extracted_facts": [
+        "AAS model contains idShort value"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "id": "ev-40f9dfd8d7",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].id",
+      "content": "id = https://example.org/aas/pump-001/technical-data",
+      "extracted_facts": [
+        "AAS submodel or concept has stable identifier"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-ca89032a22",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].idShort",
+      "content": "idShort = TechnicalData",
+      "extracted_facts": [
+        "AAS model contains idShort value",
+        "AAS submodel can be referenced by profile metadata"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "id": "ev-815dc53b43",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].semanticId",
+      "content": "semanticId = GlobalReference",
+      "extracted_facts": [
+        "AAS submodel has semantic identifier",
+        "Potential dataset-level semantic anchor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "ev-8a4738fa4c",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].semanticId",
+      "content": "semanticId = https://admin-shell.io/ZVEI/TechnicalData/Submodel/1/2",
+      "extracted_facts": [
+        "AAS submodel has semantic identifier",
+        "Potential dataset-level semantic anchor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "ev-b72c6d8127",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].submodelElements[0].idShort",
+      "content": "idShort = MaxFlowRate",
+      "extracted_facts": [
+        "AAS model contains idShort value",
+        "AAS submodel can be referenced by profile metadata"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "id": "ev-9584dae674",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].submodelElements[0].modelType",
+      "content": "modelType = Property",
+      "extracted_facts": [
+        "AAS technical structure can support representation metadata"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-88513b498a",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].submodelElements[0].semanticId",
+      "content": "semanticId = 0173-1#02-AAB713#005",
+      "extracted_facts": [
+        "AAS submodel has semantic identifier",
+        "Potential dataset-level semantic anchor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "ev-377ab6de42",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].submodelElements[0].semanticId",
+      "content": "semanticId = GlobalReference",
+      "extracted_facts": [
+        "AAS submodel has semantic identifier",
+        "Potential dataset-level semantic anchor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "ev-e02fc4c858",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[0].submodelElements[0].valueType",
+      "content": "valueType = xs:double",
+      "extracted_facts": [
+        "AAS technical structure can support representation metadata"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-47efa269da",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[1].id",
+      "content": "id = https://example.org/aas/pump-001/operational-data",
+      "extracted_facts": [
+        "AAS submodel or concept has stable identifier"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "ev-70b8a76316",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[1].idShort",
+      "content": "idShort = OperationalData",
+      "extracted_facts": [
+        "AAS model contains idShort value",
+        "AAS submodel can be referenced by profile metadata"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "id": "ev-622de1ec5f",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[1].semanticId",
+      "content": "semanticId = GlobalReference",
+      "extracted_facts": [
+        "AAS submodel has semantic identifier",
+        "Potential dataset-level semantic anchor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "ev-1c31ef42da",
+      "source_id": "source-579512a75c",
+      "artifact_name": "pump-aas.json",
+      "artifact_kind": "aas-json",
+      "locator": "$.submodels[1].semanticId",
+      "content": "semanticId = https://example.org/semantics/PumpOperationalData/1/0",
+      "extracted_facts": [
+        "AAS submodel has semantic identifier",
+        "Potential dataset-level semantic anchor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "ev-2653c92a0d",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:1",
+      "content": "# Stakeholder needs - construction dataspace onboarding (pilot excerpt)",
+      "extracted_facts": [
+        "Mentions asset semantics requirement evidence",
+        "Mentions lifecycle context requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-809db9a3db",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:10",
+      "content": "represent, including the semantic IDs of the submodel, so that consumers can",
+      "extracted_facts": [
+        "Mentions semantic anchor requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-a370f3a075",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:12",
+      "content": "For BIM exchanges, every distribution must state the IFC schema version it",
+      "extracted_facts": [
+        "Mentions semantic anchor requirement evidence",
+        "Mentions technical metadata requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-b3f3ca7fe5",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:13",
+      "content": "conforms to (for example IFC4 or IFC4X3) and the file format of the",
+      "extracted_facts": [
+        "Mentions semantic anchor requirement evidence",
+        "Mentions technical metadata requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-16d8760a82",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:14",
+      "content": "distribution, so that consumers can check tool compatibility before download.",
+      "extracted_facts": [
+        "Mentions technical metadata requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-222194bc13",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:15",
+      "content": "Access conditions are critical: each dataset must carry a license or access",
+      "extracted_facts": [
+        "Mentions access policy requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-fd55e0c171",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:16",
+      "content": "rights statement, and restricted datasets should expose an access URL where the",
+      "extracted_facts": [
+        "Mentions access policy requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-12dc6f63a7",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:17",
+      "content": "access procedure is described.",
+      "extracted_facts": [
+        "Mentions access policy requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-7846522a48",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:18",
+      "content": "Datasets should state the construction lifecycle phase the data was produced",
+      "extracted_facts": [
+        "Mentions lifecycle context requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-bec56c9f41",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:19",
+      "content": "in, such as design, construction, or operation, because reuse decisions depend",
+      "extracted_facts": [
+        "Mentions lifecycle context requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-b57d44f0a0",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:2",
+      "content": "Facility managers need to discover datasets by the construction asset type they",
+      "extracted_facts": [
+        "Mentions asset semantics requirement evidence",
+        "Mentions lifecycle context requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-582a4f6c20",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:21",
+      "content": "Where possible, provenance information about the source system (for example the",
+      "extracted_facts": [
+        "Mentions technical metadata requirement evidence",
+        "Mentions quality provenance requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-ce23cda506",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:22",
+      "content": "BIM authoring tool or the sensor gateway) should be included to support quality",
+      "extracted_facts": [
+        "Mentions asset semantics requirement evidence",
+        "Mentions quality provenance requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-225b24d3d4",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:3",
+      "content": "describe, for example pumps, air handling units, walls, or spaces, without",
+      "extracted_facts": [
+        "Mentions asset semantics requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-5c868ea481",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:4",
+      "content": "opening the underlying BIM or AAS files.",
+      "extracted_facts": [
+        "Mentions semantic anchor requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-061b7ebcd1",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:5",
+      "content": "Data providers must publish a title, a description, and at least one keyword for",
+      "extracted_facts": [
+        "Mentions descriptive metadata requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-0715a9220f",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:6",
+      "content": "every dataset so that catalog search works across portals.",
+      "extracted_facts": [
+        "Mentions descriptive metadata requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-6f686f2fee",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:8",
+      "content": "indicate its publisher organization.",
+      "extracted_facts": [
+        "Mentions descriptive metadata requirement evidence"
+      ],
+      "confidence": 0.72
+    },
+    {
+      "id": "ev-92e65babd3",
+      "source_id": "source-9fe3b78b6a",
+      "artifact_name": "stakeholder-needs.md",
+      "artifact_kind": "text",
+      "locator": "sentence:9",
+      "content": "Datasets exchanged in the dataspace should reference the AAS submodels they",
+      "extracted_facts": [
+        "Mentions semantic anchor requirement evidence",
+        "Mentions asset semantics requirement evidence"
+      ],
+      "confidence": 0.72
+    }
+  ],
+  "duplicate_groups": [
+    {
+      "id": "dup-29002281fa",
+      "requirement_ids": [
+        "req-5246550764",
+        "req-1bb1f62920"
+      ],
+      "suggested_merged_statement": "A dcat:Dataset should support describe access and reuse conditions.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.74
+    },
+    {
+      "id": "dup-ebd9dc17f3",
+      "requirement_ids": [
+        "req-922afd7b20",
+        "req-5d4e3fb49e",
+        "req-474b7eda2b"
+      ],
+      "suggested_merged_statement": "A dcat:Dataset should support provide descriptive dataset metadata.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.8
+    },
+    {
+      "id": "dup-a3eb84de0a",
+      "requirement_ids": [
+        "req-94b78d5d83",
+        "req-451d86ee19"
+      ],
+      "suggested_merged_statement": "A dcat:Dataset should support indicate construction lifecycle phase.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.74
+    },
+    {
+      "id": "dup-4f14717f0c",
+      "requirement_ids": [
+        "req-f76971f12b",
+        "req-46703e7151",
+        "req-1892536460"
+      ],
+      "suggested_merged_statement": "A dcat:Dataset should support describe distribution format and representation.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.8
+    },
+    {
+      "id": "dup-f211e43bbf",
+      "requirement_ids": [
+        "req-cd3f3a5360",
+        "req-3450f9f380",
+        "req-66fa696720"
+      ],
+      "suggested_merged_statement": "A dcat:Dataset should support external semantic anchors for construction-specific interpretation and discovery.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.8
+    },
+    {
+      "id": "dup-03b5730650",
+      "requirement_ids": [
+        "req-8ae35763ac",
+        "req-1fdb6af04e"
+      ],
+      "suggested_merged_statement": "A dcat:Dataset should support external semantic anchors for construction-specific interpretation and discovery.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.74
+    },
+    {
+      "id": "dup-e55651e4ac",
+      "requirement_ids": [
+        "req-7afec074c9",
+        "req-0c4979a7af"
+      ],
+      "suggested_merged_statement": "A dcat:Distribution should support indicate IFC schema version or conformance target.",
+      "reason": "Requirements share type, resource target, and overlapping normalized metadata needs.",
+      "confidence": 0.74
+    }
+  ],
+  "user_tasks": [
+    {
+      "id": "competency-questions-4",
+      "statement": "Which datasets describe HVAC equipment in building X?",
+      "kind": "competency_question",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-5",
+      "statement": "Which datasets contain sensor measurements for a given building zone?",
+      "kind": "competency_question",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-6",
+      "statement": "Which IFC schema version does a BIM dataset conform to?",
+      "kind": "competency_question",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-7",
+      "statement": "Which datasets reference a specific AAS submodel or semantic ID?",
+      "kind": "competency_question",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-8",
+      "statement": "Which datasets can be reused under an open license for facility-management analytics?",
+      "kind": "competency_question",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-9",
+      "statement": "Which lifecycle phase (design, construction, operation) does a dataset cover?",
+      "kind": "competency_question",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-10",
+      "statement": "Find all datasets published by a given contractor for a given project.",
+      "kind": "user_task",
+      "source": "competency-questions.txt"
+    },
+    {
+      "id": "competency-questions-11",
+      "statement": "Assess whether a dataset is fit for energy-performance simulation before downloading it.",
+      "kind": "user_task",
+      "source": "competency-questions.txt"
+    }
+  ],
+  "warnings": [],
+  "review_editor_history": [
+    {
+      "requirement_id": "req-5246550764",
+      "review_status": "candidate",
+      "validation_status": "resource_mismatch",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-1bb1f62920",
+      "review_status": "candidate",
+      "validation_status": "resource_mismatch",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-922afd7b20",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-5d4e3fb49e",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-474b7eda2b",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-94b78d5d83",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-451d86ee19",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-b13c45efc3",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-f76971f12b",
+      "review_status": "candidate",
+      "validation_status": "resource_mismatch",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-74f79dcdf2",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-cd3f3a5360",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-8ae35763ac",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-a872a62c16",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-2a7ec0ca13",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-3450f9f380",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-66fa696720",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-1fdb6af04e",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-7afec074c9",
+      "review_status": "candidate",
+      "validation_status": "valid",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-46703e7151",
+      "review_status": "candidate",
+      "validation_status": "resource_mismatch",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-0c4979a7af",
+      "review_status": "candidate",
+      "validation_status": "resource_mismatch",
+      "review_notes": null,
+      "editor_history": []
+    },
+    {
+      "requirement_id": "req-1892536460",
+      "review_status": "candidate",
+      "validation_status": "resource_mismatch",
+      "review_notes": null,
+      "editor_history": []
+    }
+  ]
+}

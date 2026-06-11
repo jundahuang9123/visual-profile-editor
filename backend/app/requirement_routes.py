@@ -14,6 +14,10 @@ ALLOWED_OPERATIONS = {
     'export-rq1-dataset',
     'recommend-reuse',
     'generate-shacl',
+    'generate-profile-changes',
+    'generate-profile-draft',
+    'generate-shacl-from-profile-changes',
+    'export-rq2-package',
     'save-requirement-set',
     'list-requirement-sets',
     'load-requirement-set',
@@ -39,7 +43,7 @@ def requirement_router(service_url: str) -> APIRouter:
         if operation not in ALLOWED_OPERATIONS:
             raise HTTPException(status_code=404, detail=f'Unknown requirement operation: {operation}')
         # LLM-assisted extraction can take minutes; rule-based calls return fast.
-        timeout = 300.0 if operation in {'analyze', 'analyze-artifacts', 'extract-requirements'} else 60.0
+        timeout = 300.0 if operation in {'analyze', 'analyze-artifacts', 'extract-requirements', 'export-rq1-dataset'} else 60.0
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(f'{base_url}/{operation}', json=payload)
