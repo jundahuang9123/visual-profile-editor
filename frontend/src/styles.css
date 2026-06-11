@@ -425,7 +425,7 @@ button.danger {
 .workspace-settings__row {
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
 .workspace-settings input {
@@ -440,6 +440,53 @@ button.danger {
   color: var(--muted);
   font-size: 12px;
   overflow-wrap: anywhere;
+}
+
+.workspace-browser {
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.workspace-browser__header,
+.workspace-browser__shortcuts {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workspace-browser__header {
+  justify-content: space-between;
+}
+
+.workspace-browser__header strong {
+  color: var(--text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.workspace-browser__list {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.workspace-browser__list button {
+  justify-content: flex-start;
+}
+
+.workspace-browser__list button span {
+  color: inherit;
+  font-size: 12px;
+}
+
+.workspace-browser__error {
+  color: var(--danger);
 }
 
 .validation-modal__header {

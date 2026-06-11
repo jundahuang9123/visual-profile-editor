@@ -43,6 +43,20 @@ export type ProfileWorkspace = {
   seed_path: string;
 };
 
+export type ProfileWorkspaceDirectory = {
+  name: string;
+  path: string;
+};
+
+export type ProfileWorkspaceBrowse = {
+  directory: string;
+  parent_directory: string | null;
+  entries: ProfileWorkspaceDirectory[];
+  home_directory: string;
+  default_directory: string;
+  repo_directory: string;
+};
+
 type WorkspaceUpdateResult = {
   workspace: ProfileWorkspace;
   schema: SchemaModel;
@@ -209,6 +223,15 @@ export async function loadProfileWorkspace(): Promise<ProfileWorkspace> {
   const res = await fetch('/api/profile/workspace');
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()) as ProfileWorkspace;
+}
+
+export async function browseProfileWorkspace(directory?: string): Promise<ProfileWorkspaceBrowse> {
+  const params = new URLSearchParams();
+  if (directory?.trim()) params.set('directory', directory.trim());
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`/api/profile/workspace/browse${suffix}`);
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()) as ProfileWorkspaceBrowse;
 }
 
 export async function setProfileWorkspace(directory: string): Promise<WorkspaceUpdateResult> {

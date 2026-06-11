@@ -7,7 +7,16 @@ from fastapi.responses import JSONResponse, PlainTextResponse, Response
 
 from general_ontology_editor import generate_json_schema, generate_linkml, generate_rdf, generate_shacl, import_rdf_schema
 
-from .profile_export import TEMPLATES, apply_template, create_profile_package, load_profile, profile_workspace_info, save_profile, set_profile_workspace
+from .profile_export import (
+    TEMPLATES,
+    apply_template,
+    browse_workspace_directories,
+    create_profile_package,
+    load_profile,
+    profile_workspace_info,
+    save_profile,
+    set_profile_workspace,
+)
 from .profile_validation import validate_profile
 
 
@@ -22,6 +31,13 @@ def profile_router(base_dir: Path) -> APIRouter:
     def profile_workspace() -> JSONResponse:
         try:
             return JSONResponse(profile_workspace_info(base_dir))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @router.get('/api/profile/workspace/browse')
+    def browse_profile_workspace(directory: str | None = None) -> JSONResponse:
+        try:
+            return JSONResponse(browse_workspace_directories(base_dir, directory))
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 

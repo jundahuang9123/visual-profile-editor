@@ -97,6 +97,37 @@ def profile_workspace_info(base_dir: Path) -> dict[str, str]:
     }
 
 
+def browse_workspace_directories(base_dir: Path, directory: str | None = None) -> dict[str, Any]:
+    selected = directory.strip() if directory else ''
+    workspace_dir = resolve_workspace_dir(base_dir, selected) if selected else configured_workspace_dir(base_dir)
+    if not workspace_dir.exists():
+        raise ValueError(f'Directory does not exist: {workspace_dir}')
+    if not workspace_dir.is_dir():
+        raise ValueError(f'Path is not a directory: {workspace_dir}')
+
+    entries: list[dict[str, str]] = []
+    try:
+        for entry in workspace_dir.iterdir():
+            try:
+                if entry.is_dir():
+                    entries.append({'name': entry.name, 'path': str(entry.resolve())})
+            except OSError:
+                continue
+    except OSError as exc:
+        raise ValueError(f'Cannot browse directory: {workspace_dir}') from exc
+
+    entries.sort(key=lambda item: (item['name'].startswith('.'), item['name'].lower()))
+    parent = workspace_dir.parent if workspace_dir.parent != workspace_dir else None
+    return {
+        'directory': str(workspace_dir),
+        'parent_directory': str(parent) if parent else None,
+        'entries': entries,
+        'home_directory': str(Path.home().resolve()),
+        'default_directory': str(default_workspace_dir(base_dir)),
+        'repo_directory': str(base_dir.resolve()),
+    }
+
+
 def set_profile_workspace(base_dir: Path, directory: str) -> tuple[dict[str, str], dict[str, Any]]:
     if not directory.strip():
         raise ValueError('Workspace directory is required.')
