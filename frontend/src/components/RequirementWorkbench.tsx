@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react';
-import { AlertTriangle, CheckCircle2, FileCode, FileSearch, GitMerge, RefreshCw, Search, SplitSquareHorizontal, Wand2, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileCode, FileSearch, GitMerge, RefreshCw, Search, SplitSquareHorizontal, Wand2, XCircle } from 'lucide-react';
 import {
   analyzeArtifacts,
   extractRequirements,
@@ -11,10 +11,14 @@ import {
   type CandidateRequirement,
   type ExtractedAttribute,
   type ExtractionStrategy,
+  type ExtractionProvenance,
   type NormalizedIntent,
+  type RequirementScope,
+  type Rq1DatasetExport,
   type ReuseRecommendation,
   type SourceEvidence,
   type UserTask,
+  type ValidationStatus,
 } from '../lib/requirementApi';
 import { downloadText } from '../lib/schemaApi';
 import { useEditorStore } from '../store';
@@ -29,6 +33,7 @@ type WorkbenchView = 'requirements' | 'reuse' | 'constraints';
 type RequirementStatus = CandidateRequirement['status'];
 type RequirementType = CandidateRequirement['requirement_type'];
 type FairDimension = CandidateRequirement['fair_dimensions'][number];
+type EditorHistoryAction = 'edit' | 'approve' | 'reject' | 'mark_needs_review';
 
 const SAMPLE_TEXT =
   'Datasets should indicate the construction asset type they describe. Metadata should include lifecycle phase, access conditions, format, schema version, and semantic anchors to AAS submodels or IFC entities.';
@@ -48,6 +53,16 @@ const REQUIREMENT_TYPES: RequirementType[] = [
   'unknown',
 ];
 const STATUS_OPTIONS: RequirementStatus[] = ['candidate', 'approved', 'needs_review', 'rejected', 'merged'];
+const VALIDATION_STATUS_OPTIONS: ValidationStatus[] = ['valid', 'missing_evidence', 'invalid_schema', 'unknown_term', 'resource_mismatch', 'needs_review'];
+const REQUIREMENT_SCOPE_OPTIONS: RequirementScope[] = [
+  'profile_element',
+  'obligation_level',
+  'controlled_vocabulary',
+  'validation_constraint',
+  'documentation_guidance',
+  'example_requirement',
+  'unknown',
+];
 const RESOURCE_TYPES: NormalizedIntent['resource_type'][] = ['Dataset', 'Distribution', 'Catalog', 'DataService', 'Agent', 'Concept', 'Unknown'];
 const VALUE_KINDS: NormalizedIntent['value_kind'][] = ['literal', 'uri', 'controlled_concept', 'class_reference', 'date', 'agent', 'distribution', 'unknown'];
 const OBLIGATION_HINTS: NormalizedIntent['obligation_hint'][] = ['mandatory', 'recommended', 'optional', 'unknown'];
@@ -65,6 +80,8 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
   const [mergeSelection, setMergeSelection] = useState<Record<string, boolean>>({});
   const [statusFilter, setStatusFilter] = useState<'all' | RequirementStatus>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | RequirementType>('all');
+  const [validationFilter, setValidationFilter] = useState<'all' | ValidationStatus>('all');
+  const [scopeFilter, setScopeFilter] = useState<'all' | RequirementScope>('all');
   const [recommendations, setRecommendations] = useState<ReuseRecommendation[]>([]);
   const [accepted, setAccepted] = useState<Record<string, boolean>>({});
   const [shacl, setShacl] = useState('');
@@ -109,9 +126,11 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
       requirements.filter((requirement) => {
         if (statusFilter !== 'all' && requirement.status !== statusFilter) return false;
         if (typeFilter !== 'all' && requirement.requirement_type !== typeFilter) return false;
+        if (validationFilter !== 'all' && requirement.validation_status !== validationFilter) return false;
+        if (scopeFilter !== 'all' && requirement.requirement_scope !== scopeFilter) return false;
         return true;
       }),
-    [requirements, statusFilter, typeFilter],
+    [requirements, scopeFilter, statusFilter, typeFilter, validationFilter],
   );
 
   const selectedRequirement = useMemo(
@@ -240,16 +259,26 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
   );
 
   const updateRequirement = useCallback((id: string, patch: Partial<CandidateRequirement>) => {
-    setRequirements((current) => current.map((requirement) => (requirement.id === id ? { ...requirement, ...patch } : requirement)));
+    setRequirements((current) => current.map((requirement) => (requirement.id === id ? applyRequirementPatch(requirement, patch) : requirement)));
   }, []);
 
   const updateIntent = useCallback((id: string, patch: Partial<NormalizedIntent>) => {
     setRequirements((current) =>
       current.map((requirement) =>
-        requirement.id === id ? { ...requirement, normalized_intent: { ...requirement.normalized_intent, ...patch } } : requirement,
+        requirement.id === id ? applyIntentPatch(requirement, patch) : requirement,
       ),
     );
   }, []);
+
+  const exportRq1Dataset = useCallback(() => {
+    if (!analysis) {
+      onStatus('Run extraction before exporting an RQ1 dataset.');
+      return;
+    }
+    const dataset = buildRq1DatasetExport(analysis, requirements);
+    downloadText(JSON.stringify(dataset, null, 2), 'rq1-requirement-dataset.json', 'application/json');
+    onStatus(`Exported RQ1 dataset with ${requirements.length} reviewed requirement(s).`);
+  }, [analysis, onStatus, requirements]);
 
   const mergeRequirements = useCallback((ids: string[], suggestedStatement?: string) => {
     const selected = requirements.filter((requirement) => ids.includes(requirement.id));
@@ -274,7 +303,7 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
       confidence: Math.max(...selected.map((requirement) => requirement.confidence)),
     };
     setRequirements((current) =>
-      current.map((requirement): CandidateRequirement => (ids.includes(requirement.id) ? { ...requirement, status: 'merged' } : requirement)).concat(merged),
+      current.map((requirement): CandidateRequirement => (ids.includes(requirement.id) ? applyRequirementPatch(requirement, { status: 'merged' }) : requirement)).concat(merged),
     );
     setSelectedRequirementId(merged.id);
     setMergeSelection({});
@@ -299,7 +328,7 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     }));
     setRequirements((current) =>
       current
-        .map((requirement): CandidateRequirement => (requirement.id === selectedRequirement.id ? { ...requirement, status: 'merged' } : requirement))
+        .map((requirement): CandidateRequirement => (requirement.id === selectedRequirement.id ? applyRequirementPatch(requirement, { status: 'merged' }) : requirement))
         .concat(splitItems),
     );
     setSelectedRequirementId(splitItems[0].id);
@@ -421,13 +450,18 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
             selectedRequirement={selectedRequirement}
             setMergeSelection={setMergeSelection}
             setSelectedRequirementId={setSelectedRequirementId}
+            setScopeFilter={setScopeFilter}
             setStatusFilter={setStatusFilter}
             setTypeFilter={setTypeFilter}
+            setValidationFilter={setValidationFilter}
+            scopeFilter={scopeFilter}
             splitRequirement={splitRequirement}
             statusFilter={statusFilter}
             typeFilter={typeFilter}
             updateIntent={updateIntent}
             updateRequirement={updateRequirement}
+            validationFilter={validationFilter}
+            onExportRq1Dataset={exportRq1Dataset}
           />
         ) : view === 'reuse' ? (
           <ReuseResults accepted={accepted} recommendations={recommendations} setAccepted={setAccepted} />
@@ -461,13 +495,18 @@ function RequirementReview({
   selectedRequirement,
   setMergeSelection,
   setSelectedRequirementId,
+  setScopeFilter,
   setStatusFilter,
   setTypeFilter,
+  setValidationFilter,
+  scopeFilter,
   splitRequirement,
   statusFilter,
   typeFilter,
   updateIntent,
   updateRequirement,
+  validationFilter,
+  onExportRq1Dataset,
 }: {
   analysis: AnalysisResponse | null;
   filteredRequirements: CandidateRequirement[];
@@ -477,13 +516,18 @@ function RequirementReview({
   selectedRequirement: CandidateRequirement | null;
   setMergeSelection: (selection: Record<string, boolean>) => void;
   setSelectedRequirementId: (id: string) => void;
+  setScopeFilter: (scope: 'all' | RequirementScope) => void;
   setStatusFilter: (status: 'all' | RequirementStatus) => void;
   setTypeFilter: (type: 'all' | RequirementType) => void;
+  setValidationFilter: (status: 'all' | ValidationStatus) => void;
+  scopeFilter: 'all' | RequirementScope;
   splitRequirement: () => void;
   statusFilter: 'all' | RequirementStatus;
   typeFilter: 'all' | RequirementType;
   updateIntent: (id: string, patch: Partial<NormalizedIntent>) => void;
   updateRequirement: (id: string, patch: Partial<CandidateRequirement>) => void;
+  validationFilter: 'all' | ValidationStatus;
+  onExportRq1Dataset: () => void;
 }) {
   if (!analysis) {
     return <EmptyState text="Run Extract to build evidence units and reviewable requirement records." />;
@@ -494,6 +538,7 @@ function RequirementReview({
   return (
     <div className="review-workspace">
       <ReviewOverview analysis={analysis} requirements={requirements} />
+      <ValidationWarnings requirements={requirements} />
       <div className="requirement-review-grid">
         <section className="requirement-list-panel">
           <div className="panel-title-row">
@@ -501,6 +546,10 @@ function RequirementReview({
               <h3>Requirement Queue</h3>
               <small>{filteredRequirements.length} shown</small>
             </div>
+            <button onClick={onExportRq1Dataset} type="button">
+              <Download size={16} />
+              Export RQ1 Dataset
+            </button>
           </div>
           <div className="requirement-filters">
             <label>
@@ -521,6 +570,24 @@ function RequirementReview({
                 ))}
               </select>
             </label>
+            <label>
+              Validation
+              <select onChange={(event) => setValidationFilter(event.target.value as 'all' | ValidationStatus)} value={validationFilter}>
+                <option value="all">All</option>
+                {VALIDATION_STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>{humanize(status)}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Scope
+              <select onChange={(event) => setScopeFilter(event.target.value as 'all' | RequirementScope)} value={scopeFilter}>
+                <option value="all">All</option>
+                {REQUIREMENT_SCOPE_OPTIONS.map((scope) => (
+                  <option key={scope} value={scope}>{humanize(scope)}</option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <div className="review-list">
@@ -537,6 +604,7 @@ function RequirementReview({
                   <span className="queue-index">{index + 1}</span>
                   <strong>{shortStatement(requirement)}</strong>
                   <span>{humanize(requirement.requirement_type)} - {formatConfidence(requirement.confidence)}</span>
+                  <RequirementMetaStrip requirement={requirement} />
                   <small className={`status-pill status-pill--${requirement.status}`}>{humanize(requirement.status)}</small>
                 </button>
               </article>
@@ -588,6 +656,41 @@ function ReviewOverview({ analysis, requirements }: { analysis: AnalysisResponse
   );
 }
 
+function ValidationWarnings({ requirements }: { requirements: CandidateRequirement[] }) {
+  const warnings = requirements.filter((requirement) => requirement.validation_status !== 'valid');
+  if (!warnings.length) return null;
+
+  return (
+    <section className="validation-warning-panel" aria-label="Validation warnings">
+      <div>
+        <h3>Validation warnings</h3>
+        <p>{warnings.length} requirement(s) need machine-validation review before RQ1 export.</p>
+      </div>
+      <div className="validation-warning-list">
+        {warnings.map((requirement) => (
+          <article key={requirement.id}>
+            <strong>{shortStatement(requirement)}</strong>
+            <span>{humanize(requirement.validation_status)}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RequirementMetaStrip({ requirement }: { requirement: CandidateRequirement }) {
+  return (
+    <span className="requirement-meta-strip">
+      <small>{humanize(requirement.validation_status)}</small>
+      <small>{humanize(requirement.requirement_scope)}</small>
+      <small>{requirement.provenance?.strategy ?? 'unknown strategy'}</small>
+      <small>{requirement.provenance?.model_id ?? 'no model'}</small>
+      <small>{formatEvidenceVerification(requirement.provenance?.evidence_verified)}</small>
+      <small>{requirement.source_evidence.length} evidence</small>
+    </span>
+  );
+}
+
 function RequirementDetail({
   analysis,
   mergeRequirements,
@@ -617,6 +720,15 @@ function RequirementDetail({
         </div>
         <span className={`status-pill status-pill--${requirement.status}`}>{humanize(requirement.status)}</span>
       </div>
+
+      <section className="requirement-machine-metadata" aria-label="Requirement machine metadata">
+        <span><strong>Validation</strong>{humanize(requirement.validation_status)}</span>
+        <span><strong>Scope</strong>{humanize(requirement.requirement_scope)}</span>
+        <span><strong>Strategy</strong>{requirement.provenance?.strategy ?? 'unknown'}</span>
+        <span><strong>Model</strong>{requirement.provenance?.model_id ?? 'none'}</span>
+        <span><strong>Evidence</strong>{formatEvidenceVerification(requirement.provenance?.evidence_verified)}</span>
+        <span><strong>Sources</strong>{requirement.source_evidence.length}</span>
+      </section>
 
       <div className="review-actions review-actions--primary">
         <button onClick={() => updateRequirement(requirement.id, { status: 'approved' })} type="button">
@@ -946,6 +1058,120 @@ function EmptyState({ text }: { text: string }) {
 
 function withRequirements(analysis: AnalysisResponse, requirements: CandidateRequirement[]): AnalysisResponse {
   return { ...analysis, requirements };
+}
+
+function applyRequirementPatch(requirement: CandidateRequirement, patch: Partial<CandidateRequirement>): CandidateRequirement {
+  const updated = { ...requirement, ...patch };
+  const fields: Array<keyof CandidateRequirement> = [
+    'normalized_statement',
+    'requirement_type',
+    'fair_dimensions',
+    'review_notes',
+    'status',
+  ];
+  const history = fields
+    .filter((field) => field in patch && !sameHistoryValue(requirement[field], patch[field]))
+    .map((field) =>
+      editorHistoryEntry(
+        String(field),
+        requirement[field],
+        patch[field],
+        field === 'status' ? actionForStatusChange(patch.status) : 'edit',
+      ),
+    );
+  return history.length ? { ...updated, provenance: appendEditorHistory(requirement.provenance, history) } : updated;
+}
+
+function applyIntentPatch(requirement: CandidateRequirement, patch: Partial<NormalizedIntent>): CandidateRequirement {
+  const updatedIntent = { ...requirement.normalized_intent, ...patch };
+  const fields: Array<keyof NormalizedIntent> = ['metadata_need', 'resource_type', 'value_kind', 'obligation_hint'];
+  const history = fields
+    .filter((field) => field in patch && !sameHistoryValue(requirement.normalized_intent[field], patch[field]))
+    .map((field) => editorHistoryEntry(String(field), requirement.normalized_intent[field], patch[field], 'edit'));
+  const updated = { ...requirement, normalized_intent: updatedIntent };
+  return history.length ? { ...updated, provenance: appendEditorHistory(requirement.provenance, history) } : updated;
+}
+
+function appendEditorHistory(provenance: ExtractionProvenance | null | undefined, entries: Array<Record<string, unknown>>): ExtractionProvenance {
+  const base: ExtractionProvenance = provenance ?? {
+    strategy: 'rules',
+    extractor: 'frontend-review',
+    notes: [],
+    editor_history: [],
+  };
+  return {
+    ...base,
+    notes: base.notes ?? [],
+    editor_history: [...(base.editor_history ?? []), ...entries],
+  };
+}
+
+function editorHistoryEntry(field: string, oldValue: unknown, newValue: unknown, action: EditorHistoryAction) {
+  return {
+    timestamp: new Date().toISOString(),
+    field,
+    old_value: oldValue ?? null,
+    new_value: newValue ?? null,
+    action,
+  };
+}
+
+function actionForStatusChange(status: RequirementStatus | undefined): EditorHistoryAction {
+  if (status === 'approved') return 'approve';
+  if (status === 'rejected') return 'reject';
+  if (status === 'needs_review') return 'mark_needs_review';
+  return 'edit';
+}
+
+function sameHistoryValue(left: unknown, right: unknown) {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function buildRq1DatasetExport(analysis: AnalysisResponse, requirements: CandidateRequirement[]): Rq1DatasetExport {
+  return {
+    schema_version: 'rq1-requirement-dataset-v1',
+    generated_at: new Date().toISOString(),
+    strategy_requested: analysis.strategy,
+    strategy_used: analysis.strategy,
+    summary_metrics: {
+      requirement_count: requirements.length,
+      evidence_unit_count: analysis.evidence_units.length,
+      duplicate_group_count: analysis.duplicate_groups.length,
+      user_task_count: analysis.user_tasks.length,
+      warning_count: analysis.warnings.length,
+      requirements_by_type: countBy(requirements, (requirement) => requirement.requirement_type),
+      requirements_by_scope: countBy(requirements, (requirement) => requirement.requirement_scope),
+      requirements_by_validation_status: countBy(requirements, (requirement) => requirement.validation_status),
+      requirements_by_review_status: countBy(requirements, (requirement) => requirement.status),
+      requirements_with_editor_history: requirements.filter((requirement) => requirement.provenance?.editor_history?.length).length,
+    },
+    requirements,
+    evidence_units: analysis.evidence_units,
+    duplicate_groups: analysis.duplicate_groups,
+    user_tasks: analysis.user_tasks,
+    warnings: analysis.warnings,
+    review_editor_history: requirements.map((requirement) => ({
+      requirement_id: requirement.id,
+      review_status: requirement.status,
+      validation_status: requirement.validation_status,
+      review_notes: requirement.review_notes ?? null,
+      editor_history: requirement.provenance?.editor_history ?? [],
+    })),
+  };
+}
+
+function countBy<T>(items: T[], getKey: (item: T) => string) {
+  return items.reduce<Record<string, number>>((counts, item) => {
+    const key = getKey(item);
+    counts[key] = (counts[key] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function formatEvidenceVerification(value: boolean | null | undefined) {
+  if (value === true) return 'evidence verified';
+  if (value === false) return 'evidence unverified';
+  return 'evidence unknown';
 }
 
 function requirementStatement(requirement: CandidateRequirement) {

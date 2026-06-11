@@ -1154,6 +1154,56 @@ button.danger {
   padding: 14px;
 }
 
+.validation-warning-panel {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1fr);
+  padding: 14px;
+}
+
+.validation-warning-panel h3 {
+  color: #9a3412;
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+
+.validation-warning-panel p {
+  color: #9a3412;
+  font-size: 13px;
+  margin: 0;
+}
+
+.validation-warning-list {
+  display: grid;
+  gap: 8px;
+}
+
+.validation-warning-list article {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #fdba74;
+  border-radius: 7px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 8px 10px;
+}
+
+.validation-warning-list strong {
+  color: var(--text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.validation-warning-list span {
+  color: #9a3412;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .review-overview h3 {
   font-size: 16px;
   margin: 0 0 4px;
@@ -1291,6 +1341,21 @@ button.danger {
   grid-column: 2 / 3;
 }
 
+.requirement-meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.requirement-meta-strip small {
+  background: var(--panel-strong);
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
 .queue-index {
   align-items: center;
   background: var(--panel-strong);
@@ -1328,6 +1393,29 @@ button.danger {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+}
+
+.requirement-machine-metadata {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.requirement-machine-metadata span {
+  background: var(--panel-strong);
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  color: var(--muted);
+  display: grid;
+  font-size: 12px;
+  gap: 2px;
+  padding: 7px 9px;
+}
+
+.requirement-machine-metadata strong {
+  color: var(--text);
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
 .requirement-detail-panel textarea {
