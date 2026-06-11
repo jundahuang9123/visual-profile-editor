@@ -15,6 +15,8 @@ import {
   type NormalizedIntent,
   type RequirementScope,
   type Rq1DatasetExport,
+  type Rq1LocalMergeEvent,
+  type Rq1LocalSplitEvent,
   type ReuseRecommendation,
   type SourceEvidence,
   type UserTask,
@@ -76,6 +78,8 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
   const [artifacts, setArtifacts] = useState<ArtifactPayload[]>([]);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [requirements, setRequirements] = useState<CandidateRequirement[]>([]);
+  const [localMergeEvents, setLocalMergeEvents] = useState<Rq1LocalMergeEvent[]>([]);
+  const [localSplitEvents, setLocalSplitEvents] = useState<Rq1LocalSplitEvent[]>([]);
   const [selectedRequirementId, setSelectedRequirementId] = useState<string | null>(null);
   const [mergeSelection, setMergeSelection] = useState<Record<string, boolean>>({});
   const [statusFilter, setStatusFilter] = useState<'all' | RequirementStatus>('all');
@@ -97,6 +101,8 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
   useEffect(() => {
     if (!analysis) return;
     setRequirements(analysis.requirements);
+    setLocalMergeEvents([]);
+    setLocalSplitEvents([]);
     setSelectedRequirementId((current) => current ?? analysis.requirements[0]?.id ?? null);
     setMergeSelection({});
   }, [analysis]);
@@ -275,10 +281,10 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
       onStatus('Run extraction before exporting an RQ1 dataset.');
       return;
     }
-    const dataset = buildRq1DatasetExport(analysis, requirements);
+    const dataset = buildRq1DatasetExport(analysis, requirements, localMergeEvents, localSplitEvents);
     downloadText(JSON.stringify(dataset, null, 2), 'rq1-requirement-dataset.json', 'application/json');
     onStatus(`Exported RQ1 dataset with ${requirements.length} reviewed requirement(s).`);
-  }, [analysis, onStatus, requirements]);
+  }, [analysis, localMergeEvents, localSplitEvents, onStatus, requirements]);
 
   const mergeRequirements = useCallback((ids: string[], suggestedStatement?: string) => {
     const selected = requirements.filter((requirement) => ids.includes(requirement.id));
@@ -288,6 +294,7 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     }
     const base = selected[0];
     const statement = suggestedStatement || selected.map(requirementStatement).join(' ');
+    const timestamp = new Date().toISOString();
     const merged: CandidateRequirement = {
       ...base,
       id: `req-merged-${Date.now()}`,
@@ -305,6 +312,16 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     setRequirements((current) =>
       current.map((requirement): CandidateRequirement => (ids.includes(requirement.id) ? applyRequirementPatch(requirement, { status: 'merged' }) : requirement)).concat(merged),
     );
+    setLocalMergeEvents((current) => [
+      ...current,
+      {
+        timestamp,
+        source_requirement_ids: selected.map((requirement) => requirement.id),
+        merged_requirement_id: merged.id,
+        normalized_statement: statement,
+        suggested_statement_used: Boolean(suggestedStatement),
+      },
+    ]);
     setSelectedRequirementId(merged.id);
     setMergeSelection({});
     onStatus(`Merged ${selected.length} requirement candidates for review.`);
@@ -315,9 +332,11 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
     const textToSplit = requirementStatement(selectedRequirement);
     const pieces = textToSplit.split(/\s+and\s+|;/i).map((part) => part.trim()).filter(Boolean);
     const parts = pieces.length > 1 ? pieces.slice(0, 2) : [textToSplit, `${textToSplit} (additional review item)`];
+    const timestamp = new Date().toISOString();
+    const splitToken = Date.now();
     const splitItems = parts.map((part, index): CandidateRequirement => ({
       ...selectedRequirement,
-      id: `${selectedRequirement.id}-split-${index + 1}-${Date.now()}`,
+      id: `${selectedRequirement.id}-split-${index + 1}-${splitToken}`,
       raw_statement: selectedRequirement.raw_statement,
       normalized_statement: part,
       title: `${selectedRequirement.title || 'Requirement'} split ${index + 1}`,
@@ -331,6 +350,15 @@ export function RequirementWorkbench({ initialView, onStatus }: RequirementWorkb
         .map((requirement): CandidateRequirement => (requirement.id === selectedRequirement.id ? applyRequirementPatch(requirement, { status: 'merged' }) : requirement))
         .concat(splitItems),
     );
+    setLocalSplitEvents((current) => [
+      ...current,
+      {
+        timestamp,
+        source_requirement_id: selectedRequirement.id,
+        split_requirement_ids: splitItems.map((requirement) => requirement.id),
+        source_statement: textToSplit,
+      },
+    ]);
     setSelectedRequirementId(splitItems[0].id);
     onStatus('Split the selected requirement into review items.');
   }, [onStatus, selectedRequirement]);
@@ -762,6 +790,12 @@ function RequirementDetail({
           </select>
         </label>
         <label>
+          Requirement scope
+          <select onChange={(event) => updateRequirement(requirement.id, { requirement_scope: event.target.value as RequirementScope })} value={requirement.requirement_scope}>
+            {REQUIREMENT_SCOPE_OPTIONS.map((scope) => <option key={scope} value={scope}>{humanize(scope)}</option>)}
+          </select>
+        </label>
+        <label>
           Resource type
           <select onChange={(event) => updateIntent(requirement.id, { resource_type: event.target.value as NormalizedIntent['resource_type'] })} value={requirement.normalized_intent.resource_type}>
             {RESOURCE_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
@@ -1065,6 +1099,7 @@ function applyRequirementPatch(requirement: CandidateRequirement, patch: Partial
   const fields: Array<keyof CandidateRequirement> = [
     'normalized_statement',
     'requirement_type',
+    'requirement_scope',
     'fair_dimensions',
     'review_notes',
     'status',
@@ -1127,9 +1162,15 @@ function sameHistoryValue(left: unknown, right: unknown) {
   return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 }
 
-function buildRq1DatasetExport(analysis: AnalysisResponse, requirements: CandidateRequirement[]): Rq1DatasetExport {
+function buildRq1DatasetExport(
+  analysis: AnalysisResponse,
+  requirements: CandidateRequirement[],
+  localMergeEvents: Rq1LocalMergeEvent[],
+  localSplitEvents: Rq1LocalSplitEvent[],
+): Rq1DatasetExport {
   return {
     schema_version: 'rq1-requirement-dataset-v1',
+    export_kind: 'reviewed_frontend_state',
     generated_at: new Date().toISOString(),
     strategy_requested: analysis.strategy,
     strategy_used: analysis.strategy,
@@ -1144,10 +1185,21 @@ function buildRq1DatasetExport(analysis: AnalysisResponse, requirements: Candida
       requirements_by_validation_status: countBy(requirements, (requirement) => requirement.validation_status),
       requirements_by_review_status: countBy(requirements, (requirement) => requirement.status),
       requirements_with_editor_history: requirements.filter((requirement) => requirement.provenance?.editor_history?.length).length,
+      requirements_approved_with_valid_validation: requirements.filter(
+        (requirement) => requirement.status === 'approved' && requirement.validation_status === 'valid',
+      ).length,
+      requirements_approved_with_warnings: requirements.filter(
+        (requirement) => requirement.status === 'approved' && requirement.validation_status !== 'valid',
+      ).length,
+      local_merge_event_count: localMergeEvents.length,
+      local_split_event_count: localSplitEvents.length,
     },
     requirements,
     evidence_units: analysis.evidence_units,
     duplicate_groups: analysis.duplicate_groups,
+    duplicate_groups_original: analysis.duplicate_groups,
+    local_merge_events: localMergeEvents,
+    local_split_events: localSplitEvents,
     user_tasks: analysis.user_tasks,
     warnings: analysis.warnings,
     review_editor_history: requirements.map((requirement) => ({

@@ -216,8 +216,24 @@ export type ConstraintGenerationResponse = {
   validation_notes: string[];
 };
 
+export type Rq1LocalMergeEvent = {
+  timestamp: string;
+  source_requirement_ids: string[];
+  merged_requirement_id: string;
+  normalized_statement: string;
+  suggested_statement_used: boolean;
+};
+
+export type Rq1LocalSplitEvent = {
+  timestamp: string;
+  source_requirement_id: string;
+  split_requirement_ids: string[];
+  source_statement: string;
+};
+
 export type Rq1DatasetExport = {
   schema_version: string;
+  export_kind?: 'reviewed_frontend_state' | 'service_generated';
   generated_at: string;
   strategy_requested: ExtractionStrategy;
   strategy_used: ExtractionStrategy;
@@ -225,6 +241,9 @@ export type Rq1DatasetExport = {
   requirements: CandidateRequirement[];
   evidence_units: EvidenceUnit[];
   duplicate_groups: DuplicateGroup[];
+  duplicate_groups_original?: DuplicateGroup[];
+  local_merge_events?: Rq1LocalMergeEvent[];
+  local_split_events?: Rq1LocalSplitEvent[];
   user_tasks: UserTask[];
   warnings: string[];
   review_editor_history: Array<Record<string, unknown>>;
