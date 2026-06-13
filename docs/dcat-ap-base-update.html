@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DCAT-AP 3.0 Base — Update Report</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --accent:#0f766e; --accent2:#2563eb; --ext:#7c3aed;
+    --M:#dc2626; --R:#d97706; --O:#0891b2; --none:#cbd5e1;
+    --ok:#16a34a; --warn:#b45309; --warnbg:#fffbeb; --warnln:#fde68a;
+    --add:#dcfce7; --addln:#86efac; --del:#fee2e2; --delln:#fecaca;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0f172a 0,#1e293b 320px,#f1f5f9 320px,#f1f5f9 100%);
+       font-family:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);}
+  .wrap{max-width:1060px;margin:0 auto;padding:36px 22px 80px}
+  header{color:#e2e8f0;margin-bottom:26px}
+  header .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#5eead4;font-weight:700}
+  header h1{margin:8px 0 6px;font-size:30px;line-height:1.15;color:#fff}
+  header p{margin:0;color:#94a3b8;font-size:15px;max-width:760px}
+  .grid{display:grid;gap:16px}
+  .cards{grid-template-columns:repeat(4,1fr)}
+  .two{grid-template-columns:1fr 1fr}
+  @media(max-width:820px){.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+        box-shadow:0 10px 30px rgba(15,23,42,.06)}
+  .stat{display:flex;flex-direction:column;gap:2px}
+  .stat .n{font-size:30px;font-weight:800;line-height:1}
+  .stat .n small{font-size:15px;color:var(--muted);font-weight:600}
+  .stat .l{font-size:12.5px;color:var(--muted);font-weight:600}
+  .delta{font-size:12px;font-weight:700;color:var(--ok)}
+  section{margin-top:30px}
+  section>h2{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+  section>.sub{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+  .pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;border:1px solid}
+  .pill.add{background:var(--add);border-color:var(--addln);color:#166534}
+  .pill.wip{background:var(--warnbg);border-color:var(--warnln);color:var(--warn)}
+  .pill.ok{background:#ecfdf5;border-color:#a7f3d0;color:#047857}
+  /* before/after */
+  .ba{display:grid;grid-template-columns:1fr 44px 1fr;gap:0;align-items:stretch}
+  @media(max-width:820px){.ba{grid-template-columns:1fr}}
+  .ba .col{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .ba .before{border-color:var(--delln)}
+  .ba .after{border-color:var(--addln)}
+  .ba .arrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px;font-weight:800}
+  @media(max-width:820px){.ba .arrow{transform:rotate(90deg);padding:6px 0}}
+  .ba h3{margin:0 0 4px;font-size:14px}
+  .ba .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+  .ba .before .tag{color:#b91c1c}.ba .after .tag{color:#15803d}
+  .ba ul{margin:10px 0 0;padding-left:18px;font-size:13px;color:#334155;line-height:1.6}
+  .codeblock{background:#0b1220;border-radius:12px;border:1px solid #1e293b;overflow:hidden;margin-top:6px}
+  .codeblock .bar{display:flex;gap:6px;padding:9px 12px;border-bottom:1px solid #1e293b}
+  .codeblock .bar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .codeblock pre{margin:0;padding:14px 16px;overflow:auto;font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e2e8f0}
+  .c-key{color:#7dd3fc}.c-str{color:#86efac}.c-cm{color:#64748b}.c-del{color:#fca5a5}.c-add{color:#86efac}
+  .matrix{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);
+          border-radius:14px;overflow:hidden;font-size:13px}
+  .matrix th,.matrix td{padding:9px 10px;text-align:center;border-bottom:1px solid var(--line)}
+  .matrix thead th{background:#f8fafc;font-size:11.5px;color:#475569;font-weight:700}
+  .matrix tbody th{text-align:left;font-family:ui-monospace,monospace;font-size:12px;color:#0f172a;background:#fff;font-weight:600}
+  .matrix tr:last-child td,.matrix tr:last-child th{border-bottom:none}
+  .b{display:inline-flex;min-width:24px;justify-content:center;border-radius:6px;padding:2px 6px;font-weight:800;font-size:11px;color:#fff}
+  .b.M{background:var(--M)}.b.R{background:var(--R)}.b.O{background:var(--O)}
+  .b.none{background:transparent;color:var(--none);font-weight:700}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 0;font-size:12px;color:#475569}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .checks li{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid var(--line);
+             border-radius:10px;padding:10px 13px;font-size:13.5px}
+  .checks li .tick{color:var(--ok);font-weight:900;margin-top:1px}
+  .checks li code{background:#f1f5f9;border-radius:5px;padding:1px 5px;font-size:12px}
+  .warnbox{background:var(--warnbg);border:1px solid var(--warnln);border-radius:12px;padding:14px 16px}
+  .warnbox h3{margin:0 0 8px;font-size:14px;color:var(--warn);display:flex;gap:8px;align-items:center}
+  .warnbox ul{margin:0;padding-left:18px;font-size:13px;color:#7c5410;line-height:1.65}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;font-weight:600;color:#334155}
+  .flow .node{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 11px}
+  .flow .node.hl{border-color:var(--accent);box-shadow:0 0 0 3px rgba(15,118,110,.10)}
+  .flow .arr{color:var(--muted)}
+  footer{margin-top:34px;color:#64748b;font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Visual Profile Editor · RQ2 base</div>
+    <h1>DCAT-AP 3.0 Base — what changed</h1>
+    <p>A new reuse foundation for RQ2 profile extensions: a DCAT-AP&nbsp;3.0 base template that an extension can build entirely on. Authored, then refactored to carry per-class obligations idiomatically via <code style="color:#5eead4">slot_usage</code>, verified against the actual editor.</p>
+  </header>
+
+  <!-- KPI cards -->
+  <div class="grid cards">
+    <div class="card stat"><div class="n">29 <small>classes</small></div><div class="l">DCAT-AP base classes</div><div class="delta">▲ from 8</div></div>
+    <div class="card stat"><div class="n">70 <small>properties</small></div><div class="l">reusable global slots</div><div class="delta">▲ from 16</div></div>
+    <div class="card stat"><div class="n">5 / 4 / 2</div><div class="l">classes with M / R / O obligations</div><div class="delta">per-class via slot_usage</div></div>
+    <div class="card stat"><div class="n">75 <small>tests</small></div><div class="l">full suite passing</div><div class="delta">▲ +18 new</div></div>
+  </div>
+
+  <!-- 1. Before / after -->
+  <section>
+    <h2>1 · Before → after <span class="pill add">replaces partial base</span></h2>
+    <p class="sub">The existing <code>dcat-ap-profile</code> template was a partial sketch and named its dataset class <code>DcatDatasetProfile</code> (a profile, not the canonical base) — so RQ2 extensions couldn’t cleanly inherit from it. The new base fixes both.</p>
+    <div class="ba">
+      <div class="col before">
+        <div class="tag">Before — dcat-ap-profile</div>
+        <h3>8 classes · 16 properties</h3>
+        <ul>
+          <li>Partial: no <code>DcatDataService</code>, <code>CatalogRecord</code>, <code>DatasetSeries</code>, value classes</li>
+          <li>Dataset class named <code>DcatDatasetProfile</code> — not the base RQ2 extends</li>
+          <li>Obligations on <b>global</b> slots → <code>title</code> forced mandatory <i>everywhere</i></li>
+          <li>No <code>applicableLegislation</code>, no controlled-vocab notes</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="col after">
+        <div class="tag">After — dcat-ap-full-profile</div>
+        <h3>29 classes · 70 properties</h3>
+        <ul>
+          <li>Canonical base classes <code>DcatCatalog / Dataset / Distribution / DataService</code> (+Series, Record, Resource)</li>
+          <li>21 value/range classes (vCard, SKOS, ADMS, SPDX, ODRL, PROV, ELI…)</li>
+          <li>Obligations moved to <b>per-class</b> <code>slot_usage</code> — same slot can differ per class</li>
+          <li>Adds <code>applicableLegislation</code>, versioning terms, named controlled vocabularies</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. The slot_usage refactor -->
+  <section>
+    <h2>2 · The key change — obligations moved to <code>slot_usage</code></h2>
+    <p class="sub">Global slots now declare only reusable identity (URI · range · default cardinality). Each class refines requiredness / obligation / cardinality / usage notes locally.</p>
+    <div class="grid two">
+      <div class="codeblock">
+        <div class="bar"><i style="background:#f87171"></i><i style="background:#fbbf24"></i><i style="background:#34d399"></i></div>
+<pre><span class="c-cm"># BEFORE — global slot carried obligation</span>
+slots:
+  <span class="c-key">title</span>:
+    <span class="c-key">slot_uri</span>: <span class="c-str">dcterms:title</span>
+    <span class="c-del">required: true            # forced on EVERY class</span>
+    <span class="c-del">annotations:</span>
+      <span class="c-del">requirement_level: mandatory</span></pre>
+      </div>
+      <div class="codeblock">
+        <div class="bar"><i style="background:#f87171"></i><i style="background:#fbbf24"></i><i style="background:#34d399"></i></div>
+<pre><span class="c-cm"># AFTER — identity global, obligation per-class</span>
+slots:
+  <span class="c-key">title</span>: {<span class="c-key">slot_uri</span>: <span class="c-str">dcterms:title</span>, <span class="c-key">range</span>: <span class="c-str">string</span>, <span class="c-key">multivalued</span>: true}
+
+classes:
+  <span class="c-key">DcatDistribution</span>:
+    <span class="c-key">slot_usage</span>:
+      <span class="c-key">title</span>: {<span class="c-add">annotations: {requirement_level: optional}</span>}
+  <span class="c-key">DcatDataset</span>:
+    <span class="c-key">slot_usage</span>:
+      <span class="c-key">title</span>: {<span class="c-add">required: true, annotations:{requirement_level: mandatory}</span>}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Obligation matrix -->
+  <section>
+    <h2>3 · Same property, different obligation per class</h2>
+    <p class="sub">Exactly what <code>slot_usage</code> unlocks — and what the new regression tests assert. Read across a row: one reused property, different rule per class.</p>
+    <table class="matrix">
+      <thead><tr><th style="text-align:left">property ↓ / class →</th>
+        <th>Catalog</th><th>Dataset</th><th>Distribution</th><th>DataService</th><th>CatalogRecord</th></tr></thead>
+      <tbody>
+        <!--ROWS--></tbody>
+    </table>
+    <div class="legend">
+      <span><b class="b M">M</b> mandatory (required, sh:minCount 1)</span>
+      <span><b class="b R">R</b> recommended</span>
+      <span><b class="b O">O</b> optional</span>
+      <span><b class="b none">·</b> not on this class</span>
+    </div>
+    <p class="sub" style="margin-top:12px">
+      Notice <code>title</code> is <b style="color:var(--M)">M</b> on Catalog/Dataset/DataService but <b style="color:var(--O)">O</b> on Distribution/CatalogRecord;
+      <code>modified</code> is <b style="color:var(--O)">O</b> on Dataset but <b style="color:var(--M)">M</b> on CatalogRecord — impossible to express with a single global slot.
+    </p>
+  </section>
+
+  <!-- 4. Newly added terms -->
+  <section>
+    <h2>4 · Missing DCAT-AP 3.0 terms added</h2>
+    <p class="sub">Including the term you flagged. Controlled vocabularies are <i>named</i> (honest) but not yet machine-enforced as <code>sh:in</code>.</p>
+    <ul class="checks">
+      <li><span class="tick">＋</span><div><code>dcat:applicableLegislation</code> on Catalog · Dataset · Distribution · DataService · Series · Record — range <code>eli:LegalResource</code> (new <code>EliLegalResource</code> class)</div></li>
+      <li><span class="tick">＋</span><div>DCAT-AP 3.0 versioning: <code>dcat:previousVersion</code>, <code>dcat:hasCurrentVersion</code> (alongside existing version / hasVersion / isVersionOf)</div></li>
+      <li><span class="tick">＋</span><div>Controlled-vocabulary notes via <code>controlled_vocabulary</code> annotations: <code>theme</code>→EU Data Themes, <code>accessRights</code>→EU Access Right, <code>accrualPeriodicity</code>→EU Frequency, <code>mediaType</code>→IANA, <code>status</code>→ADMS</div></li>
+    </ul>
+  </section>
+
+  <!-- 5. Honesty panel -->
+  <section>
+    <h2>5 · What we are <em>not</em> claiming yet <span class="pill wip">work in progress</span></h2>
+    <p class="sub">Per your instruction — the template’s own <code>conformance_status</code> annotation records these gaps.</p>
+    <div class="warnbox">
+      <h3>⚠ Known gaps (tracked in the template, not hidden)</h3>
+      <ul>
+        <li><b>Not conformance-grade.</b> Title downgraded to “DCAT-AP 3.0 Base (WIP)”; full SEMIC conformance suite not yet run.</li>
+        <li><b>Controlled-vocabulary value bindings</b> (sh:in over EU Vocabularies) are <i>named</i>, not yet enforced.</li>
+        <li><b>Editor exporter gap:</b> the bundled <code>general_ontology_editor</code> SHACL/JSON-Schema generator reads obligations from <b>global</b> slots only — it does <b>not</b> yet consume <code>slot_usage</code>. Per-class minCounts are authoritative in the template (and tested) but won’t appear in that exporter’s output until it’s updated.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 6. Where it fits + verification -->
+  <section>
+    <h2>6 · Where it fits, and how it was verified</h2>
+    <p class="sub">A selectable template (“DCAT-AP 3.0 Base (WIP)”) and the reuse foundation for RQ2-generated extensions.</p>
+    <div class="card" style="margin-bottom:14px">
+      <div class="flow">
+        <span class="node">Approved RQ1 requirements</span><span class="arr">→</span>
+        <span class="node">RQ2 ProfileChangeSet</span><span class="arr">→</span>
+        <span class="node hl">Construction*Profile <code>is_a</code> Dcat*</span><span class="arr">→</span>
+        <span class="node hl">DCAT-AP 3.0 Base</span><span class="arr">→</span>
+        <span class="node">Visual editor merge</span>
+      </div>
+      <p class="sub" style="margin:10px 0 0">All four generated extension classes resolve their <code>is_a</code> against base classes that exist here — zero dangling-base warnings.</p>
+    </div>
+    <ul class="checks">
+      <li><span class="tick">✓</span><div><b>Editor loads it</b> — <code>general_ontology_editor.load_schema</code> → 29 classes / 70 slots; <code>validate_schema</code> → <code>{valid: true, errors: []}</code></div></li>
+      <li><span class="tick">✓</span><div><b>Editor exports it</b> — <code>generate_shacl</code> (valid Turtle), <code>generate_rdf</code>, <code>generate_json_schema</code> (valid JSON), save/reload round-trip</div></li>
+      <li><span class="tick">✓</span><div><b>Select-template path</b> — <code>apply_template('dcat-ap-full-profile')</code> loads it into the active profile; appears in the start dialog</div></li>
+      <li><span class="tick">✓</span><div><b>18 new regression tests</b> — per-class mandatory sets, cross-class obligation differences, identity-only globals, added terms, structural integrity</div></li>
+      <li><span class="tick">✓</span><div><b>Full suite 75 passed</b> (was 57) — no regressions</div></li>
+    </ul>
+  </section>
+
+  <footer>
+    Files: <code>profiles/templates/dcat-ap-full-profile.yaml</code> · <code>tests/test_dcat_ap_base_template.py</code> · <code>backend/app/profile_export.py</code><br/>
+    Source spec: DCAT-AP 3.0.0 (SEMIC) · generated report
+  </footer>
+</div>
+
+<script>
+  // Render the obligation matrix from verified data (keeps the table accurate & DRY)
+  var cols = ["DcatCatalog","DcatDataset","DcatDistribution","DcatDataService","DcatCatalogRecord"];
+  var rows = ["title","description","publisher","modified","accessURL","endpointURL","primaryTopic","keyword","theme"];
+  var M = {
+    title:        {DcatCatalog:"M",DcatDataset:"M",DcatDistribution:"O",DcatDataService:"M",DcatCatalogRecord:"O"},
+    description:  {DcatCatalog:"M",DcatDataset:"M",DcatDistribution:"R",DcatDataService:"O",DcatCatalogRecord:"O"},
+    publisher:    {DcatCatalog:"M",DcatDataset:"R",DcatDistribution:"-",DcatDataService:"O",DcatCatalogRecord:"-"},
+    modified:     {DcatCatalog:"O",DcatDataset:"O",DcatDistribution:"O",DcatDataService:"-",DcatCatalogRecord:"M"},
+    accessURL:    {DcatCatalog:"-",DcatDataset:"-",DcatDistribution:"M",DcatDataService:"-",DcatCatalogRecord:"-"},
+    endpointURL:  {DcatCatalog:"-",DcatDataset:"-",DcatDistribution:"-",DcatDataService:"M",DcatCatalogRecord:"-"},
+    primaryTopic: {DcatCatalog:"-",DcatDataset:"-",DcatDistribution:"-",DcatDataService:"-",DcatCatalogRecord:"M"},
+    keyword:      {DcatCatalog:"-",DcatDataset:"R",DcatDistribution:"-",DcatDataService:"O",DcatCatalogRecord:"-"},
+    theme:        {DcatCatalog:"-",DcatDataset:"R",DcatDistribution:"-",DcatDataService:"O",DcatCatalogRecord:"-"}
+  };
+  var html = rows.map(function(r){
+    var cells = cols.map(function(c){
+      var v = M[r][c];
+      return v==="-" ? '<td><span class="b none">·</span></td>'
+                     : '<td><span class="b '+v+'">'+v+'</span></td>';
+    }).join("");
+    return '<tr><th>'+r+'</th>'+cells+'</tr>';
+  }).join("");
+  document.querySelector('.matrix tbody').innerHTML = html;
+</script>
+</body>
+</html>

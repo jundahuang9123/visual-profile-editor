@@ -1,0 +1,964 @@
+id: https://w3id.org/construct-dcat/profile/dcat-ap-full
+name: dcat_ap_full
+title: DCAT-AP 3.0 Base (work in progress)
+description: >-
+  A DCAT-AP 3.0.0-oriented base model intended as a reuse foundation for domain
+  extensions. Global `slots` declare only the reusable property identity
+  (slot_uri, range, default cardinality); each class refines obligation,
+  requiredness, cardinality and usage notes via `slot_usage`, so the SAME reused
+  property can be mandatory in one class and optional/recommended in another
+  (e.g. dcterms:title is mandatory on dcat:Catalog/Dataset/DataService but
+  optional on dcat:Distribution / dcat:CatalogRecord).
+
+  STATUS: work in progress, NOT yet conformance-grade. Known gaps tracked in the
+  `conformance_status` annotation below: several DCAT-AP 3.0 terms and all
+  controlled-vocabulary value bindings (sh:in / EU Vocabularies) are named but
+  not yet machine-enforced. The bundled editor's SHACL/JSON-Schema exporter
+  currently reads obligations from global slots only and does not yet consume
+  slot_usage, so per-class minCounts authored here are authoritative in the
+  template (and tested) but not emitted by that exporter until it is updated.
+  Source: https://semiceu.github.io/DCAT-AP/releases/3.0.0/
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: http://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  skos: http://www.w3.org/2004/02/skos/core#
+  prov: http://www.w3.org/ns/prov#
+  foaf: http://xmlns.com/foaf/0.1/
+  vcard: http://www.w3.org/2006/vcard/ns#
+  adms: http://www.w3.org/ns/adms#
+  spdx: http://spdx.org/rdf/terms#
+  odrl: http://www.w3.org/ns/odrl/2/
+  eli: http://data.europa.eu/eli/ontology#
+  owl: http://www.w3.org/2002/07/owl#
+  xsd: http://www.w3.org/2001/XMLSchema#
+imports:
+  - linkml:types
+default_prefix: dcat
+default_range: string
+types:
+  anyURI:
+    uri: xsd:anyURI
+    base: str
+annotations:
+  base_profiles:
+    value: dcat, dcat-ap
+  profile_base:
+    value: DCAT-AP
+  spec_version:
+    value: DCAT-AP 3.0.0
+  conformance_status:
+    value: >-
+      work-in-progress. Per-class obligations carried in slot_usage (authoritative,
+      tested). NOT yet enforced: controlled-vocabulary value bindings (sh:in over
+      EU Vocabularies); some optional DCAT-AP 3.0 terms; cross-class SHACL value
+      constraints. Editor exporter does not yet read slot_usage.
+  controlled_vocabularies_pending:
+    value: >-
+      theme -> EU Data Themes; accessRights -> EU Access Right; accrualPeriodicity
+      -> EU Frequency; language -> EU Languages; format/mediaType -> IANA Media
+      Types / EU File Types; status -> ADMS Status; spatial -> EU Places/GeoNames;
+      type -> EU Dataset Type; hadRole -> EU/IANA role.
+
+classes:
+
+  # --- Core catalogued-resource hierarchy ---------------------------------
+
+  DcatResource:
+    title: Catalogued Resource
+    description: Abstract DCAT resource that can be described in a catalog (superclass of Dataset, DataService, DatasetSeries).
+    class_uri: dcat:Resource
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat}
+
+  DcatCatalog:
+    title: Catalog
+    description: A curated collection of metadata about resources (datasets and data services).
+    class_uri: dcat:Catalog
+    is_a: DcatDataset
+    slots:
+      - title
+      - description
+      - publisher
+      - dataset
+      - service
+      - record
+      - catalog
+      - themeTaxonomy
+      - homepage
+      - issued
+      - modified
+      - language
+      - license
+      - rights
+      - spatial
+      - hasPart
+      - isPartOf
+      - applicableLegislation
+    slot_usage:
+      title:
+        required: true
+        description: A catalog MUST have at least one title.
+        annotations: {requirement_level: {value: mandatory}}
+      description:
+        required: true
+        description: A catalog MUST have at least one description.
+        annotations: {requirement_level: {value: mandatory}}
+      publisher:
+        required: true
+        description: A catalog MUST identify its publishing agent.
+        annotations: {requirement_level: {value: mandatory}}
+      dataset:
+        description: Datasets catalogued (recommended).
+        annotations: {requirement_level: {value: recommended}}
+      service:
+        description: Data services catalogued (recommended).
+        annotations: {requirement_level: {value: recommended}}
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat-ap}
+
+  DcatCatalogRecord:
+    title: Catalog Record
+    description: A record in a catalog describing the registration of a single dataset or data service.
+    class_uri: dcat:CatalogRecord
+    slots:
+      - primaryTopic
+      - modified
+      - title
+      - description
+      - issued
+      - conformsTo
+      - language
+      - source
+      - admsStatus
+      - applicableLegislation
+    slot_usage:
+      primaryTopic:
+        required: true
+        description: A catalog record MUST reference exactly one primary topic (the described resource).
+        annotations: {requirement_level: {value: mandatory}, max_count: {value: 1}}
+      modified:
+        required: true
+        description: A catalog record MUST state its last modification date.
+        annotations: {requirement_level: {value: mandatory}}
+      title:
+        description: Optional on a catalog record.
+        annotations: {requirement_level: {value: optional}}
+      description:
+        description: Optional on a catalog record.
+        annotations: {requirement_level: {value: optional}}
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat-ap}
+
+  DcatDataset:
+    title: Dataset
+    description: A collection of data, published or curated by a single agent, available for access or download.
+    class_uri: dcat:Dataset
+    is_a: DcatResource
+    slots:
+      - title
+      - description
+      - distribution
+      - keyword
+      - theme
+      - publisher
+      - contactPoint
+      - spatial
+      - temporal
+      - accessRights
+      - identifier
+      - admsIdentifier
+      - conformsTo
+      - issued
+      - modified
+      - landingPage
+      - language
+      - provenance
+      - relation
+      - source
+      - type
+      - accrualPeriodicity
+      - spatialResolutionInMeters
+      - temporalResolution
+      - wasGeneratedBy
+      - creator
+      - version
+      - versionNotes
+      - hasVersion
+      - isVersionOf
+      - previousVersion
+      - hasCurrentVersion
+      - isReferencedBy
+      - hasPart
+      - inSeries
+      - qualifiedRelation
+      - qualifiedAttribution
+      - documentation
+      - otherIdentifier
+      - applicableLegislation
+    slot_usage:
+      title:
+        required: true
+        description: A dataset MUST have at least one title.
+        annotations: {requirement_level: {value: mandatory}}
+      description:
+        required: true
+        description: A dataset MUST have at least one description.
+        annotations: {requirement_level: {value: mandatory}}
+      distribution:
+        annotations: {requirement_level: {value: recommended}}
+      keyword:
+        annotations: {requirement_level: {value: recommended}}
+      theme:
+        description: Recommended; values SHOULD come from the EU Data Themes vocabulary.
+        annotations: {requirement_level: {value: recommended}, controlled_vocabulary: {value: 'EU Data Themes (http://publications.europa.eu/resource/authority/data-theme)'}}
+      publisher:
+        annotations: {requirement_level: {value: recommended}}
+      contactPoint:
+        annotations: {requirement_level: {value: recommended}}
+      spatial:
+        annotations: {requirement_level: {value: recommended}}
+      temporal:
+        annotations: {requirement_level: {value: recommended}}
+      accessRights:
+        description: Optional; values SHOULD come from the EU Access Right vocabulary.
+        annotations: {requirement_level: {value: optional}, controlled_vocabulary: {value: 'EU Access Right (http://publications.europa.eu/resource/authority/access-right)'}}
+      accrualPeriodicity:
+        annotations: {requirement_level: {value: optional}, controlled_vocabulary: {value: 'EU Frequency (http://publications.europa.eu/resource/authority/frequency)'}}
+      modified:
+        description: 'Optional on a dataset (contrast: mandatory on a catalog record).'
+        annotations: {requirement_level: {value: optional}}
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat-ap}
+
+  DcatDatasetSeries:
+    title: Dataset Series
+    description: A collection of datasets that share common characteristics and are grouped as a series (DCAT-AP 3.0).
+    class_uri: dcat:DatasetSeries
+    is_a: DcatDataset
+    slots:
+      - title
+      - description
+      - publisher
+      - contactPoint
+      - spatial
+      - temporal
+      - modified
+      - issued
+      - accrualPeriodicity
+      - applicableLegislation
+    slot_usage:
+      title:
+        annotations: {requirement_level: {value: recommended}}
+      description:
+        annotations: {requirement_level: {value: recommended}}
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat-ap}
+
+  DcatDistribution:
+    title: Distribution
+    description: A specific representation of a dataset (a downloadable file, an API, a feed, ...).
+    class_uri: dcat:Distribution
+    slots:
+      - accessURL
+      - description
+      - downloadURL
+      - format
+      - mediaType
+      - license
+      - title
+      - issued
+      - modified
+      - rights
+      - conformsTo
+      - byteSize
+      - spatialResolutionInMeters
+      - temporalResolution
+      - accessService
+      - checksum
+      - compressFormat
+      - packageFormat
+      - hasPolicy
+      - language
+      - accessRights
+      - documentation
+      - status
+      - applicableLegislation
+    slot_usage:
+      accessURL:
+        required: true
+        description: A distribution MUST have at least one access URL.
+        annotations: {requirement_level: {value: mandatory}}
+      description:
+        description: 'Recommended on a distribution (contrast: mandatory on a dataset).'
+        annotations: {requirement_level: {value: recommended}}
+      downloadURL:
+        annotations: {requirement_level: {value: recommended}}
+      format:
+        description: Recommended; values SHOULD come from IANA / EU File Type vocabularies.
+        annotations: {requirement_level: {value: recommended}, controlled_vocabulary: {value: 'IANA Media Types / EU File Types'}}
+      mediaType:
+        description: Recommended; values SHOULD be IANA media types.
+        annotations: {requirement_level: {value: recommended}, controlled_vocabulary: {value: 'IANA Media Types (https://www.iana.org/assignments/media-types/)'}}
+      license:
+        annotations: {requirement_level: {value: recommended}}
+      title:
+        description: Optional on a distribution.
+        annotations: {requirement_level: {value: optional}}
+      status:
+        annotations: {requirement_level: {value: optional}, controlled_vocabulary: {value: 'ADMS Status (http://purl.org/adms/status/1.0)'}}
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat-ap}
+
+  DcatDataService:
+    title: Data Service
+    description: A collection of operations accessible through an interface (API or endpoint) providing access to data.
+    class_uri: dcat:DataService
+    is_a: DcatResource
+    slots:
+      - title
+      - endpointURL
+      - endpointDescription
+      - description
+      - servesDataset
+      - license
+      - accessRights
+      - conformsTo
+      - contactPoint
+      - keyword
+      - theme
+      - landingPage
+      - publisher
+      - documentation
+      - applicableLegislation
+    slot_usage:
+      title:
+        required: true
+        description: A data service MUST have at least one title.
+        annotations: {requirement_level: {value: mandatory}}
+      endpointURL:
+        required: true
+        description: A data service MUST expose at least one endpoint URL.
+        annotations: {requirement_level: {value: mandatory}}
+      endpointDescription:
+        annotations: {requirement_level: {value: recommended}}
+      description:
+        description: 'Optional on a data service (contrast: mandatory on a dataset).'
+        annotations: {requirement_level: {value: optional}}
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat-ap}
+
+  # --- Referenced value classes (ranges) ----------------------------------
+
+  FoafAgent:
+    title: Agent
+    description: Any entity (person, organization) responsible for an action such as publication.
+    class_uri: foaf:Agent
+    slots:
+      - foafName
+      - agentType
+      - homepage
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: foaf}
+
+  VcardKind:
+    title: Contact (vCard Kind)
+    description: Contact information (vCard) for a dataset or service.
+    class_uri: vcard:Kind
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: vcard}
+
+  SkosConcept:
+    title: Concept
+    description: A SKOS concept used as a theme, category or controlled-vocabulary value.
+    class_uri: skos:Concept
+    slots:
+      - prefLabel
+      - inScheme
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: skos}
+
+  SkosConceptScheme:
+    title: Concept Scheme
+    description: A SKOS concept scheme (controlled vocabulary), used as a theme taxonomy.
+    class_uri: skos:ConceptScheme
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: skos}
+
+  DctermsLicenseDocument:
+    title: License Document
+    class_uri: dcterms:LicenseDocument
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsRightsStatement:
+    title: Rights Statement
+    class_uri: dcterms:RightsStatement
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsStandard:
+    title: Standard
+    description: A standard or specification a resource conforms to (range of dcterms:conformsTo).
+    class_uri: dcterms:Standard
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsLocation:
+    title: Location
+    class_uri: dcterms:Location
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsPeriodOfTime:
+    title: Period of Time
+    class_uri: dcterms:PeriodOfTime
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsFrequency:
+    title: Frequency
+    description: Accrual periodicity value (range of dcterms:accrualPeriodicity).
+    class_uri: dcterms:Frequency
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsMediaTypeOrExtent:
+    title: Media Type or Extent
+    description: Format value (range of dcterms:format).
+    class_uri: dcterms:MediaTypeOrExtent
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsMediaType:
+    title: Media Type
+    description: IANA media type (range of dcat:mediaType, dcat:compressFormat, dcat:packageFormat).
+    class_uri: dcterms:MediaType
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsLinguisticSystem:
+    title: Linguistic System
+    description: Language value (range of dcterms:language).
+    class_uri: dcterms:LinguisticSystem
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  DctermsProvenanceStatement:
+    title: Provenance Statement
+    class_uri: dcterms:ProvenanceStatement
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcterms}
+
+  AdmsIdentifier:
+    title: Identifier (ADMS)
+    description: A structured identifier (range of adms:identifier).
+    class_uri: adms:Identifier
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: adms}
+
+  SpdxChecksum:
+    title: Checksum
+    description: A checksum for a distribution (range of spdx:checksum).
+    class_uri: spdx:Checksum
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: spdx}
+
+  OdrlPolicy:
+    title: Policy
+    description: An ODRL policy attached to a distribution (range of odrl:hasPolicy).
+    class_uri: odrl:Policy
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: odrl}
+
+  EliLegalResource:
+    title: Legal Resource
+    description: A legal act applicable to a resource (range of dcat:applicableLegislation, DCAT-AP 3.0).
+    class_uri: eli:LegalResource
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: eli}
+
+  DcatRelationship:
+    title: Relationship
+    description: A qualified relationship between a resource and a related resource via a role (dcat:qualifiedRelation).
+    class_uri: dcat:Relationship
+    slots:
+      - relation
+      - hadRole
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: dcat}
+
+  ProvActivity:
+    title: Activity
+    description: A PROV activity that generated a dataset (range of prov:wasGeneratedBy).
+    class_uri: prov:Activity
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: prov}
+
+  ProvAttribution:
+    title: Attribution
+    description: A qualified attribution of a resource to an agent in a role (prov:qualifiedAttribution).
+    class_uri: prov:Attribution
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: prov}
+
+  FoafDocument:
+    title: Document
+    description: A documentation page or landing page (range of foaf:page / dcat:landingPage / foaf:homepage).
+    class_uri: foaf:Document
+    annotations:
+      term_kind: {value: base}
+      source_vocabulary: {value: foaf}
+
+# --- Global slots: reusable property identity only ------------------------
+# (slot_uri, range, default cardinality, vocabulary). Per-class obligation,
+# requiredness, cardinality and usage notes live in each class's slot_usage.
+slots:
+
+  # Descriptive metadata
+  title:
+    title: Title
+    slot_uri: dcterms:title
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  description:
+    title: Description
+    slot_uri: dcterms:description
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  keyword:
+    title: Keyword
+    slot_uri: dcat:keyword
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  theme:
+    title: Theme
+    slot_uri: dcat:theme
+    range: SkosConcept
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  themeTaxonomy:
+    title: Theme Taxonomy
+    slot_uri: dcat:themeTaxonomy
+    range: SkosConceptScheme
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  landingPage:
+    title: Landing Page
+    slot_uri: dcat:landingPage
+    range: FoafDocument
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  documentation:
+    title: Documentation
+    slot_uri: foaf:page
+    range: FoafDocument
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: foaf}}
+  homepage:
+    title: Homepage
+    slot_uri: foaf:homepage
+    range: FoafDocument
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: foaf}}
+
+  # Agents and contacts
+  publisher:
+    title: Publisher
+    slot_uri: dcterms:publisher
+    range: FoafAgent
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  creator:
+    title: Creator
+    slot_uri: dcterms:creator
+    range: FoafAgent
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  contactPoint:
+    title: Contact Point
+    slot_uri: dcat:contactPoint
+    range: VcardKind
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  foafName:
+    title: Name
+    slot_uri: foaf:name
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: foaf}}
+  agentType:
+    title: Agent Type
+    slot_uri: dcterms:type
+    range: SkosConcept
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+
+  # Access, rights, licensing
+  accessRights:
+    title: Access Rights
+    slot_uri: dcterms:accessRights
+    range: SkosConcept
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  license:
+    title: License
+    slot_uri: dcterms:license
+    range: DctermsLicenseDocument
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  rights:
+    title: Rights
+    slot_uri: dcterms:rights
+    range: DctermsRightsStatement
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  hasPolicy:
+    title: Has Policy
+    slot_uri: odrl:hasPolicy
+    range: OdrlPolicy
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: odrl}}
+
+  # Distribution access
+  distribution:
+    title: Distribution
+    slot_uri: dcat:distribution
+    range: DcatDistribution
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  accessURL:
+    title: Access URL
+    slot_uri: dcat:accessURL
+    range: anyURI
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  downloadURL:
+    title: Download URL
+    slot_uri: dcat:downloadURL
+    range: anyURI
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  accessService:
+    title: Access Service
+    slot_uri: dcat:accessService
+    range: DcatDataService
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  format:
+    title: Format
+    slot_uri: dcterms:format
+    range: DctermsMediaTypeOrExtent
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  mediaType:
+    title: Media Type
+    slot_uri: dcat:mediaType
+    range: DctermsMediaType
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  compressFormat:
+    title: Compression Format
+    slot_uri: dcat:compressFormat
+    range: DctermsMediaType
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  packageFormat:
+    title: Packaging Format
+    slot_uri: dcat:packageFormat
+    range: DctermsMediaType
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  byteSize:
+    title: Byte Size
+    slot_uri: dcat:byteSize
+    range: integer
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  checksum:
+    title: Checksum
+    slot_uri: spdx:checksum
+    range: SpdxChecksum
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: spdx}}
+  status:
+    title: Status
+    slot_uri: adms:status
+    range: SkosConcept
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: adms}}
+
+  # Data service
+  endpointURL:
+    title: Endpoint URL
+    slot_uri: dcat:endpointURL
+    range: anyURI
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  endpointDescription:
+    title: Endpoint Description
+    slot_uri: dcat:endpointDescription
+    range: anyURI
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  servesDataset:
+    title: Serves Dataset
+    slot_uri: dcat:servesDataset
+    range: DcatDataset
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+
+  # Catalog membership
+  dataset:
+    title: Dataset
+    slot_uri: dcat:dataset
+    range: DcatDataset
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  service:
+    title: Service
+    slot_uri: dcat:service
+    range: DcatDataService
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  record:
+    title: Record
+    slot_uri: dcat:record
+    range: DcatCatalogRecord
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  catalog:
+    title: Catalog
+    slot_uri: dcat:catalog
+    range: DcatCatalog
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  primaryTopic:
+    title: Primary Topic
+    slot_uri: foaf:primaryTopic
+    range: DcatResource
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: foaf}}
+
+  # Temporal / spatial / provenance
+  spatial:
+    title: Spatial Coverage
+    slot_uri: dcterms:spatial
+    range: DctermsLocation
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  temporal:
+    title: Temporal Coverage
+    slot_uri: dcterms:temporal
+    range: DctermsPeriodOfTime
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  issued:
+    title: Release Date
+    slot_uri: dcterms:issued
+    range: string
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  modified:
+    title: Modification Date
+    slot_uri: dcterms:modified
+    range: string
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  accrualPeriodicity:
+    title: Frequency
+    slot_uri: dcterms:accrualPeriodicity
+    range: DctermsFrequency
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  spatialResolutionInMeters:
+    title: Spatial Resolution (m)
+    slot_uri: dcat:spatialResolutionInMeters
+    range: float
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  temporalResolution:
+    title: Temporal Resolution
+    slot_uri: dcat:temporalResolution
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  provenance:
+    title: Provenance
+    slot_uri: dcterms:provenance
+    range: DctermsProvenanceStatement
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  wasGeneratedBy:
+    title: Was Generated By
+    slot_uri: prov:wasGeneratedBy
+    range: ProvActivity
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: prov}}
+  qualifiedAttribution:
+    title: Qualified Attribution
+    slot_uri: prov:qualifiedAttribution
+    range: ProvAttribution
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: prov}}
+
+  # Identifiers, conformance, typing
+  identifier:
+    title: Identifier
+    slot_uri: dcterms:identifier
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  admsIdentifier:
+    title: Other Identifier (ADMS)
+    slot_uri: adms:identifier
+    range: AdmsIdentifier
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: adms}}
+  otherIdentifier:
+    title: Other Identifier
+    slot_uri: adms:identifier
+    range: AdmsIdentifier
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: adms}}
+  conformsTo:
+    title: Conforms To
+    slot_uri: dcterms:conformsTo
+    range: DctermsStandard
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  type:
+    title: Type
+    slot_uri: dcterms:type
+    range: SkosConcept
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  language:
+    title: Language
+    slot_uri: dcterms:language
+    range: DctermsLinguisticSystem
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  applicableLegislation:
+    title: Applicable Legislation
+    slot_uri: dcat:applicableLegislation
+    range: EliLegalResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat-ap}}
+
+  # Relations and versioning
+  relation:
+    title: Relation
+    slot_uri: dcterms:relation
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  source:
+    title: Source
+    slot_uri: dcterms:source
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  isReferencedBy:
+    title: Is Referenced By
+    slot_uri: dcterms:isReferencedBy
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  hasPart:
+    title: Has Part
+    slot_uri: dcterms:hasPart
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  isPartOf:
+    title: Is Part Of
+    slot_uri: dcterms:isPartOf
+    range: DcatResource
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcterms}}
+  inSeries:
+    title: In Series
+    slot_uri: dcat:inSeries
+    range: DcatDatasetSeries
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  qualifiedRelation:
+    title: Qualified Relation
+    slot_uri: dcat:qualifiedRelation
+    range: DcatRelationship
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  hadRole:
+    title: Had Role
+    slot_uri: dcat:hadRole
+    range: SkosConcept
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  version:
+    title: Version
+    slot_uri: dcat:version
+    range: string
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  versionNotes:
+    title: Version Notes
+    slot_uri: adms:versionNotes
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: adms}}
+  hasVersion:
+    title: Has Version
+    slot_uri: dcat:hasVersion
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  isVersionOf:
+    title: Is Version Of
+    slot_uri: dcat:isVersionOf
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  previousVersion:
+    title: Previous Version
+    slot_uri: dcat:previousVersion
+    range: DcatResource
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  hasCurrentVersion:
+    title: Has Current Version
+    slot_uri: dcat:hasCurrentVersion
+    range: DcatResource
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: dcat}}
+  admsStatus:
+    title: Status (ADMS)
+    slot_uri: adms:status
+    range: SkosConcept
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: adms}}
+
+  # SKOS concept fields
+  prefLabel:
+    title: Preferred Label
+    slot_uri: skos:prefLabel
+    range: string
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: skos}}
+  inScheme:
+    title: In Scheme
+    slot_uri: skos:inScheme
+    range: SkosConceptScheme
+    multivalued: true
+    annotations: {term_kind: {value: base}, source_vocabulary: {value: skos}}
+
+enums: {}

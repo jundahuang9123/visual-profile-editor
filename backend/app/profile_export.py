@@ -28,6 +28,11 @@ TEMPLATES = [
         'description': 'Start from a DCAT-AP-oriented profile structure.',
     },
     {
+        'id': 'dcat-ap-full-profile',
+        'title': 'DCAT-AP 3.0 Base (WIP)',
+        'description': 'DCAT-AP 3.0 reuse base: all core classes + per-class obligations via slot_usage. Work in progress (not yet conformance-complete).',
+    },
+    {
         'id': 'construct-dcat-profile',
         'title': 'Construct-DCAT Starter Profile',
         'description': 'Start with DCAT/DCAT-AP plus construction-domain semantic anchors.',
