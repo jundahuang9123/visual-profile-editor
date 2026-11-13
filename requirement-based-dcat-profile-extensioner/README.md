@@ -83,7 +83,7 @@ Or set `ANTHROPIC_API_KEY` / `RBDPE_LLM_API_KEY` + `RBDPE_LLM_BASE_URL` and
 `RBDPE_LLM_PROVIDER` before starting the server. Frontend development:
 `cd frontend && npm run dev` (port 5175, proxies `/api` to 8020).
 
-Tests never call a model: `pytest -q` (59 tests).
+Tests never call a model: `pytest -q` (62 tests).
 
 ## Layout
 
