@@ -125,7 +125,8 @@ def static_checks(view: ProfileView) -> tuple[list[ConformanceCheck], dict[str, 
     ))
 
     untraced = [ConformanceItem(change_id=c.id, path=c.path, target_class=c.target_class, message="no requirement atom")
-                for c in view.changes if not c.covers or any(l.atom_id not in view.atoms for l in c.covers)]
+                for c in view.changes if not c.covers or any(
+                    l.atom_id not in view.atoms or not view.atoms[l.atom_id].active for l in c.covers)]
     checks.append(ConformanceCheck(
         id="C5", title="Every element traces to a requirement", passed=not untraced, source=SOURCES["C5"],
         message="Every element names the atoms it covers." if not untraced else f"{len(untraced)} element(s) without a valid atom.",

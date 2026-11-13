@@ -35,21 +35,17 @@ def consolidate(changes: list[ProfileChange]) -> tuple[list[ProfileChange], list
     for key, group in groups.items():
         if len(group) < 2:
             continue
-        ranges = {_range(c) for c in group if _range(c)}
-        if len(ranges) > 1:
+        problem = _incompatible(group)
+        if problem:
             conflicts.append(Conflict(
                 id=stable_id("conflict", *key),
                 change_ids=[c.id for c in group],
                 atom_ids=sorted({a for c in group for a in c.atom_ids}),
-                description=f"{len(group)} changes give different ranges for the same element: {', '.join(sorted(ranges))}.",
+                description=f"{len(group)} changes constrain the same element differently ({problem}); a person must decide.",
             ))
             continue
-        # Keep the change a human decided on, else the strongest, else the first.
-        group.sort(key=lambda c: (
-            c.decision.status != "accepted",
-            -OBLIGATION_RANK[c.facets.obligation],
-            -c.confidence,
-        ))
+        # The strongest, most confident machine change is kept; the others fold into it.
+        group.sort(key=lambda c: (-OBLIGATION_RANK[c.facets.obligation], -c.confidence))
         keeper, others = group[0], group[1:]
         for other in others:
             for link in other.covers:
@@ -73,8 +69,27 @@ def consolidate(changes: list[ProfileChange]) -> tuple[list[ProfileChange], list
                 f.max_count = o.max_count
             if not _range(keeper) and _range(other):
                 f.range_class, f.range_datatype = o.range_class, o.range_datatype
+            if not f.controlled_vocabulary and o.controlled_vocabulary:
+                f.controlled_vocabulary = list(o.controlled_vocabulary)
+            if not f.node_kind and o.node_kind:
+                f.node_kind = o.node_kind
+            if not f.pattern and o.pattern:
+                f.pattern = o.pattern
             keeper.merged_from.append(other.id)
             keeper.engine_notes.append(f"merged {other.id} (same element, atoms {', '.join(other.atom_ids)})")
             other.decision = Decision(status="superseded", decided_by="rule:consolidate",
                                       note=f"merged into {keeper.id}")
     return changes, conflicts
+
+
+def _incompatible(group: list[ProfileChange]) -> str:
+    """Why the changes cannot be merged by rule; empty when they can."""
+    if any(c.decision.decided_by.startswith("human:") for c in group):
+        return "a person already decided on one of them"
+    checks = {
+        "range": {_range(c) for c in group if _range(c)},
+        "value list": {tuple(sorted(c.facets.controlled_vocabulary)) for c in group if c.facets.controlled_vocabulary},
+        "node kind": {c.facets.node_kind for c in group if c.facets.node_kind},
+        "pattern": {c.facets.pattern for c in group if c.facets.pattern},
+    }
+    return ", ".join(name for name, values in checks.items() if len(values) > 1)

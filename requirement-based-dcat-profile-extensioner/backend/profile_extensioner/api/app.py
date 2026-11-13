@@ -41,8 +41,26 @@ _locks: dict[str, threading.Lock] = {}
 _running: dict[str, str] = {}
 
 
+_locks_guard = threading.Lock()
+
+
 def _lock(project_id: str) -> threading.Lock:
-    return _locks.setdefault(project_id, threading.Lock())
+    with _locks_guard:
+        return _locks.setdefault(project_id, threading.Lock())
+
+
+class _Exclusive:
+    """Hold the project's lock for a human action; refuse while a run is in progress."""
+
+    def __init__(self, project_id: str) -> None:
+        self.lock = _lock(project_id)
+
+    def __enter__(self) -> None:
+        if not self.lock.acquire(timeout=5):
+            raise HTTPException(409, "A run is in progress for this project; try again when it has finished.")
+
+    def __exit__(self, *exc: object) -> None:
+        self.lock.release()
 
 
 def _pipeline(project_id: str) -> Pipeline:
@@ -217,15 +235,16 @@ def snapshot(project_id: str) -> dict[str, Any]:
 
 @app.patch("/api/projects/{project_id}")
 def update_project(project_id: str, request: ProjectUpdate) -> dict[str, Any]:
-    project = store.get_project(project_id)
-    if project is None:
-        raise HTTPException(404, "unknown project")
-    for field in ("name", "description", "profile_title", "config", "llm"):
-        value = getattr(request, field)
-        if value is not None:
-            setattr(project, field, value)
-    store.save_project(project)
-    return project.model_dump()
+    with _Exclusive(project_id):
+        project = store.get_project(project_id)
+        if project is None:
+            raise HTTPException(404, "unknown project")
+        for field in ("name", "description", "profile_title", "config", "llm"):
+            value = getattr(request, field)
+            if value is not None:
+                setattr(project, field, value)
+        store.save_project(project)
+        return project.model_dump()
 
 
 @app.delete("/api/projects/{project_id}")
@@ -240,24 +259,23 @@ def replace_atoms(project_id: str, request: AtomsUpload) -> list[dict[str, Any]]
         atom_set = parse_atom_set(request.text)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
-    store.replace_atoms(project_id, atom_set.atoms)
+    with _Exclusive(project_id):
+        store.replace_atoms(project_id, atom_set.atoms)
     return [a.model_dump() for a in atom_set.atoms]
 
 
 @app.put("/api/projects/{project_id}/atoms/{atom_id}")
 def save_atom(project_id: str, atom_id: str, atom: Atom) -> dict[str, Any]:
     atom.id = atom_id
-    store.save_atom(project_id, atom)
+    with _Exclusive(project_id):
+        store.save_atom(project_id, atom)
     return {"atom": atom.model_dump(), "lint": [i.model_dump() for i in lint_atom(atom)]}
 
 
-@app.post("/api/projects/{project_id}/run")
-def run(project_id: str, request: RunRequest) -> dict[str, Any]:
-    pipeline = _pipeline(project_id)
-    lock = _lock(project_id)
-    if not lock.acquire(blocking=False):
-        raise HTTPException(409, "A run is already in progress for this project.")
+def _execute(project_id: str, request: RunRequest, lock: threading.Lock) -> None:
+    """Run stages while holding ``lock`` (acquired by the caller); releases it at the end."""
     try:
+        pipeline = _pipeline(project_id)
         if request.only:
             if request.only not in STAGE_ORDER:
                 raise HTTPException(400, "unknown stage")
@@ -274,6 +292,15 @@ def run(project_id: str, request: RunRequest) -> dict[str, Any]:
     finally:
         _running.pop(project_id, None)
         lock.release()
+
+
+@app.post("/api/projects/{project_id}/run")
+def run(project_id: str, request: RunRequest) -> dict[str, Any]:
+    _pipeline(project_id)
+    lock = _lock(project_id)
+    if not lock.acquire(blocking=False):
+        raise HTTPException(409, "A run is already in progress for this project.")
+    _execute(project_id, request, lock)
     return snapshot(project_id)
 
 
@@ -281,12 +308,14 @@ def run(project_id: str, request: RunRequest) -> dict[str, Any]:
 def run_async(project_id: str, request: RunRequest) -> dict[str, Any]:
     """Start a run in the background; poll the snapshot (``running``) and the log."""
     _pipeline(project_id)
-    if _lock(project_id).locked():
+    lock = _lock(project_id)
+    if not lock.acquire(blocking=False):
         raise HTTPException(409, "A run is already in progress for this project.")
+    _running[project_id] = request.only or request.from_stage
 
     def work() -> None:
         try:
-            run(project_id, request)
+            _execute(project_id, request, lock)
         except HTTPException as exc:
             store_pipeline = Pipeline(store, credentials, project_id)
             store_pipeline.log(request.only or request.from_stage, "error", str(exc.detail))
@@ -310,7 +339,8 @@ def calls(project_id: str, subject_id: str | None = None) -> list[dict[str, Any]
 @app.post("/api/projects/{project_id}/changes/{change_id}/decision")
 def decide(project_id: str, change_id: str, request: DecisionRequest) -> dict[str, Any]:
     try:
-        return _pipeline(project_id).decide(change_id, request.status, request.by, request.note).model_dump()
+        with _Exclusive(project_id):
+            return _pipeline(project_id).decide(change_id, request.status, request.by, request.note).model_dump()
     except KeyError as exc:
         raise HTTPException(404, "unknown change") from exc
     except ValueError as exc:
@@ -320,20 +350,25 @@ def decide(project_id: str, change_id: str, request: DecisionRequest) -> dict[st
 @app.put("/api/projects/{project_id}/changes/{change_id}")
 def edit(project_id: str, change_id: str, request: EditRequest) -> dict[str, Any]:
     try:
-        return _pipeline(project_id).edit_change(change_id, request.change, request.by, request.note).model_dump()
+        with _Exclusive(project_id):
+            return _pipeline(project_id).edit_change(change_id, request.change, request.by, request.note).model_dump()
     except KeyError as exc:
         raise HTTPException(404, "unknown change") from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @app.post("/api/projects/{project_id}/atoms/{atom_id}/assessment")
 def override(project_id: str, atom_id: str, request: AssessmentOverride) -> dict[str, Any]:
-    return _pipeline(project_id).override_assessment(atom_id, request.disposition, request.reason, request.by).model_dump()
+    with _Exclusive(project_id):
+        return _pipeline(project_id).override_assessment(atom_id, request.disposition, request.reason, request.by).model_dump()
 
 
 @app.post("/api/projects/{project_id}/signoff")
 def signoff(project_id: str, request: SignOffRequest) -> dict[str, Any]:
     try:
-        return _pipeline(project_id).sign_off(request.by, request.note).model_dump()
+        with _Exclusive(project_id):
+            return _pipeline(project_id).sign_off(request.by, request.note).model_dump()
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
 

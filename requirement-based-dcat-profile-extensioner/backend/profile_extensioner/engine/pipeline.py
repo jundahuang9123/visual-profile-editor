@@ -13,6 +13,7 @@ Decision policy (the LLM decides most things, a human has the final say):
 from __future__ import annotations
 
 import hashlib
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Iterable
 
@@ -54,6 +55,11 @@ from .verify import VerifyContext, check_shapes_valid, has_errors, verify_assess
 HUMAN_STATUSES = ("accepted", "rejected")
 
 
+def is_human(change: ProfileChange) -> bool:
+    """A decision a person took (accept, reject or undecided). Machine stages never overwrite it."""
+    return change.decision.decided_by.startswith("human:")
+
+
 class Pipeline:
     def __init__(self, store: Store, credentials: Credentials, project_id: str, *, data_dir=None) -> None:
         self.store = store
@@ -89,13 +95,34 @@ class Pipeline:
             author=author, summary=summary, payload=payload or {},
         ))
 
-    def set_stage(self, stage: str, state: str) -> None:
-        self.project.stage_states[stage] = state  # type: ignore[assignment]
-        if state == "done":
-            for later in STAGE_ORDER[STAGE_ORDER.index(stage) + 1:]:
-                if self.project.stage_states.get(later) == "done":
-                    self.project.stage_states[later] = "stale"
-        self.store.save_project(self.project)
+    def _update_project(self, mutate) -> None:
+        """Reload the project, apply ``mutate`` and save: never write back a stale copy."""
+        fresh = self.store.get_project(self.pid) or self.project
+        mutate(fresh)
+        self.store.save_project(fresh)
+        self.project = fresh
+
+    def set_stage(self, stage: str, state: str, *, cascade: bool = True) -> None:
+        def mutate(project: Project) -> None:
+            project.stage_states[stage] = state  # type: ignore[assignment]
+            if state == "done" and cascade:
+                for later in STAGE_ORDER[STAGE_ORDER.index(stage) + 1:]:
+                    if project.stage_states.get(later) == "done":
+                        project.stage_states[later] = "stale"
+        self._update_project(mutate)
+
+    def _withdraw_release(self, reason: str) -> None:
+        def mutate(project: Project) -> None:
+            for stage in ("compile", "conformance"):
+                if project.stage_states.get(stage) == "done":
+                    project.stage_states[stage] = "stale"
+            if project.signoff is not None:
+                project.signoff = None
+                project.stage_states["review"] = "running"
+        had = (self.store.get_project(self.pid) or self.project).signoff is not None
+        self._update_project(mutate)
+        if had:
+            self.log("review", "note", f"The sign-off was withdrawn: {reason}")
 
     def active_atoms(self) -> list[Atom]:
         return [atom for atom in self.store.list_atoms(self.pid) if atom.active]
@@ -139,11 +166,13 @@ class Pipeline:
         self.set_stage("propose", "running")
         selected = set(atom_ids) if atom_ids is not None else None
         atoms = [a for a in self.active_atoms() if selected is None or a.id in selected]
-        existing = self.changes()
-        human_owned = {aid for c in existing if c.decision.status in HUMAN_STATUSES for aid in c.atom_ids}
-        # Re-proposing an atom replaces its machine-made changes; human decisions are kept.
+        self._withdraw_release("the proposals were regenerated")
+        existing = [c for c in self.changes() if c.decision.status != "superseded"]
+        human_owned = {aid for c in existing if is_human(c) for aid in c.atom_ids}
+        chosen = {a.id for a in atoms}
+        # Re-proposing replaces machine-made changes that cover ONLY re-proposed atoms; human decisions are kept.
         for change in existing:
-            if change.decision.status not in HUMAN_STATUSES and set(change.atom_ids) & {a.id for a in atoms}:
+            if not is_human(change) and change.atom_ids and set(change.atom_ids) <= chosen:
                 change.decision = Decision(status="superseded", decided_by="rule:pipeline", note="re-proposed")
                 self.store.save_change(self.pid, change)
         work = []
@@ -184,7 +213,7 @@ class Pipeline:
 
     def _context(self) -> VerifyContext:
         return VerifyContext(
-            kb=self.kb, project=self.project, atoms={a.id: a for a in self.store.list_atoms(self.pid)},
+            kb=self.kb, project=self.project, atoms={a.id: a for a in self.active_atoms()},
             candidates=self.store.all_candidates(self.pid),
         )
 
@@ -212,7 +241,7 @@ class Pipeline:
         )
 
     def _decide(self, change: ProfileChange) -> None:
-        if change.decision.status in HUMAN_STATUSES:
+        if is_human(change):
             return
         errors = change.failed_checks()
         warnings = [r for r in change.verification if not r.passed and r.severity == "warning"]
@@ -232,6 +261,7 @@ class Pipeline:
 
     def run_verify(self) -> None:
         self.set_stage("verify", "running")
+        self._withdraw_release("verification ran again")
         ctx = self._context()
         changes = self.changes()
         results = verify_change_set(changes, ctx)
@@ -243,6 +273,9 @@ class Pipeline:
                 t2 = self._attribution(change, ctx)
                 if t2 is not None:
                     change.verification.append(t2)
+            stored = self.store.get_change(self.pid, change.id)
+            if stored is not None and is_human(stored):
+                change.decision = stored.decision
             self._decide(change)
             self.store.save_change(self.pid, change)
             failed = [r for r in change.verification if not r.passed]
@@ -254,11 +287,13 @@ class Pipeline:
 
     def run_repair(self) -> None:
         self.set_stage("repair", "running")
+        self._withdraw_release("repair ran again")
         rounds = self.project.config.repair_rounds
         for round_number in range(1, rounds + 1):
             ctx = self._context()
             todo = [c for c in self.changes() if c.decision.status == "needs_review" and has_errors(c.verification)
-                    and c.provenance.author_type != "human" and c.provenance.repair_round < round_number]
+                    and not is_human(c) and c.provenance.author_type != "human"
+                    and c.provenance.repair_round < round_number]
             if not todo:
                 break
             for change in todo:
@@ -297,6 +332,7 @@ class Pipeline:
 
     def run_consolidate(self) -> None:
         self.set_stage("consolidate", "running")
+        self._withdraw_release("consolidation ran again")
         changes, conflicts = consolidate(self.changes())
         for change in changes:
             self.store.save_change(self.pid, change)
@@ -304,7 +340,7 @@ class Pipeline:
         for conflict in conflicts:
             for cid in conflict.change_ids:
                 change = self.store.get_change(self.pid, cid)
-                if change and change.decision.status not in HUMAN_STATUSES:
+                if change and not is_human(change):
                     change.decision = Decision(status="needs_review", decided_by="rule:consolidate",
                                                note=f"conflict {conflict.id}: {conflict.description}")
                     self.store.save_change(self.pid, change)
@@ -326,7 +362,7 @@ class Pipeline:
     def view(self) -> ProfileView:
         return build_view(self.project, self.kb, self.store.list_atoms(self.pid), self.changes())
 
-    def run_compile(self) -> list[Artifact]:
+    def run_compile(self, *, cascade: bool = True) -> list[Artifact]:
         self.set_stage("compile", "running")
         view = self.view()
         shacl = compile_shacl(view)
@@ -351,7 +387,7 @@ class Pipeline:
         self.log("compile", "artifact", f"{len(artifacts)} artefact(s) compiled from {len(view.changes)} included change(s); "
                  f"V6 {'passed' if v6.passed else 'FAILED'}: {v6.message}", author="rule:compile",
                  payload={"v6": v6.model_dump()})
-        self.set_stage("compile", "done")
+        self.set_stage("compile", "done", cascade=cascade)
         return artifacts
 
     def run_conformance(self) -> None:
@@ -360,10 +396,9 @@ class Pipeline:
         self.store.save_conformance(self.pid, report)
         self.log("conformance", "conformance", report.summary, author="rule:conformance",
                  payload={"verdict": report.verdict})
-        # Documentation carries the verdict.
-        self.run_compile()
-        self.project.stage_states["conformance"] = "done"
-        self.store.save_project(self.project)
+        # Documentation carries the verdict; recompiling must not make this check stale.
+        self.run_compile(cascade=False)
+        self.set_stage("conformance", "done", cascade=False)
 
     def run_all(self, *, from_stage: str = "intake") -> None:
         steps = {
@@ -380,8 +415,8 @@ class Pipeline:
                     self.set_stage(stage, "failed")
                     self.log(stage, "error", f"{type(exc).__name__}: {exc}")
                     raise
-        self.project.stage_states["review"] = "running" if self.project.signoff is None else "done"
-        self.store.save_project(self.project)
+        self._update_project(lambda project: project.stage_states.__setitem__(
+            "review", "running" if project.signoff is None else "done"))
 
     # -- coverage and metrics ----------------------------------------------
 
@@ -454,6 +489,8 @@ class Pipeline:
             raise KeyError(change_id)
         if status not in ("accepted", "rejected", "needs_review"):
             raise ValueError("status must be accepted, rejected or needs_review")
+        if change.decision.status == "superseded":
+            raise ValueError(f"{change_id} has been replaced by a newer version; decide on that one.")
         if status == "accepted" and has_errors(change.verification):
             note = (note + " " if note else "") + "(accepted despite failing checks: " + \
                    ", ".join(sorted({r.check for r in change.failed_checks()})) + ")"
@@ -471,7 +508,9 @@ class Pipeline:
         if old is None:
             raise KeyError(change_id)
         new = edited.model_copy(deep=True)
-        new.id = f"{change_id.split('~')[0]}~h{now_iso().replace(':', '').replace('-', '')}"
+        if old.decision.status == "superseded":
+            raise ValueError(f"{change_id} has been replaced by a newer version; edit that one.")
+        new.id = f"{change_id.split('~')[0]}~h{uuid.uuid4().hex[:8]}"
         new.supersedes = change_id
         new.provenance.author_type = "human"
         new.provenance.author = f"human:{by}"
@@ -498,11 +537,22 @@ class Pipeline:
         self.store.save_assessment(self.pid, assessment)
         self.log("review", "human_decision", f"atom disposition set to {disposition}: {reason}",
                  subject_type="atom", subject_id=atom_id, author=f"human:{by}")
+        if disposition in ("covered_by_base", "out_of_scope"):
+            # Machine changes that exist only for this atom no longer have a reason to be in the profile.
+            for change in self.changes():
+                if change.atom_ids == [atom_id] and not is_human(change) and change.decision.status != "superseded":
+                    change.decision = Decision(status="rejected", decided_by=f"human:{by}",
+                                               note=f"atom set to {disposition}: {reason}")
+                    self.store.save_change(self.pid, change)
+        self._mark_released_stale()
         return assessment
 
     def change_set_hash(self) -> str:
-        included = sorted((c.id, c.decision.status) for c in self.changes() if c.included)
-        return hashlib.sha256(repr(included).encode()).hexdigest()[:16]
+        included = sorted(
+            c.model_dump_json(include={"id", "kind", "target_class", "path", "facets", "covers", "label", "definition"})
+            for c in self.changes() if c.included
+        )
+        return hashlib.sha256("\n".join(included).encode()).hexdigest()[:16]
 
     def sign_off(self, by: str, note: str = "") -> SignOff:
         open_items = [c.id for c in self.changes() if c.decision.status in ("needs_review", "proposed")]
@@ -513,24 +563,18 @@ class Pipeline:
             raise ValueError("Run the conformance check first; a non-conformant profile cannot be released.")
         if self.project.stage_states.get("conformance") != "done":
             raise ValueError("The conformance check is out of date; run it again.")
-        self.project.signoff = SignOff(by=by, note=note, change_set_hash=self.change_set_hash())
-        self.project.stage_states["review"] = "done"
-        self.store.save_project(self.project)
+        signoff = SignOff(by=by, note=note, change_set_hash=self.change_set_hash())
+
+        def mutate(project: Project) -> None:
+            project.signoff = signoff
+            project.stage_states["review"] = "done"
+        self._update_project(mutate)
         self.log("review", "signoff", f"released by {by}" + (f": {note}" if note else ""), author=f"human:{by}")
-        self.run_compile()
-        self.project.stage_states["compile"] = "done"
-        self.store.save_project(self.project)
-        return self.project.signoff
+        self.run_compile(cascade=False)
+        return signoff
 
     def _mark_released_stale(self) -> None:
-        for stage in ("compile", "conformance"):
-            if self.project.stage_states.get(stage) == "done":
-                self.project.stage_states[stage] = "stale"
-        if self.project.signoff is not None:
-            self.project.signoff = None
-            self.project.stage_states["review"] = "running"
-            self.log("review", "note", "The sign-off was withdrawn because a decision changed after release.")
-        self.store.save_project(self.project)
+        self._withdraw_release("a decision changed after release")
 
 
 def _artifact(name: str, title: str, media_type: str, content: str) -> Artifact:

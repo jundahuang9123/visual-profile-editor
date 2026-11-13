@@ -51,10 +51,8 @@ def compile_shacl_graph(view: ProfileView, *, include_trace: bool = True) -> Gra
             graph.add((prop, RDF.type, SH.PropertyShape))
             graph.add((prop, SH.path, URIRef(change.path)))
             graph.add((prop, SH.name, Literal(change.label or kb.curie(change.path), lang="en")))
-            if f.obligation in ("mandatory", "recommended"):
+            if f.obligation == "mandatory" or f.min_count:
                 graph.add((prop, SH.minCount, Literal(max(1, f.min_count or 1))))
-            elif f.min_count:
-                graph.add((prop, SH.minCount, Literal(f.min_count)))
             if f.max_count is not None:
                 graph.add((prop, SH.maxCount, Literal(f.max_count)))
             if f.range_class:
@@ -69,8 +67,17 @@ def compile_shacl_graph(view: ProfileView, *, include_trace: bool = True) -> Gra
                 graph.add((prop, SH["in"], head))
             if f.pattern:
                 graph.add((prop, SH.pattern, Literal(f.pattern)))
-            severity = "Warning" if f.obligation == "recommended" else ("Info" if f.obligation == "optional" else "Violation")
-            graph.add((prop, SH.severity, SEVERITY[severity]))
+            # Range, cardinality and value-list constraints are binding whatever the obligation;
+            # only "recommended" itself is advisory: a separate minCount 1 shape at Warning (DCAT-AP style).
+            graph.add((prop, SH.severity, SH.Violation))
+            if f.obligation == "recommended":
+                advice = URIRef(f"{prop}/recommended")
+                graph.add((shape, SH.property, advice))
+                graph.add((advice, RDF.type, SH.PropertyShape))
+                graph.add((advice, SH.path, URIRef(change.path)))
+                graph.add((advice, SH.minCount, Literal(1)))
+                graph.add((advice, SH.severity, SH.Warning))
+                graph.add((advice, SH.message, Literal(f"{kb.curie(change.path)} is recommended", lang="en")))
             if include_trace:
                 reason = "; ".join(f"{link.atom_id}: {link.reason}" for link in change.covers)
                 graph.add((prop, SH.description, Literal(f"{change.kind.replace('_', ' ')}. {reason}", lang="en")))

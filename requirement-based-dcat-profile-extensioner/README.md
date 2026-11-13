@@ -83,7 +83,11 @@ Or set `ANTHROPIC_API_KEY` / `RBDPE_LLM_API_KEY` + `RBDPE_LLM_BASE_URL` and
 `RBDPE_LLM_PROVIDER` before starting the server. Frontend development:
 `cd frontend && npm run dev` (port 5175, proxies `/api` to 8020).
 
-Tests never call a model: `pytest -q` (62 tests).
+Tests never call a model: `pytest -q` (70 tests).
+
+**Security:** the API has no login. Run it on `127.0.0.1` (uvicorn's default) or
+behind your own authentication: anyone who can reach it can use the key you
+entered, including by pointing an OpenAI-compatible base URL at another host.
 
 ## Layout
 
