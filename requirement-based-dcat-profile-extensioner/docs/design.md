@@ -39,10 +39,10 @@ enough. Final conformance: `C1`–`C7` ([conformance.md](conformance.md)).
 
 ## Key steps taken from the literature
 
-From the papers in the RQ1 bibliography (research reports with evidence:
-G1 ontology generation, G2 requirements engineering; G3 application-profile
-practice and G4 LLM reliability are being verified). "What they did" is the
-paper's; "here" is our adaptation.
+The complete, fact-checked list (99 steps from four groups of papers, with verdicts and
+the state of each step in this tool) is in [literature-steps.md](literature-steps.md);
+the evidence is in `docs/research/`. The table below summarises the steps that shaped
+the architecture. "What they did" is the paper's; "here" is our adaptation.
 
 | Step | From | What they did | Here | Status |
 |------|------|---------------|------|--------|

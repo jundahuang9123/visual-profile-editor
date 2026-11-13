@@ -103,7 +103,7 @@ entered, including by pointing an OpenAI-compatible base URL at another host.
 | `backend/profile_extensioner/data/base-profiles/` | DCAT-AP 3.0.0 and 3.0.1 (official SHACL, CC BY 4.0, unmodified) |
 | `scripts/build_base_profile.py` | Rebuilds a base profile from a SEMICeu/DCAT-AP checkout |
 | `examples/materials-testing-lab/` | Synthetic demo atoms (not benchmark gold) |
-| `docs/` | [design](docs/design.md), [conformance rules](docs/conformance.md) |
+| `docs/` | [design](docs/design.md), [conformance rules](docs/conformance.md), [steps from the literature](docs/literature-steps.md) (99, fact-checked), research reports in `docs/research/` |
 
 ## Status and limits
 
