@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from rdflib import Graph
+from rdflib import Graph, URIRef
 
 from ..contracts import BaseClass, BaseElement, BaseProfileInfo, Term
 from ..iri import Prefixes, local_name, words_of
@@ -88,6 +88,14 @@ class BaseProfile:
         prefixes = Prefixes(config.get("prefixes") or {})
         shape_files = [root / name for name in (config.get("shapes") or {}).get("constraints", [])]
         shapes = load_graph(shape_files)
+        if config.get("implicit_class_targets"):
+            # SHACL implicit class targets need the shape IRI to be an rdfs:Class; the 1.1 files omit that triple.
+            # Added in memory only: the vendored files stay byte-identical to the official ones.
+            from rdflib.namespace import RDF, RDFS, SH
+
+            for shape in set(shapes.subjects(RDF.type, SH.NodeShape)):
+                if isinstance(shape, URIRef) and (shape, SH.property, None) in shapes and (shape, SH.targetClass, None) not in shapes:
+                    shapes.add((shape, RDF.type, RDFS.Class))
         index = read_shapes(shapes)
 
         obligations: dict[tuple[str, str], str] = {}

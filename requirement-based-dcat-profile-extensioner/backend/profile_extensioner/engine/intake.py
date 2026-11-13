@@ -23,7 +23,7 @@ SUBJECT_RE = re.compile(r"^[a-z][a-z ]*$")
 MODAL_WORDS = {
     "must": ("must", "shall", "has to", "have to", "is required", "are required", "needs to", "need to"),
     "should": ("should", "ought to", "is recommended", "are recommended"),
-    "may": ("may", "can", "could", "is allowed", "are allowed", "optionally"),
+    "may": ("may", "is allowed", "are allowed", "optionally"),   # "can" states a capability ("Users can know ..."), not an obligation
 }
 VAGUE_WORDS = ("appropriate", "adequate", "as needed", "if possible", "where possible", "etc", "and so on",
                "user-friendly", "sufficient", "relevant information", "as appropriate")

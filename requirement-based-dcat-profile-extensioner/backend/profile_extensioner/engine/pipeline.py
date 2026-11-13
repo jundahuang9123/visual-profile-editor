@@ -234,8 +234,10 @@ class Pipeline:
             change.provenance.call_ids.append(record.id)
         if verdict.verdict == "supported":
             return CheckResult(check="T2", passed=True, severity="info", message=verdict.explanation)
+        # Constraints the atoms do not license are errors (they go to repair); a merely partial answer is a warning.
+        blocking = verdict.verdict == "unsupported" or bool(verdict.unsupported_facets)
         return CheckResult(
-            check="T2", passed=False, severity="warning" if verdict.verdict == "partially_supported" else "error",
+            check="T2", passed=False, severity="error" if blocking else "warning",
             message=f"{verdict.verdict.replace('_', ' ')}: {verdict.explanation}",
             details={"unsupported_facets": list(verdict.unsupported_facets)},
         )

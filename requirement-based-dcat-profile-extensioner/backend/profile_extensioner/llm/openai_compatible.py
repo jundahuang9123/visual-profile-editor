@@ -8,6 +8,7 @@ out in the system prompt; the answer is validated by ``LLMClient`` either way.
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 import httpx
@@ -19,6 +20,8 @@ from .base import Completion, LLMError, LLMUnavailable, strict_json_schema
 
 class OpenAICompatibleProvider:
     name = "openai-compatible"
+
+    max_retries = 5
 
     def __init__(self, base_url: str, api_key: str | None = None, *, default_model: str | None = None) -> None:
         if not base_url:
@@ -39,10 +42,31 @@ class OpenAICompatibleProvider:
         return headers
 
     def _post(self, body: dict[str, Any], timeout: float) -> httpx.Response:
-        try:
-            return httpx.post(f"{self._base_url}/chat/completions", headers=self._headers(), json=body, timeout=timeout)
-        except httpx.HTTPError as exc:
-            raise LLMUnavailable(f"Could not reach {self._base_url}: {exc}") from exc
+        """POST with retries on rate limits (429) and server errors (5xx), honouring Retry-After."""
+        delay = 2.0
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = httpx.post(f"{self._base_url}/chat/completions", headers=self._headers(), json=body, timeout=timeout)
+            except httpx.TimeoutException as exc:
+                if attempt == self.max_retries:
+                    raise LLMUnavailable(f"{self._base_url} did not answer in time: {exc}") from exc
+                time.sleep(delay)
+                delay = min(delay * 2, 60.0)
+                continue
+            except httpx.HTTPError as exc:
+                raise LLMUnavailable(f"Could not reach {self._base_url}: {exc}") from exc
+            if response.status_code != 429 and response.status_code < 500 or attempt == self.max_retries:
+                return response
+            wait = delay
+            retry_after = response.headers.get("retry-after") if hasattr(response, "headers") else None
+            if retry_after:
+                try:
+                    wait = max(wait, float(retry_after))
+                except ValueError:
+                    pass
+            time.sleep(min(wait, 120.0))
+            delay = min(delay * 2, 60.0)
+        return response
 
     def complete(
         self,
