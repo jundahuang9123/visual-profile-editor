@@ -390,12 +390,16 @@ def export(project_id: str) -> dict[str, Any]:
 
 @app.get("/api/terms")
 def search_terms(project_id: str, q: str, kind: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+    from ..engine.retrieve import SPECIALISED_VOCABULARIES
+
     pipeline = _pipeline(project_id)
-    return [
-        {**hit.term.model_dump(), "curie": pipeline.kb.curie(hit.term.iri), "score": hit.score,
-         "in_base": pipeline.kb.base.uses_term(hit.term.iri)}
-        for hit in pipeline.kb.vocab.search(q, kind=kind, limit=limit)
-    ]
+    hits = []
+    for hit in pipeline.kb.vocab.search(q, kind=kind, limit=limit * 3):
+        in_base = pipeline.kb.base.uses_term(hit.term.iri)
+        weight = 1.0 if in_base else SPECIALISED_VOCABULARIES.get(hit.term.vocabulary, 1.0)
+        hits.append({**hit.term.model_dump(), "curie": pipeline.kb.curie(hit.term.iri),
+                     "score": round(hit.score * weight, 4), "in_base": in_base})
+    return sorted(hits, key=lambda item: -item["score"])[:limit]
 
 
 if FRONTEND_DIST.exists():

@@ -35,7 +35,13 @@ STRUCTURAL_VOCABULARIES = frozenset({"rdf", "rdfs", "owl", "sh", "xsd"})
 BASE_ON_CLASS_BOOST = 1.6     # the base already constrains this path on the atom's class
 BASE_ELSEWHERE_BOOST = 1.15   # the base uses the term, on another class
 DOMAIN_FIT_BOOST = 1.25       # the vocabulary declares a domain that fits the class
-DOMAIN_MISFIT_FACTOR = 0.6    # the vocabulary declares a domain that does not fit
+DOMAIN_MISFIT_FACTOR = 0.4    # the vocabulary declares a domain that does not fit
+# Vocabularies made for a specific domain (legislation, software licences, rights policies, time,
+# addresses) match generic requirement words by accident; they are offered, but ranked lower.
+SPECIALISED_VOCABULARIES = {"eli": 0.4, "spdx": 0.4, "odrl": 0.5, "time": 0.6, "locn": 0.6, "vcard": 0.5}
+# Reuse ladder: a base element on the atom's class that matches reasonably well is offered before
+# vocabulary terms (reuse the base element > tighten it > reuse another term > mint).
+BASE_FIRST_SHARE = 0.35
 RANGE_MATCH_FACTOR = 0.8      # a base property found through its range class
 MAX_CLASS_CANDIDATES = 3
 
@@ -100,6 +106,10 @@ def retrieve_candidates(
             if term.vocabulary in STRUCTURAL_VOCABULARIES or term.iri in scored:
                 continue
             score, reasons = hit.score * weight, [f"matched: {', '.join(hit.matched)}"]
+            prior = SPECIALISED_VOCABULARIES.get(term.vocabulary)
+            if prior is not None:
+                score *= prior
+                reasons.append(f"specialised vocabulary ({term.vocabulary})")
             used_on = kb.base.classes_using(term.iri)
             if used_on:
                 score *= BASE_ELSEWHERE_BOOST
@@ -137,9 +147,10 @@ def retrieve_candidates(
         if term.vocabulary in STRUCTURAL_VOCABULARIES or term.deprecated:
             continue
         in_base = kb.base.has_class(term.iri)
+        prior = 1.0 if in_base else SPECIALISED_VOCABULARIES.get(term.vocabulary, 1.0)
         classes.append(Candidate(
             iri=term.iri, curie=kb.curie(term.iri), kind="class", label=term.label, definition=term.definition,
-            vocabulary=term.vocabulary, score=round(hit.score * (BASE_ELSEWHERE_BOOST if in_base else 1.0), 4),
+            vocabulary=term.vocabulary, score=round(hit.score * (BASE_ELSEWHERE_BOOST if in_base else prior), 4),
             base_classes=[term.iri] if in_base else [], matched=list(hit.matched),
             why=f"matched: {', '.join(hit.matched)}" + ("; class of the base profile" if in_base else ""),
         ))
@@ -172,7 +183,11 @@ def retrieve_candidates(
                         f"matched the atom",
                 )
 
-    properties = sorted(scored.values(), key=lambda candidate: (-candidate.score, candidate.iri))[:top_k]
+    best = max((candidate.score for candidate in scored.values()), default=0.0)
+    properties = sorted(scored.values(), key=lambda candidate: (
+        0 if candidate.in_base_on_class and candidate.score >= BASE_FIRST_SHARE * best else 1,
+        -candidate.score, candidate.iri,
+    ))[:top_k]
 
     # Optional: vocabulary terms an upstream extraction observed. Off by default (answer-in-input risk).
     hinted: list[Candidate] = []

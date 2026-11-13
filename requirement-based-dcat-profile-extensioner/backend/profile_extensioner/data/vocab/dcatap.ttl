@@ -1,0 +1,828 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcatap: <http://data.europa.eu/r5r/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix lcon: <http://www.w3.org/ns/locn#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema1: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix voaf: <http://purl.org/vocommons/voaf#> .
+@prefix xhv: <http://www.w3.org/1999/xhtml/vocab#> .
+
+dcterms:Frequency rdfs:label "Frequency"@en ;
+    dcterms:identifier "dct:Frequency" ;
+    vann:usageNote "Optional class. A rate at which something recurs, e.g. the publication of a Dataset."@en ;
+    rdfs:comment "A rate at which something recurs."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-Frequency> .
+
+dcterms:LicenseDocument rdfs:label "Licence Document"@en ;
+    dcterms:identifier "dct:LicenseDocument" ;
+    vann:usageNote "Recommended class. A legal document giving official permission to do something with a resource. "@en ;
+    rdfs:comment "A legal document giving official permission to do something with a Resource."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/2012/06/14/dcmi-terms/?v=terms#LicenseDocument> .
+
+dcterms:LinguisticSystem rdfs:label "Linguistic system"@en ;
+    dcterms:identifier "dct:LinguisticSystem" ;
+    vann:usageNote "Optional class. A system of signs, symbols, sounds, gestures, or rules used in communication, e.g. a language. "@en ;
+    rdfs:comment "A system of signs, symbols, sounds, gestures, or rules used in communication, e.g. a language."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/2012/06/14/dcmi-terms/?v=terms#LinguisticSystem> .
+
+dcterms:Location rdfs:label "Location"@en ;
+    dcterms:identifier "dct:Location" ;
+    vann:usageNote "Optional class. A spatial region or named place. It can be represented using a controlled vocabulary or with geographic coordinates. In the latter case, the use of the Core Location Vocabulary  is recommended. "@en ;
+    rdfs:comment "A spatial region or named place."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/2012/06/14/dcmi-terms/?v=terms#Location> .
+
+dcterms:MediaType rdfs:label "Media type "@en ;
+    dcterms:identifier "dct:MediaType" ;
+    vann:usageNote "Optional class. A media type or extent, e.g. the format of a computer file. "@en ;
+    rdfs:comment "A media type or extent, e.g. the format of a computer file."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-MediaType> .
+
+dcterms:PeriodOfTime rdfs:label "Period of time"@en ;
+    dcterms:identifier "dct:PeriodOfTime" ;
+    vann:usageNote "Optional class. An interval of time that is named or defined by its start and end dates. "@en ;
+    rdfs:comment "An interval of time that is named or defined by its start and end dates."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-PeriodOfTime> .
+
+dcterms:ProvenanceStatement rdfs:label "Provenance Statement"@en ;
+    dcterms:identifier "dct:ProvenanceStatement" ;
+    vann:usageNote "Optional class. A statement of any changes in ownership and custody of a resource since its creation that are significant for its authenticity, integrity, and interpretation. "@en ;
+    rdfs:comment "A statement of any changes in ownership and custody of a resource since its creation that are significant for its authenticity, integrity, and interpretation."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-ProvenanceStatement> .
+
+dcterms:RightsStatement rdfs:label "Rights statement"@en ;
+    dcterms:identifier "dct:RightsStatement" ;
+    vann:usageNote "Optional class. A statement about the intellectual property rights (IPR) held in or over a resource, a legal document giving official permission to do something with a resource, or a statement about access rights. "@en ;
+    rdfs:comment "A statement about the intellectual property rights (IPR) held in or over a resource, a legal document giving official permission to do something with a resource, or a statement about access rights."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-RightsStatement> .
+
+dcterms:Standard rdfs:label "Standard"@en ;
+    dcterms:identifier "dct:Standard" ;
+    vann:usageNote "Optional class. A standard or other specification to which a Dataset conforms. "@en ;
+    rdfs:comment "A basis for comparison; a reference point against which other things can be evaluated."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-Standard> .
+
+dcterms:accessRights rdfs:label "Data Service - access rights"@en,
+        "Dataset - access Rights"@en ;
+    dcterms:identifier "dct:accessRights" ;
+    vann:usageNote "Optional property. This property refers to information that indicates whether the Dataset is open data, has access restrictions or is not public. A controlled vocabulary with three members (:public, :restricted, :non-public) will be created and maintained by the Publications Office of the EU."@en ;
+    rdfs:comment "This property refers to information that indicates whether the Dataset is open data, has access restrictions or is not public. A controlled vocabulary with three members (:public, :restricted, :non-public) will be created and maintained by the Publications Office of the EU."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-accessRights> .
+
+dcterms:acrualPeriodicity rdfs:label "Dataset - frequency"@en ;
+    dcterms:identifier "dct:accrualPeriodicity" ;
+    vann:usageNote "Optional property. This property refers to the frequency at which Dataset is updated."@en ;
+    rdfs:comment "This property refers to the frequency at which Dataset is updated."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-acrualPeriodicity> .
+
+dcterms:conformsTo rdfs:label "Catalogue Record - conforms to"@en,
+        "Dataset - conforms to"@en,
+        "Distribution - linked schemas"@en ;
+    dcterms:identifier "dct:conformsTo" ;
+    vann:usageNote "Optional property. This property refers to an established schema to which the described Distribution conforms."@en,
+        "Optional property. This property refers to an implementing rule or other specification."@en,
+        "Recommended property. This property refers to an Application Profile that the Dataset’s metadata conforms to."@en ;
+    rdfs:comment "This property refers to an Application Profile that the Dataset’s metadata conforms to."@en,
+        "This property refers to an established schema to which the described Distribution conforms."@en,
+        "This property refers to an implementing rule or other specification."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-conformsTo> .
+
+dcterms:creator rdfs:label "Data Catalogue- creator"@en,
+        "Dataset - creator"@en ;
+    dcterms:identifier "dct:creator" ;
+    vann:usageNote "Optional property. This property refers to an entity primarily responsible for making the resource."@en ;
+    rdfs:comment "This property refers to an entity primarily responsible for making the catalogue."@en,
+        "This property refers to an entity primarily responsible for making the dataset."@en ;
+    rdfs:isDefinedBy <https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#terms-creator> .
+
+dcterms:description rdfs:label "Catalogue Record - description"@en,
+        "Data Catalogue - description"@en,
+        "Data Service - description"@en,
+        "Dataset - description"@en,
+        "Distribution - description"@en ;
+    dcterms:identifier "dct:description" ;
+    vann:usageNote "Mandatory property. This property contains a free-text account of the Catalogue. This property can be repeated for parallel language versions of the description."@en,
+        "Mandatory property. This property contains a free-text account of the Dataset. This property can be repeated for parallel language versions of the description."@en,
+        "Optional property. This property contains a free-text account of the Catalogue. This property can be repeated for parallel language versions of the description."@en,
+        "Optional property. This property contains a free-text account of the record. This property can be repeated for parallel language versions of the description."@en,
+        "Recommended property. This property contains a free-text account of the Distribution. This property can be repeated for parallel language versions of the description."@en ;
+    rdfs:comment "Description may include but is not limited to: an abstract, a table of contents, a graphical representation, or a free-text account of the resource."@en,
+        "This property can be repeated for parallel language versions of the description."@en,
+        "This property contains a free-text account of the Dataset. This property can be repeated for parallel language versions of the description."@en,
+        "This property contains a free-text account of the record. This property can be repeated for parallel language versions of the description."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-description> .
+
+dcterms:format rdfs:label "Distribution - format"@en ;
+    dcterms:identifier "dct:format" ;
+    vann:usageNote "Recommended property. This property refers to the file format of the Distribution."@en ;
+    rdfs:comment "This property refers to the file format of the Distribution."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-format> .
+
+dcterms:hasPart rdfs:label "Data Catalogue - has part"@en ;
+    dcterms:identifier "dct:hasPart" ;
+    vann:usageNote "Optional property. This property refers to a related Catalogue that is part of the described Catalogue."@en ;
+    rdfs:comment "This property refers to a related Catalogue that is part of the described Catalogue"@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-hasPart> .
+
+dcterms:hasVersion rdfs:label "Dataset - has Version"@en ;
+    dcterms:identifier "dct:hasVersion" ;
+    vann:usageNote "Optional property.This property refers to a related Dataset that is a version, edition, or adaptation of the described Dataset."@en ;
+    rdfs:comment "This property refers to a related Dataset that is a version, edition, or adaptation of the described Dataset."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-hasVersion> .
+
+dcterms:identifier rdfs:label "Dataset - identifier"@en ;
+    dcterms:acrualPeriodicity <http://dublincore.org/documents/dcmi-terms/#terms-identifier> ;
+    dcterms:identifier "dct:identifier" ;
+    vann:usageNote "Optional property. This property contains the main identifier for the Dataset, e.g. the URI or other unique identifier in the context of the Catalogue."@en ;
+    rdfs:comment "This property contains the main identifier for the Dataset, e.g. the URI or other unique identifier in the context of the Catalogue."@en .
+
+dcterms:isPartOf rdfs:label "Data Catalogue - is part of"@en ;
+    dcterms:identifier "dct:isPartOf" ;
+    vann:usageNote "Optional property. This property refers to a related Catalogue in which the described Catalogue is physically or logically included."@en ;
+    rdfs:comment "This property refers to a related Catalogue in which the described Catalogue is physically or logically included."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-isPartOf> .
+
+dcterms:isReferencedBy rdfs:label "Dataset - is referenced By "@en ;
+    dcterms:identifier "dct:isReferencedBy" ;
+    vann:usageNote "Optional property. This property refers to a related resource, such as a publication, that references, cites, or otherwise points to the dataset. "@en ;
+    rdfs:comment "This property refers to a related resource, such as a publication, that references, cites, or otherwise points to the dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:resource_is_referenced_by> .
+
+dcterms:isVersionOf rdfs:label "Dataset - is Version Of"@en ;
+    dcterms:identifier "dct:isVersionOf" ;
+    vann:usageNote "Optional property. This property refers to a related Dataset of which the described Dataset is a version, edition, or adaptation."@en ;
+    rdfs:comment "This property refers to a related Dataset of which the described Dataset is a version, edition, or adaptation."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-isVersionOf> .
+
+dcterms:issued rdfs:label "Catalogue Record - listing date"@en,
+        "Data Catalogue - release date"@en,
+        "Dataset - release date"@en,
+        "Distribution - release date"@en ;
+    dcterms:identifier "dct:issued" ;
+    vann:usageNote "Optional property. This property contains the date of formal issuance (e.g., publication) of the Dataset."@en,
+        "Optional property. This property contains the date of formal issuance (e.g., publication) of the Distribution."@en,
+        "Recommended property. This property contains the date of formal issuance (e.g., publication) of the Catalogue."@en,
+        "Recommended property. This property contains the date on which the description of the Dataset was included in the Catalogue."@en ;
+    rdfs:comment "This property contains the date of formal issuance (e.g., publication) of the Catalogue."@en,
+        "This property contains the date of formal issuance (e.g., publication) of the Dataset."@en,
+        "This property contains the date of formal issuance (e.g., publication) of the Distribution."@en,
+        "This property contains the date on which the description of the Dataset was included in the Catalogue."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-issued> .
+
+dcterms:language rdfs:label "Catalogue Record - language"@en,
+        "Data Catalogue - language"@en,
+        "Dataset - language"@en,
+        "Distribution - language"@en ;
+    dcterms:identifier "dct:language" ;
+    vann:usageNote "Optional property. This property refers to a language of the Dataset. This property can be repeated if there are multiple languages in the Dataset."@en,
+        "Optional property. This property refers to a language used in the Distribution. This property can be repeated if the metadata is provided in multiple languages."@en,
+        "Optional property. This property refers to a language used in the textual metadata describing titles, descriptions, etc. of the Dataset. This property can be repeated if the metadata is provided in multiple languages."@en,
+        "Recommended property. This property refers to a language used in the textual metadata describing titles, descriptions, etc. of the Datasets in the Catalogue. This property can be repeated if the metadata is provided in multiple languages."@en ;
+    rdfs:comment "This property refers to a language of the Dataset. This property can be repeated if there are multiple languages in the Dataset."@en,
+        "This property refers to a language used in the Distribution."@en,
+        "This property refers to a language used in the textual metadata describing titles, descriptions, etc. of the Dataset. This property can be repeated if the metadata is provided in multiple languages."@en,
+        "This property refers to a language used in the textual metadata describing titles, descriptions, etc. of the Datasets in the Catalogue. This property can be repeated if the metadata is provided in multiple languages."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-language> .
+
+dcterms:license rdfs:label "Data Catalogue - licence"@en,
+        "Data Service - licence"@en,
+        "Distribution - licence"@en ;
+    dcterms:identifier "dct:license" ;
+    vann:usageNote "Optional property. This property refers to the licence under which the Catalogue can be used or reused."@en,
+        "Recommended property. This property refers to the licence under which the Catalogue can be used or reused."@en,
+        "Recommended property. This property refers to the licence under which the Distribution is made available."@en ;
+    rdfs:comment "This property refers to the licence under which the Catalogue can be used or reused."@en,
+        "This property refers to the licence under which the Distribution is made available."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-license> .
+
+dcterms:mediaType rdfs:label "Distribution - media type"@en ;
+    dcterms:identifier "dcat:mediaType" ;
+    vann:usageNote "Optional property. Subproperty of dct:format. This property refers to the media type of the Distribution if this is defined in IANA."@en ;
+    rdfs:comment "This property refers to the media type of the Distribution if this is defined in IANA."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-mediaType> .
+
+dcterms:modified rdfs:label "Catalogue Record - update/ modification date"@en,
+        "Data Catalogue - update/ modification date"@en,
+        "Dataset - update/ modification date"@en,
+        "Distribution - update/modification date"@en ;
+    dcterms:identifier "dct:modified" ;
+    vann:usageNote "Mandatory property.  This property contains the most recent date on which the Catalogue entry was changed or modified."@en,
+        "Optional property. This property contains the most recent date on which the Dataset was changed or modified."@en,
+        "Optional property. This property contains the most recent date on which the Distribution was changed or modified."@en,
+        "Recommended property. This property contains the most recent date on which the Catalogue was changed or modified."@en ;
+    rdfs:comment "This property contains the most recent date on which the Catalogue entry was changed or modified."@en,
+        "This property contains the most recent date on which the Catalogue was changed or modified."@en,
+        "This property contains the most recent date on which the Dataset was changed or modified."@en,
+        "This property contains the most recent date on which the Distribution was changed or modified."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-modified> .
+
+dcterms:provenance rdfs:label "Dataset - provenance"@en ;
+    dcterms:identifier "dct:provenance" ;
+    vann:usageNote "Optional property. This property contains a statement about the lineage of a Dataset."@en ;
+    rdfs:comment "This property contains a statement about the lineage of a Dataset."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-provenance> .
+
+dcterms:publisher rdfs:label "Data Catalogue - publisher"@en,
+        "Dataset - publisher"@en ;
+    dcterms:identifier "dct:publisher" ;
+    vann:usageNote "Mandatory property. This property refers to an entity (organisation) responsible for making the Catalogue available."@en,
+        "Recommended property. This property refers to an entity (organisation) responsible for making the Dataset available."@en ;
+    rdfs:comment "This property refers to an entity (organisation) responsible for making the Catalogue available."@en,
+        "This property refers to an entity (organisation) responsible for making the Dataset available."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-publisher> .
+
+dcterms:relation rdfs:label "Dataset - related resource"@en,
+        "Relationship - relation "@en ;
+    dcterms:identifier "dct:relation" ;
+    vann:usageNote "Mandatory property.This property refers to the resource related to the source resource. ."@en,
+        "Optional property. This property refers to a related resource."@en ;
+    rdfs:comment "This property refers to a related resource."@en,
+        "This property refers to the resource related to the source resource."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-relation>,
+        <https://www.w3.org/TR/vocab-dcat-2/#Property:relationship_relation> .
+
+dcterms:rights rdfs:label "Data Catalogue - rights"@en,
+        "Distribution - rights"@en ;
+    dcterms:identifier "dct:rights" ;
+    vann:usageNote "Optional property. This property refers to a statement that specifies rights associated with the Catalogue."@en,
+        "Optional property. This property refers to a statement that specifies rights associated with the Distribution."@en ;
+    rdfs:comment "This property refers to a statement that specifies rights associated with the Catalogue."@en,
+        "This property refers to a statement that specifies rights associated with the Distribution."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-rights> .
+
+dcterms:source rdfs:label "Catalogue Record - source metadata"@en,
+        "Dataset - source "@en ;
+    dcterms:identifier "dct:source" ;
+    vann:usageNote "Optional property. This property refers to a related Dataset from which the described Dataset is derived."@en,
+        "Optional property. This property refers to the original metadata that was used in creating metadata for the Dataset."@en ;
+    rdfs:comment "This property refers to a related Dataset from which the described Dataset is derived."@en,
+        "This property refers to the original metadata that was used in creating metadata for the Dataset."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-source> .
+
+dcterms:spatial rdfs:label "Data Catalogue - spatial / geographic"@en,
+        "Dataset - spatial/ geographical coverage"@en ;
+    dcterms:identifier "dct:spatial" ;
+    vann:usageNote "Recommended property. This property refers to a geographic region that is covered by the Dataset. "@en,
+        "Recommended property. This property refers to a geographical area covered by the Catalogue."@en ;
+    rdfs:comment "This property refers to a geographic region that is covered by the Dataset."@en,
+        "This property refers to a geographical area covered by the Catalogue."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-spatial> .
+
+dcterms:temporal rdfs:label "Dataset - temporal coverage"@en ;
+    dcterms:identifier "dct:temporal" ;
+    vann:usageNote "Recommended property. This property refers to a temporal period that the Dataset covers."@en ;
+    rdfs:comment "This property refers to a temporal period that the Dataset covers."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-temporal> .
+
+dcterms:title rdfs:label "Catalogue Record - title"@en,
+        "Category Scheme - title"@en,
+        "Data Catalogue - title"@en,
+        "Data Service - title"@en,
+        "Dataset - title"@en,
+        "Distribution - title"@en ;
+    dcterms:identifier "dct:title" ;
+    vann:usageNote "Mandatory property.  This property contains a name of the category scheme. May be repeated for different versions of the name"@en,
+        "Mandatory property. This property contains a name given to the Catalogue. This property can be repeated for parallel language versions of the name."@en,
+        "Mandatory property. This property contains a name given to the Data Service. This property can be repeated for parallel language versions of the name."@en,
+        "Mandatory property. This property contains a name given to the Dataset. This property can be repeated for parallel language versions of the name."@en,
+        "Optional property. This property contains a name given to the Catalogue. This property can be repeated for parallel language versions of the name."@en,
+        "Optional property. This property contains a name given to the Distribution. This property can be repeated for parallel language versions of the description."@en ;
+    rdfs:comment "This property contains a name given to the Catalogue. This property can be repeated for parallel language versions of the name."@en,
+        "This property contains a name given to the Data Service. This property can be repeated for parallel language versions of the name."@en,
+        "This property contains a name given to the Dataset. This property can be repeated for parallel language versions of the name."@en,
+        "This property contains a name given to the Distribution. This property can be repeated for parallel language versions of the description."@en,
+        "This property contains a name of the category scheme. May be repeated for different versions of the name"@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-title> .
+
+dcterms:type rdfs:label "Agent - type"@en,
+        "Dataset - type "@en,
+        "Licence Document - licence type"@en ;
+    dcterms:identifier "dct:type" ;
+    vann:usageNote "Optional property. This property refers to the type of the Dataset. A controlled vocabulary for the values has not been established."@en,
+        "Recommended property. This property refers to a type of licence, e.g. indicating ‘public domain’ or ‘royalties required’."@en,
+        "Recommended property. This property refers to a type of the agent that makes the Catalogue or Dataset available"@en ;
+    rdfs:comment "This property refers to a type of licence, e.g. indicating ‘public domain’ or ‘royalties required’."@en,
+        "This property refers to a type of the agent that makes the Catalogue or Dataset availabl"@en,
+        "This property refers to the type of the Dataset. A controlled vocabulary for the values has not been established."@en ;
+    rdfs:isDefinedBy <http://dublincore.org/documents/dcmi-terms/#terms-type> .
+
+spdx:algorithm rdfs:label "Checksum - algorithm"@en ;
+    dcterms:identifier "spdx:algorithm" ;
+    vann:usageNote "Mandatory property. This property identifies the algorithm used to produce the subject Checksum. Currently, SHA-1 is the only supported algorithm. It is anticipated that other algorithms will be supported at a later time."@en ;
+    rdfs:comment "Identifies the algorithm used to produce the subject Checksum. Currently, SHA-1 is the only supported algorithm. It is anticipated that other algorithms will be supported at a later time."@en ;
+    rdfs:isDefinedBy <http://spdx.org/rdf/terms/#algorithm> .
+
+spdx:checksum rdfs:label "distribution - checksum"@en ;
+    dcterms:identifier "spdx:checksum" ;
+    vann:usageNote "Optional property.This property provides a mechanism that can be used to verify that the contents of a distribution have not changed. The checksum is related to the downloadURL."@en ;
+    rdfs:comment "This property provides a mechanism that can be used to verify that the contents of a distribution have not changed."@en ;
+    rdfs:isDefinedBy <http://spdx.org/rdf/terms/#checksum> .
+
+spdx:checksumValue rdfs:label "Checksum - checksum value"@en ;
+    dcterms:identifier "spdx:checksumValue" ;
+    vann:usageNote "Mandatory property. This property provides a lower case hexadecimal encoded digest value produced using a specific algorithm."@en ;
+    rdfs:comment "This property provides a lower case hexadecimal encoded digest value produced using a specific algorithm."@en ;
+    rdfs:isDefinedBy <http://spdx.org/rdf/terms/#checksumValue> .
+
+rdfs:Literal rdfs:label "Literal"@en ;
+    dcterms:identifier "rdfs:Literal" ;
+    vann:usageNote "Mandatory class. A literal value such as a string or integer; Literals may be typed, e.g. as a date according to xsd:date. Literals that contain human-readable text have an optional language tag as defined by BCP 47."@en ;
+    rdfs:comment "The class rdfs:Literal is the class of literal values such as strings and integers. Property values such as textual strings are examples of RDF literals."@en ;
+    rdfs:isDefinedBy <http://www.w3.org/TR/rdf-concepts/#section-Literals> .
+
+rdfs:Resource rdfs:label "Resource"@en ;
+    dcterms:identifier "rdfs:Resource" ;
+    vann:usageNote "Mandatory class. Anything described by RDF."@en ;
+    rdfs:comment "All things described by RDF are called resources, and are instances of the class rdfs:Resource. This is the class of everything. All other classes are subclasses of this class. rdfs:Resource is an instance of rdfs:Class."@en ;
+    rdfs:isDefinedBy <http://www.w3.org/TR/rdf-schema/#ch_resource> .
+
+owl:versionInfo rdfs:label "Dataset - version"@en ;
+    dcterms:identifier "owl:versionInfo" ;
+    vann:usageNote "Optional property. This property contains a version number or other version designation of the Dataset."@en ;
+    rdfs:comment "This property contains a version number or other version designation of the Dataset."@en ;
+    rdfs:isDefinedBy owl: .
+
+skos:notation rdfs:label "Identifier - notation"@en ;
+    dcterms:identifier "skos:notation" ;
+    vann:usageNote "Mandatory property.  This property contains a string that is an identifier in the context of the identifier scheme referenced by its datatype."@en ;
+    rdfs:comment "This property contains a string that is an identifier in the context of the identifier scheme referenced by its datatype."@en ;
+    rdfs:isDefinedBy <http://www.w3.org/2009/08/skos-reference/skos.html#notation> .
+
+skos:prefLabel rdfs:label "Category - preferred label"@en ;
+    dcterms:identifier "skos:prefLabel" ;
+    vann:usageNote "Mandatory property.  This property contains a preferred label of the category. This property can be repeated for parallel language versions of the label."@en ;
+    rdfs:comment "This property can be repeated for parallel language versions of the label."@en ;
+    rdfs:isDefinedBy <http://www.w3.org/2009/08/skos-reference/skos.html#prefLabel> .
+
+time:hasEnd rdfs:label "Period Of Time - end"@en ;
+    dcterms:identifier "time:hasEnd" ;
+    vann:usageNote "Optional property. This property refers to the end of a period or interval."@en ;
+    rdfs:comment "This property refers to the end of a period or interval."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:period_has_end> .
+
+<http://www.w3.org/2006/time/hasBeginning> rdfs:label "Period Of Time - beginning"@en ;
+    dcterms:identifier "time:hasBeginning" ;
+    vann:usageNote "Optional property. This property refers to the beginning of a period or interval."@en ;
+    rdfs:comment "This property refers to the beginning of a period or interval."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:period_has_beginning> .
+
+vcard:Kind rdfs:label "Kind"@en ;
+    dcterms:identifier "vcard:Kind" ;
+    vann:usageNote "Optional class. A description following the vCard specification, e.g. to provide telephone number and e-mail address for a contact point. Note that the class Kind is the parent class for the four explicit types of vCards (Individual, Organization, Location, Group)."@en ;
+    rdfs:comment "A description following the vCard specification, e.g. to provide telephone number and e-mail address for a contact point. Note that the class Kind is the parent class for the four explicit types of vCards (Individual, Organization, Location, Group)."@en ;
+    rdfs:isDefinedBy vcard: .
+
+adms:Identifier rdfs:label "Identifier"@en ;
+    dcterms:identifier "adms:Identifier" ;
+    vann:usageNote "Optional class. An identifier in a particular context, consisting of the string that is the identifier; an optional identifier for the identifier scheme; an optional identifier for the version of the identifier scheme; an optional identifier for the agency that manages the identifier scheme"@en ;
+    rdfs:comment "This class is based on the UN/CEFACT Identifier complex type defined in See Section 5.8 of Core Components Data Type Catalogue Version 3.1 (http://www.unece.org/fileadmin/DAM/cefact/codesfortrade/CCTS/CCTS-DTCatalogueVersion3p1.pdf) In RDF this is expressed using the following properties: - the content string should be provided using skos:notation, datatyped with the identifier scheme (inclduing the version number if appropriate); - use dcterms:creator to link to a class describing the agency that manages the identifier scheme or adms:schemaAgency to provide the name as a literal. Although not part of the ADMS conceptual model, it may be useful to provide further properties to the Identifier class such as dcterms:created to provide the date on which the identifier was issued."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-adms/#identifier> .
+
+adms:identifier rdfs:label "Dataset - other identifier"@en ;
+    dcterms:identifier "adms:identifier" ;
+    vann:usageNote "Optional property. This property refers to a secondary identifier of the Dataset, such as MAST/ADS[1], DataCite[2], DOI[3], EZID[4] or W3ID[5]."@en ;
+    rdfs:comment "This property refers to a secondary identifier of the Dataset, such as MAST/ADS[1], DataCite[2], DOI[3], EZID[4] or W3ID[5]."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-adms/#adms-identifier> .
+
+adms:sample rdfs:label "Dataset - sample"@en ;
+    dcterms:identifier "adms:sample" ;
+    vann:usageNote "Optional property. This property refers to a sample distribution of the dataset."@en ;
+    rdfs:comment "This property refers to a sample distribution of the dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-adms/#adms-sample> .
+
+adms:status rdfs:label "Catalogue Record - change type"@en,
+        "Distribution - status"@en ;
+    dcterms:identifier "adms:status" ;
+    vann:usageNote "Optional property. This property refers to the maturity of the Distribution."@en,
+        "Recommended property.  The type of the latest revision of a Dataset's entry in the Catalogue. It MUST take one of the values :created, :updated or :deleted depending on whether this latest revision is a result of a creation, update or deletion."@en ;
+    rdfs:comment "The type of the latest revision of a Dataset's entry in the Catalogue. It MUST take one of the values :Completed, :Depricated, :Under development or :Withdrawn."@en,
+        "This property refers to the maturity of the Distribution"@en ;
+    rdfs:isDefinedBy <http://www.w3.org/TR/vocab-adms/#status>,
+        <https://www.w3.org/TR/vocab-adms/#adms-status> .
+
+adms:versionNotes rdfs:label "Dataset - version notes"@en ;
+    dcterms:identifier "adms:versionNotes" ;
+    vann:usageNote "Optional property. This property contains a description of the differences between this version and a previous version of the Dataset."@en ;
+    rdfs:comment "This property contains a description of the differences between this version and a previous version of the Dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-adms/#adms-versionnotes> .
+
+dcat:Catalog rdfs:label "Catalogue"@en ;
+    dcterms:identifier "dcat:Catalog" ;
+    vann:usageNote "Mandatory class. A catalogue or repository that hosts the Datasets being described."@en ;
+    rdfs:comment "A  curated collection of metadata about datasets"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Catalog> ;
+    rdfs:subClassOf dcat:Dataset .
+
+dcat:CatalogRecord rdfs:label "Catalogue Record"@en ;
+    dcterms:identifier "dcat:CatalogRecord" ;
+    vann:usageNote "Optional  class. A description of a Dataset’s entry in the Catalogue."@en ;
+    rdfs:comment "A record in a data catalog, describing a single dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Catalog_Record> .
+
+dcat:DataService rdfs:label "Data Service"@en ;
+    dcterms:identifier "dcat:DataService" ;
+    vann:usageNote "Optional class. A collection of operations that provides access to one or more datasets or data processing functions."@en ;
+    rdfs:comment "A collection of operations that provides access to one or more datasets or data processing functions."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Data_Service> .
+
+dcat:Relationship rdfs:label "Relationship"@en ;
+    dcterms:identifier "dcat:Relationship" ;
+    vann:usageNote "Optional class. An association class for attaching additional information to a relationship between DCAT Resources."@en ;
+    rdfs:comment "An association class for attaching additional information to a relationship between DCAT Resources."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Relationship> .
+
+dcat:accessService rdfs:label "Distribution - access service"@en ;
+    dcterms:identifier "dcat:accessService " ;
+    vann:usageNote "Optional property. This property refers to a data service that gives access to the distribution of the dataset. "@en ;
+    rdfs:comment "This property refers to the a data service that gives access to the distribution of the dataset ."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_access_service> .
+
+dcat:accessURL rdfs:label "Distribution - access URL"@en ;
+    dcterms:identifier "dcat:accessURL" ;
+    vann:usageNote "Mandatory property.  This property contains a URL that gives access to a Distribution of the Dataset. The resource at the access URL may contain information about how to get the Dataset. "@en ;
+    rdfs:comment "This property contains a URL that gives access to a Distribution of the Dataset. The resource at the access URL may contain information about how to get the Dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_access_url> .
+
+dcat:bbox rdfs:label "Location - bounding box "@en ;
+    dcterms:identifier " dcat:bbox" ;
+    vann:usageNote "Recommended property. This propert refers to the geographic bounding box of a resource."@en ;
+    rdfs:comment "This propert refers to the geographic bounding box of a resource."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:location_bbox> .
+
+dcat:byteSize rdfs:label "Distribution - byte size"@en ;
+    dcterms:identifier "dcat:byteSize" ;
+    vann:usageNote "Optional property. This property contains the size of a Distribution in bytes."@en ;
+    rdfs:comment "This property contains the size of a Distribution in bytes."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_size> .
+
+dcat:catalog rdfs:label "Data Catalogue - catalog "@en ;
+    dcterms:identifier " dcat:catalog" ;
+    vann:usageNote "Optional property. This property refers to  a catalog whose contents are of interest in the context of this catalog . "@en ;
+    rdfs:comment "This property refers to a catalog whose contents are of interest in the context of this catalog  ."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:catalog_catalog> .
+
+dcat:centroid rdfs:label "Location - centroid"@en ;
+    dcterms:identifier "dcat:centroid" ;
+    vann:usageNote "Recommended property. This property refers to the geographic center (centroid) of a resource."@en ;
+    rdfs:comment "This property refers to the geographic center (centroid) of a resource"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:location_centroid> .
+
+dcat:compressFormat rdfs:label "Distribution - compression format"@en ;
+    dcterms:identifier "dcat:compressFormat" ;
+    vann:usageNote "Optional property. This property refers to the format of the file in which the data is contained in a compressed form, e.g. to reduce the size of the downloadable file. It SHOULD be expressed using a media type as defined in the official register of media types managed by IANA."@en ;
+    rdfs:comment "This property refers to the format of the file in which the data is contained in a compressed form, e.g. to reduce the size of the downloadable file ."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_compression_format> .
+
+dcat:contactPoint rdfs:label "Dataset - contact point"@en ;
+    dcterms:identifier "dcat:contactPoint" ;
+    vann:usageNote "Recommended property.This property contains contact information that can be used for sending comments about the Dataset."@en ;
+    rdfs:comment "This property contains contact information that can be used for sending comments about the Dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:resource_contact_point> .
+
+dcat:dataset rdfs:label "Data Catalogue - dataset"@en ;
+    dcterms:identifier "dcat:dataset" ;
+    vann:usageNote "Mandatory property. This property links the Catalogue with a Dataset that is part of the Catalogue."@en ;
+    rdfs:comment "A dataset that is part of the catalog."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:catalog_dataset> .
+
+dcat:distribution rdfs:label "Dataset - dataset distribution"@en ;
+    dcterms:identifier "dcat:distribution" ;
+    vann:usageNote "Recommended property. This property links the Dataset to an available Distribution."@en ;
+    rdfs:comment "This property links the Dataset to an available Distribution."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:dataset_distribution> .
+
+dcat:downloadURL rdfs:label "Distribution - download URL"@en ;
+    dcterms:identifier "dcat:downloadURL" ;
+    vann:usageNote "Optional property. This property contains a URL that is direct link to a downloadable file in a given format."@en ;
+    rdfs:comment "This property contains a URL that is direct link to a downloadable file in a given format."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_download_url> .
+
+dcat:endDate rdfs:label "Period Of Time - end date"@en ;
+    dcterms:identifier "dcat:endDate" ;
+    vann:usageNote "Recommended property. This property contains the end of the period."@en ;
+    rdfs:comment "This property contains the end of the period."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:period_end_date> .
+
+dcat:endpointDescription rdfs:label "Data Service - endpoint description"@en ;
+    dcterms:identifier "dcat:endpointDescription" ;
+    vann:usageNote "Recomended property. A description of the services available via the end-points, including their operations, parameters etc ."@en ;
+    rdfs:comment "A description of the services available via the end-points, including their operations, parameters etc."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:data_service_endpoint_description> .
+
+dcat:endpointURL rdfs:label "Data Service - endpoint URL "@en ;
+    dcterms:identifier "dcat:endpointURL" ;
+    vann:usageNote "Mandatory property. The root location or primary endpoint of the service (an IRI).."@en ;
+    rdfs:comment "The root location or primary endpoint of the service (an IRI)."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:data_service_endpoint_url> .
+
+dcat:hadRole rdfs:label "Relationship - had role"@en ;
+    dcterms:identifier "dcat:hadRole" ;
+    vann:usageNote "Mandatory property. The function of an entity or agent with respect to another entity or resource.."@en ;
+    rdfs:comment "The function of an entity or agent with respect to another entity or resource."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:relationship_hadRole> .
+
+dcat:keyword rdfs:label "Dataset - keyword/ tag"@en ;
+    dcterms:identifier "dcat:keyword" ;
+    vann:usageNote "Recommended property. This property contains a keyword or tag describing the Dataset."@en ;
+    rdfs:comment "This property contains a keyword or tag describing the Dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:resource_keyword> .
+
+dcat:landingPage rdfs:label "Dataset - landing page"@en ;
+    dcterms:identifier "dcat:landingPage" ;
+    vann:usageNote "Optional property. This property refers to a web page that provides access to the Dataset, its Distributions and/or additional information. "@en ;
+    rdfs:comment "This property refers to a web page that provides access to the Dataset, its Distributions and/or additional information."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:resource_landing_page> .
+
+dcat:packageFormat rdfs:label "Distribution - packaging format"@en ;
+    dcterms:identifier "dcat:packageFormat" ;
+    vann:usageNote "Optional property. This property refers to the format of the file in which one or more data files are grouped together, e.g. to enable a set of related files to be downloaded together. It SHOULD be expressed using a media type as defined in the official register of media types managed by IANA. "@en ;
+    rdfs:comment "This property refers to the format of the file in which one or more data files are grouped together, e.g. to enable a set of related files to be downloaded together."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_packaging_format> .
+
+dcat:qualifiedRelation rdfs:label "Dataset - qualified relation"@en ;
+    dcterms:identifier "dcat:qualifiedRelation" ;
+    vann:usageNote "Optional property. This property provides a link to a description of a relationship with another resource. "@en ;
+    rdfs:comment "This property provides a link to a description of a relationship with another resource."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:resource_qualified_relation> .
+
+dcat:record rdfs:label "Data Catalogue - record"@en ;
+    dcterms:identifier "dcat:record" ;
+    vann:usageNote "Optional property. This property refers to a Catalogue Record that is part of the Catalogue"@en ;
+    rdfs:comment "This property refers to a Catalogue Record that is part of the Catalogue"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:catalog_catalog_record> .
+
+dcat:servesdataset rdfs:label "Data Service - serves dataset"@en ;
+    dcterms:identifier "dcat:servesDataset" ;
+    vann:usageNote "Recommended property. A collection of data that this data service can distribute."@en ;
+    rdfs:comment "A collection of data that this data service can distribute."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:data_service_serves_dataset> .
+
+dcat:service rdfs:label "Data Catalogue - service"@en ;
+    dcterms:identifier " dcat:service" ;
+    vann:usageNote "Optional property. This property refers to a site or end-point that is listed in the catalog."@en ;
+    rdfs:comment "This property refers to a site or end-point that is listed in the catalog. ."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:catalog_service> .
+
+dcat:spatialResolutionInMeters rdfs:label "Dataset - "@en,
+        "Distribution - spatial resolution "@en ;
+    dcterms:identifier "dcat:spatialResolutionInMeters",
+        "dcat:spatialResolutionInMeters " ;
+    vann:usageNote "Optional property. This property refers to the minimum spatial separation resolvable in a dataset distribution, measured in meters. . "@en,
+        "Optional property. This property refers to the minimum spatial separation resolvable in a dataset, measured in meters. "@en ;
+    rdfs:comment "This property refers to the  minimum spatial separation resolvable in a dataset, measured in meters."@en,
+        "This property refers to the minimum spatial separation resolvable in a dataset distribution, measured in meters. ."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:dataset_spatial_resolution>,
+        <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_spatial_resolution> .
+
+dcat:startDate rdfs:label "Period Of Time - start date"@en ;
+    dcterms:identifier "dcat:startDate" ;
+    vann:usageNote "Recommended property. This property contains the start of the period."@en ;
+    rdfs:comment "This property contains the start of the period."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:period_start_date> .
+
+dcat:temporalResolution rdfs:label "Dataset - "@en,
+        "Distribution - temporal resolution"@en ;
+    dcterms:identifier "dcat:temporalResolution",
+        "dcat:temporalResolution " ;
+    vann:usageNote "Optional property. This property refers to the minimum time period resolvable in the dataset distribution . "@en,
+        "Optional property. This property refers to the minimum time period resolvable in the dataset. "@en ;
+    rdfs:comment "This property refers to the minimum time period resolvable in the dataset distribution ."@en,
+        "This property refers to the minimum time period resolvable in the dataset. ."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:dataset_temporal_resolution>,
+        <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_temporal_resolution> .
+
+dcat:theme rdfs:label "Dataset - theme/category"@en ;
+    dcterms:identifier "dcat:theme" ;
+    vann:usageNote "Recommended property. This property refers to a category of the Dataset. A Dataset may be associated with multiple themes. Subproperty of dct:subject."@en ;
+    rdfs:comment "This property refers to a category of the Dataset. A Dataset may be associated with multiple themes. Subproperty of dct:subject"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:resource_type> .
+
+dcat:themeTaxonomy rdfs:label "Data Catalogue - themes"@en ;
+    dcterms:identifier "dcat:themeTaxonomy" ;
+    vann:usageNote "Recommended property. This property refers to a knowledge organization system (KOS) used to classify the Catalogue's Datasets."@en ;
+    rdfs:comment "The knowledge organization system (KOS) used to classify catalog's datasets"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:catalog_themes> .
+
+lcon:geometry rdfs:label "Location - geometry"@en ;
+    dcterms:identifier "locn:geometry " ;
+    vann:usageNote "Optional property. This property associates any resource with the corresponding geometry."@en ;
+    rdfs:comment "This property associates any resource with the corresponding geometry"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:location_geometry> .
+
+odrl:hasPolicy rdfs:label "Distribution - has policy "@en ;
+    dcterms:identifier "odrl:hasPolicy " ;
+    vann:usageNote "Optional property. This property refers to a policy expressing the rights associated with the resource if using the ODRL vocabulary. "@en ;
+    rdfs:comment "This property refers to a policy expressing the rights associated with the resource if using the ODRL vocabulary."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Property:distribution_has_policy> .
+
+prov:qualifiedAttribution rdfs:label "Dataset - qualified attribution"@en ;
+    dcterms:identifier "prov:qualifiedAttribution" ;
+    vann:usageNote "Optional property. This property refers to the link to an Agent having some form of responsibility for the resource. "@en ;
+    rdfs:comment "This property refers to the link to an Agent having some form of responsibility for the resource."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/2013/REC-prov-o-20130430/#qualifiedAttribution> .
+
+prov:wasGeneratedBy rdfs:label "Dataset - was generated by"@en ;
+    dcterms:identifier " prov:wasGeneratedBy" ;
+    vann:usageNote "Optional property. This property refers to an activity that generated, or provides the business context for, the creation of the dataset. "@en ;
+    rdfs:comment "This property refers to an activity that generated, or provides the business context for, the creation of the dataset."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/2013/REC-prov-o-20130430/#wasGeneratedBy> .
+
+foaf:Agent rdfs:label "Agent"@en ;
+    dcterms:identifier "foaf:Agent" ;
+    vann:usageNote "Mandatory class. An entity that is associated with Catalogues and/or Datasets. If the Agent is an organisation, the use of the Organization Ontology  is recommended."@en ;
+    rdfs:comment "An agent (eg. person, group, software or physical artifact)."@en ;
+    rdfs:isDefinedBy <http://xmlns.com/foaf/spec/#term_Agent> .
+
+foaf:Document rdfs:label "Document"@en ;
+    dcterms:identifier "foaf:Document" ;
+    vann:usageNote "Optional class. A textual resource intended for human consumption that contains information, e.g. a web page about a Dataset."@en ;
+    rdfs:comment "A document."@en ;
+    rdfs:isDefinedBy <http://xmlns.com/foaf/spec/#term_Document> .
+
+foaf:homepage rdfs:label "Data Catalogue - homepage"@en ;
+    dcterms:identifier "foaf:homepage" ;
+    vann:usageNote "Recommended property. This property refers to a web page that acts as the main page for the Catalogue."@en ;
+    rdfs:comment "This property refers to a web page that acts as the main page for the Catalogue."@en ;
+    rdfs:isDefinedBy <http://xmlns.com/foaf/spec/#term_homepage> .
+
+foaf:name rdfs:label "Agent - name"@en ;
+    dcterms:identifier "foaf:name" ;
+    vann:usageNote "Mandatory property.  This property contains a name of the agent. This property can be repeated for different versions of the name (e.g. the name in different languages)"@en ;
+    rdfs:comment "This property can be repeated for different versions of the name (e.g. the name in different languages)"@en ;
+    rdfs:isDefinedBy <http://xmlns.com/foaf/spec/#term_name> .
+
+foaf:page rdfs:label "Dataset - documentation"@en,
+        "Distribution - documentation"@en ;
+    dcterms:identifier "foaf:page" ;
+    vann:usageNote "Optional property. This property refers to a page or document about this Dataset."@en,
+        "Optional property.This property refers to a page or document about this Distribution."@en ;
+    rdfs:comment "This property refers to a page or document about this Dataset."@en,
+        "This property refers to a page or document about this Distribution."@en ;
+    rdfs:isDefinedBy <http://xmlns.com/foaf/spec/#term_page> .
+
+foaf:primaryTopic rdfs:label "Catalogue Record - primary topic"@en ;
+    dcterms:identifier "foaf:primaryTopic" ;
+    vann:usageNote "Mandatory property.  This property links the Catalogue Record to the Dataset, Data Service or Catalogue described in the record."@en ;
+    rdfs:comment "This property links the Catalogue Record to the Dataset, Data Service or Catalogue described in the record."@en ;
+    rdfs:isDefinedBy <http://xmlns.com/foaf/spec/#term_primaryTopic> .
+
+<https://joinup.ec.europa.eu/solution/dcat-application-profile-data-portals-europe> a owl:Ontology ;
+    rdfs:label "DCAT Application Profile for Data Portals in Europe"@en ;
+    cc:attributionName "European Commission"@en ;
+    cc:attributionURL <http://ec.europa.eu/> ;
+    dcterms:abstract "The DCAT Application profile for data portals in Europe (DCAT-AP) is a specification based on the Data Catalogue vocabulary (DCAT) for describing public sector datasets in Europe. Its basic use case is to enable a cross-data portal search for data sets and make public sector data better searchable across borders and sectors. This can be achieved by the exchange of descriptions of data sets among data portals."@en ;
+    dcterms:conformsTo <https://joinup.ec.europa.eu/document/process-and-methodology-developing-core-vocabularies> ;
+    dcterms:creator [ schema1:affiliation [ foaf:homepage <http://www.pwc.com/gx/en/eu-institutions-services/> ;
+                    foaf:name "PwC EU Services" ] ;
+            rdfs:seeAlso <http://nikosloutas.com/> ;
+            foaf:homepage <http://nikosloutas.com/> ;
+            foaf:name "Nikolaos Loutas" ],
+        [ schema1:affiliation [ foaf:homepage <http://www.makxdekkers.com/> ;
+                    foaf:name "AMI Consult" ] ;
+            rdfs:seeAlso <http://makxdekkers.com/> ;
+            foaf:homepage <http://makxdekkers.com/> ;
+            foaf:name "Makx Dekkers" ],
+        [ schema1:affiliation [ foaf:homepage <https://tenforce.com> ;
+                    foaf:name "TenForce" ] ;
+            foaf:homepage <https://www.linkedin.com/in/bert-van-nuffelen-a349634/> ;
+            foaf:name "Bert Van Nuffelen" ],
+        [ schema1:affiliation [ foaf:homepage <http://ec.europa.eu/> ;
+                    foaf:name "European Commission" ] ;
+            rdfs:seeAlso <http://www.deri.ie/users/vassilios-peristeras/> ;
+            foaf:homepage <http://www.deri.ie/users/vassilios-peristeras/> ;
+            foaf:name "Vassilios Peristeras" ],
+        [ schema1:affiliation [ foaf:homepage <https://www.ails.ece.ntua.gr/> ;
+                    foaf:name "Artificial Intelligence and Learning Systems Laboratory, National Technical University of Athens" ] ;
+            rdfs:seeAlso <https://www.ails.ece.ntua.gr/people/natasa> ;
+            foaf:homepage <https://www.ails.ece.ntua.gr/people/natasa> ;
+            foaf:name "Natasa Sofou" ] ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:modified "2022-06-24"^^<xsd:date> ;
+    dcterms:publisher <http://publications.europa.eu/resource/authority/corporate-body/DIGIT> ;
+    dcterms:relation <http://data.europa.eu/w21/6be4d036-2e6d-4528-a888-0e9a0e29c579> ;
+    voaf:specializes dcat: ;
+    xhv:prev <https://joinup.ec.europa.eu/collection/semantic-interoperability-community-semic/solution/dcat-application-profile-data-portals-europe/release/210> ;
+    rdfs:comment "This document specifies the set of RDF classes and properties used in the DCAT Application profile for data portals in Europe (DCAT-AP)."@en ;
+    owl:versionInfo "2.1.1" ;
+    adms:versionNotes "Change log for DCAT-AP v2.1.1: see github"@en ;
+    foaf:logo <https://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/DCAT_application_profile_for_European_data_portals_logo_0.png> ;
+    foaf:maker [ foaf:name "DCAT-AP Working Group" ;
+            foaf:page <https://github.com/SEMICeu/DCAT-AP>,
+                <https://joinup.ec.europa.eu/collection/semantic-interoperability-community-semic/solution/dcat-application-profile-data-portals-europe> ] .
+
+dcatap:availability a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:label "Distribution - availability"@en,
+        "availability"@en ;
+    dcterms:identifier "dcatap:availability" ;
+    vann:usageNote "Recommended property. This property indicates how long it is planned to keep the Distribution of the Dataset available . "@en ;
+    rdfs:comment "The knowledge organization system (KOS) used to classify Datase Distribution availability levels."@en,
+        "This property indicates how long it is planned to keep the Distribution of the Dataset available."@en ;
+    rdfs:domain dcat:Distribution ;
+    rdfs:isDefinedBy dcatap:,
+        dcatap:availability ;
+    rdfs:range skos:Concept .
+
+<http://data.europa.eu/r5r/availability/available> a skos:Concept ;
+    dcterms:identifier "available" ;
+    rdfs:seeAlso <http://publications.europa.eu/resource/authority/planned-availability/AVAILABLE> ;
+    skos:definition "Data is available for a few years, medium term planning."@en ;
+    skos:inScheme <http://data.europa.eu/r5r/availability/1.0> ;
+    skos:prefLabel "available"@en ;
+    adms:status "http://purl.org/adms/status/Deprecated" .
+
+<http://data.europa.eu/r5r/availability/experimental> a skos:Concept ;
+    dcterms:identifier "experimental" ;
+    rdfs:seeAlso <http://publications.europa.eu/resource/authority/planned-availability/EXPERIMENTAL> ;
+    skos:definition "Data is available on a trial basis, the expected availability is roughly a year."@en ;
+    skos:inScheme <http://data.europa.eu/r5r/availability/1.0> ;
+    skos:prefLabel "experimental"@en ;
+    adms:status "http://purl.org/adms/status/Deprecated" .
+
+<http://data.europa.eu/r5r/availability/stable> a skos:Concept ;
+    dcterms:identifier "stable" ;
+    rdfs:seeAlso <http://publications.europa.eu/resource/authority/planned-availability/STABLE> ;
+    skos:definition "Data will remain available in the long term."@en ;
+    skos:inScheme <http://data.europa.eu/r5r/availability/1.0> ;
+    skos:prefLabel "stable"@en ;
+    adms:status "http://purl.org/adms/status/Deprecated" .
+
+<http://data.europa.eu/r5r/availability/temporary> a skos:Concept ;
+    dcterms:identifier "temporary" ;
+    rdfs:seeAlso <http://publications.europa.eu/resource/authority/planned-availability/TEMPORARY> ;
+    skos:definition "Data can disappear at any time, no planning."@en ;
+    skos:inScheme <http://data.europa.eu/r5r/availability/1.0> ;
+    skos:prefLabel "temporary"@en ;
+    adms:status "http://purl.org/adms/status/Deprecated" .
+
+spdx:Checksum rdfs:label "Checksum"@en ;
+    dcterms:identifier "spdx:Checksum" ;
+    vann:usageNote "A value that allows the contents of a file to be authenticated. This class allows the results of a variety of checksum and cryptographic message digest algorithms to be represented."@en ;
+    rdfs:comment "A value that allows the contents of a file to be authenticated. This class allows the results of a variety of checksum and cryptographic message digest algorithms to be represented."@en ;
+    rdfs:isDefinedBy spdx:Checksum .
+
+skos:ConceptScheme rdfs:label "Category scheme"@en ;
+    dcterms:identifier "skos:ConceptScheme" ;
+    vann:usageNote "Recommended class. A concept collection (e.g. controlled vocabulary) in which the Category is defined."@en ;
+    rdfs:comment "An abstract idea or notion; a unit of thought."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Concept_Scheme> .
+
+dcat:Dataset rdfs:label "Dataset"@en ;
+    dcterms:identifier "dcat:Dataset" ;
+    vann:usageNote "Mandatory class. A conceptual entity that represents the information published."@en ;
+    rdfs:comment "A collection of data, published or curated by a single source, and available for access or download in one or more formats"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Dataset> .
+
+dcat:Distribution rdfs:label "Distribution"@en ;
+    dcterms:identifier "dcat:Distribution" ;
+    vann:usageNote "Recommended class. A physical embodiment of the Dataset in a particular format."@en ;
+    rdfs:comment "Represents a specific available form of a dataset. Each dataset might be available in different forms, these forms might represent different formats of the dataset, different endpoints,... Examples of Distribution include a downloadable CSV file, an XLS file representing the dataset, an RSS feed…"@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Distribution> .
+
+dcat:Role rdfs:label "Role"@en ;
+    dcterms:identifier [ a dcat:Role ] ;
+    vann:usageNote "Optional class. A role is the function of a resource or agent with respect to another resource, in the context of resource attribution or resource relationships. Note it is a subclass of skos:Concept."@en ;
+    rdfs:comment "A role is the function of a resource or agent with respect to another resource, in the context of resource attribution or resource relationships."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Role> .
+
+<https://creativecommons.org/licenses/by/4.0/> cc:attributionName "European Commission" ;
+    cc:attributionURL <http://ec.europa.eu/> ;
+    dcterms:title "Attribution 4.0 International (CC BY 4.0)" .
+
+<https://joinup.ec.europa.eu/document/process-and-methodology-developing-core-vocabularies> dcterms:title "Process and Methodology for Developing Core Vocabularies" .
+
+<https://joinup.ec.europa.eu/sites/default/files/imagecache/community_logo/DCAT_application_profile_for_European_data_portals_logo_0.png> rdfs:label "DCAT-AP logo" .
+
+<http://data.europa.eu/r5r/availability/1.0> a owl:Ontology,
+        skos:ConceptScheme ;
+    rdfs:label "List of availability levels"@en ;
+    dcterms:identifier "http://data.europa.eu/r5r/availability/1.0" ;
+    vann:usageNote "The list of terms for the avalability levels of a dataset distribution  in the DCAT-AP  specification."@en ;
+    rdfs:comment "List of availability levels."^^rdfs:Literal ;
+    rdfs:seeAlso <http://publications.europa.eu/resource/dataset/planned-availability> ;
+    owl:versionIRI <http://data.europa.eu/r5r/availability/1.0/> ;
+    owl:versionInfo "1.0" ;
+    skos:hasTopConcept <http://data.europa.eu/r5r/availability/available>,
+        <http://data.europa.eu/r5r/availability/experimental>,
+        <http://data.europa.eu/r5r/availability/stable>,
+        <http://data.europa.eu/r5r/availability/temporary> ;
+    skos:prefLabel "List of availability levels"@en ;
+    adms:status "http://purl.org/adms/status/Deprecated" .
+
+skos:Concept rdfs:label "Category, Publisher type, Status "@en ;
+    dcterms:identifier "skos:Concept" ;
+    vann:usageNote "Recommended class - Category: a subject of a Dataset. Optional Class - Publisher type: A type of organisation that acts as a publisher. Optional Class - Status: an indication of the maturity of a Distribution."@en ;
+    rdfs:comment "An abstract idea or notion; a unit of thought."@en ;
+    rdfs:isDefinedBy <https://www.w3.org/TR/vocab-dcat-2/#Class:Concept> .
+

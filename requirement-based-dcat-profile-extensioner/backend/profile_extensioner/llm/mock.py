@@ -120,8 +120,6 @@ class MockProvider:
                     best_base = candidate
                     break
         best_other = others[0] if others else None
-        if best_base and best_other and best_other["score"] > best_base["score"] * 1.5:
-            best_base = None
 
         compound = "compound" in context.get("lint_codes", [])
         coverage = "partial" if compound else "full"

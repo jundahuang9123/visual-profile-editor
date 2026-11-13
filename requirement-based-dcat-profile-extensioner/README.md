@@ -108,8 +108,9 @@ entered, including by pointing an OpenAI-compatible base URL at another host.
 ## Status and limits
 
 Research prototype. Known limits: lexical retrieval only (no embeddings); the
-vocabulary index currently holds the terms the base profile uses (vendored
-vocabulary files can be added under `data/vocab/` with a `MANIFEST.json`);
+vocabulary index holds 13 vendored vocabularies (DCAT, DCTERMS, FOAF, SKOS, PROV,
+vCard, ADMS, ODRL, SPDX, LOCN, OWL-Time, DCAT-AP, ELI: about 900 terms; licences in
+`data/vocab/MANIFEST.json`, some still marked `verify:`) plus every term the base uses;
 controlled-vocabulary usage levels of DCAT-AP 3.0.1 are not modelled; the
 offline provider is a lexical baseline, not a modelling authority.
 
