@@ -127,7 +127,8 @@ def compile_dsv(view: ProfileView) -> str:
     profile = URIRef(project.profile_namespace)
     graph.add((profile, RDF.type, PROF.Profile))
     graph.add((profile, RDF.type, DSV.ApplicationProfile))
-    graph.add((profile, PROF.isProfileOf, URIRef(kb.base.info.homepage or kb.base.info.id)))
+    base_dsv = kb.base.dsv_application_profile()
+    graph.add((profile, PROF.isProfileOf, URIRef(base_dsv or kb.base.info.homepage or kb.base.info.id)))
 
     class_profiles: dict[str, URIRef] = {}
 
@@ -139,7 +140,12 @@ def compile_dsv(view: ProfileView) -> str:
         graph.add((node, DCTERMS.isPartOf, profile))
         graph.add((node, RDF.type, DSV.TermProfile))
         graph.add((node, RDF.type, DSV.ClassProfile))
-        graph.add((node, DSV["class"], URIRef(iri)))
+        base_profile = kb.base.dsv_class_profile(iri)
+        if base_profile:
+            # A profile of the base's class profile, as Dataspecer models extensions (e.g. DCAT-AP HVD).
+            graph.add((node, DSV.profileOf, URIRef(base_profile)))
+        else:
+            graph.add((node, DSV["class"], URIRef(iri)))
         graph.add((node, DSV.classRole, ROLE[role]))
         label = kb.base.class_label(iri) if kb.base.has_class(iri) else local_name(iri)
         graph.add((node, SKOS.prefLabel, Literal(label, lang="en")))
@@ -160,7 +166,11 @@ def compile_dsv(view: ProfileView) -> str:
         node = ns[f"{_class_name(view, change.target_class)}.{local_name(change.path)}"]
         graph.add((node, DCTERMS.isPartOf, profile))
         graph.add((node, RDF.type, DSV.TermProfile))
-        graph.add((node, DSV.property, URIRef(change.path)))
+        base_property = kb.base.dsv_property_profile(change.target_class, change.path)
+        if base_property:
+            graph.add((node, DSV.profileOf, URIRef(base_property)))
+        else:
+            graph.add((node, DSV.property, URIRef(change.path)))
         graph.add((node, DSV.domain, domain))
         graph.add((node, DSV.cardinality, _cardinality(f.min_count, f.max_count)))
         if f.obligation in ("mandatory", "recommended", "optional"):

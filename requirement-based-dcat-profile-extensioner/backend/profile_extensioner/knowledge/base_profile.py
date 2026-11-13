@@ -107,6 +107,11 @@ class BaseProfile:
 
         subjects = dict(DEFAULT_SUBJECTS)
         subjects.update(config.get("subjects") or {})
+        dsv_index: dict = {}
+        if config.get("dsv_index") and (root / config["dsv_index"]).exists():
+            import json
+
+            dsv_index = json.loads((root / config["dsv_index"]).read_text(encoding="utf-8"))
         info = BaseProfileInfo(
             id=str(config.get("id") or base_profile_id),
             title=str(config.get("title") or base_profile_id),
@@ -116,7 +121,7 @@ class BaseProfile:
             licence=str(config.get("licence") or ""),
             shape_files=[str(path.relative_to(root)) for path in shape_files],
         )
-        return cls(
+        loaded = cls(
             info, index, shapes,
             obligations=obligations,
             class_obligations=class_obligations,
@@ -125,6 +130,20 @@ class BaseProfile:
             main_classes=[prefixes.expand(curie) or curie for curie in config.get("main_classes") or []],
             prefixes=prefixes,
         )
+        loaded.dsv_index = dsv_index
+        return loaded
+
+    dsv_index: dict = {}
+
+    def dsv_class_profile(self, class_iri: str) -> str | None:
+        """IRI of the base's DSV class profile for ``class_iri`` (None when no DSV of the base is bundled)."""
+        return (self.dsv_index.get("classes") or {}).get(class_iri)
+
+    def dsv_property_profile(self, class_iri: str, path: str) -> str | None:
+        return (self.dsv_index.get("properties") or {}).get(f"{class_iri} {path}")
+
+    def dsv_application_profile(self) -> str | None:
+        return self.dsv_index.get("application_profile")
 
     # -- classes ------------------------------------------------------------
 

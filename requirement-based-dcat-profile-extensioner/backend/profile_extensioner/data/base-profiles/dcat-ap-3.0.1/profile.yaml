@@ -28,3 +28,5 @@ main_classes:
 - dcat:DataService
 - dcat:DatasetSeries
 - dcat:CatalogRecord
+# DSV of this release published by the Dataspecer team; extensions point at its profiles (dsv:profileOf).
+dsv_index: dsv-index.json
