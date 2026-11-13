@@ -54,10 +54,14 @@ def verbalise_change(change: ProfileChange, kb: KnowledgeBase) -> str:
         return f"Usage note on {path} of {target}: {change.usage_note}"
     constraints = facets_text(change.facets, kb)
     if change.kind == "refine_property":
+        def show(value: str | None) -> str:
+            return ", ".join(kb.curie(part.strip()) for part in value.split(",")) if value else "not set"
+
         changed = [
-            f"{item.facet} {item.base_value or 'not set'} -> {item.new_value}"
+            f"{item.facet} {show(item.base_value)} -> {show(item.new_value)}"
             for item in change.facet_justifications
-            if item.status not in ("unchanged", None) or item.base_value != item.new_value
+            if (item.status not in ("unchanged", None) or item.base_value != item.new_value)
+            and not (item.facet == "min_count" and item.new_value == "0" and item.base_value in (None, "0"))
         ]
         detail = "; ".join(changed) if changed else constraints
         return f"On {target}, the base property {path} is tightened: {detail}. Result: {constraints}."

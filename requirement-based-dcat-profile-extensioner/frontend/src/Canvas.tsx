@@ -63,7 +63,8 @@ export function ProfileCanvas({ snapshot, base, selected, onSelect, showRejected
     const live = snapshot.changes.filter((c) => c.decision.status !== 'superseded' && (showRejected || c.decision.status !== 'rejected'));
     const classes: string[] = [];
     for (const change of live) if (!classes.includes(change.target_class)) classes.push(change.target_class);
-    const nodes: Node<ClassData>[] = classes.map((cls, index) => {
+    const columnHeight = [0, 0, 0];
+    const nodes: Node<ClassData>[] = classes.map((cls) => {
       const mine = live.filter((c) => c.target_class === cls);
       const minted = mine.some((c) => c.kind === 'mint_class');
       const baseClass = base?.classes.find((b) => b.iri === cls);
@@ -78,8 +79,12 @@ export function ProfileCanvas({ snapshot, base, selected, onSelect, showRejected
       const baseRows: Row[] = (base?.elements ?? []).filter((e) => e.target_class === cls && !touched.has(e.path)).map((e) => ({
         key: e.path, kind: 'base', label: compact(e.path, p), detail: `${e.facets.obligation} ${card(e.facets)}`,
       }));
+      // Stack cards in the shortest of three columns, using an estimate of each card's height.
+      const column = columnHeight.indexOf(Math.min(...columnHeight));
+      const y = columnHeight[column];
+      columnHeight[column] += 110 + 31 * rows.length + (expanded[cls] ? 27 * baseRows.length : 0) + 40;
       return {
-        id: cls, type: 'classNode', position: { x: (index % 3) * 380, y: Math.floor(index / 3) * 360 },
+        id: cls, type: 'classNode', position: { x: column * 400, y },
         data: {
           title: baseClass?.label || compact(cls, p), curie: compact(cls, p), layer: minted ? 'extension' : baseClass ? 'profile' : 'extension',
           rows, baseRows, selected, onSelect, expanded: !!expanded[cls], onToggle: () => setExpanded((e) => ({ ...e, [cls]: !e[cls] })),

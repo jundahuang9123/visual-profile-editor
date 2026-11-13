@@ -178,13 +178,13 @@ export function Inspector({ snapshot, selection, select, reviewer, refresh, noti
         {change.covers.map((l) => (
           <div key={l.atom_id} className="cover">
             <button type="button" className="link" onClick={() => select({ type: 'atom', id: l.atom_id })}>{l.atom_id}</button> <Pill value={l.coverage} />
-            <p>{l.reason}</p>{l.evidence_quote && <blockquote>“{l.evidence_quote}”</blockquote>}
+            <p>{l.reason}</p>{l.evidence_quote && <blockquote>“{l.evidence_quote.replace(/^["“”\s]+|["“”\s]+$/g, '')}”</blockquote>}
           </div>))}
       </section>
       {change.facet_justifications.length > 0 && (
         <section><h4>Constraints set or tightened</h4>
           <table className="facets"><thead><tr><th>Facet</th><th>Base</th><th>Now</th><th>vs base</th><th>Reason</th></tr></thead>
-            <tbody>{change.facet_justifications.map((j) => (
+            <tbody>{change.facet_justifications.filter((j) => !(j.facet === 'min_count' && j.new_value === '0' && !j.base_value)).map((j) => (
               <tr key={j.facet}><td>{j.facet}</td><td>{compact(j.base_value, p) || '–'}</td><td>{compact(j.new_value, p)}</td>
                 <td>{j.status && <Pill value={j.status} />}</td><td>{j.reason}</td></tr>))}</tbody></table>
         </section>)}

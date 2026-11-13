@@ -249,6 +249,8 @@ def change_from_output(
             shown_base, shown_new = _show(base_value), _show(new_value)
             if shown_new is None or shown_new == shown_base:
                 continue
+            if facet == "min_count" and shown_new == "0" and shown_base in (None, "0"):
+                continue  # a minimum of 0 constrains nothing
             if facet == "obligation" and shown_base in (None, "unknown") and shown_new == "unknown":
                 continue
             justifications.append(FacetJustification(
@@ -270,7 +272,7 @@ def change_from_output(
     rejected = [RejectedCandidate(iri=kb.expand(item.term) or item.term, reason=item.reason) for item in out.rejected_candidates]
     super_term = kb.expand(out.super_term) if out.super_term else None
     covers = [
-        CoverageLink(atom_id=link.atom_id, reason=link.reason.strip(), evidence_quote=link.evidence_quote.strip(),
+        CoverageLink(atom_id=link.atom_id, reason=link.reason.strip(), evidence_quote=link.evidence_quote.strip().strip('"\u201c\u201d').strip(),
                      coverage=link.coverage)
         for link in out.covers
     ] or [CoverageLink(atom_id=atom.id, reason=out.rationale.strip(), evidence_quote="")]
