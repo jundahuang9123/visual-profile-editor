@@ -1,0 +1,118 @@
+# Synthetic example atom set for demos and tests.
+#
+# Invented for this tool: a fictional materials-testing laboratory that wants to
+# catalogue its test datasets. It is NOT benchmark gold and is NOT derived from
+# the requirements of any published DCAT-AP extension.
+#
+# Format: the RQ2 atom contract (term-free atoms: no IRIs, no prefixed names, no
+# profile names; plain-word subjects; modality as worded in the source).
+title: Materials-testing laboratory (synthetic demo)
+description: >-
+  Requirements a fictional materials-testing laboratory places on the metadata
+  of its test datasets. The set is built to exercise every outcome of the
+  pipeline: requirements the base already covers, constraints that must be
+  tightened, existing terms that can be reused, terms that must be minted, a
+  requirement that is out of scope, and a compound requirement.
+benchmark_id: demo-materials-testing-lab
+base_profile_ids: [dcat-ap-3.0.1]
+atoms:
+  - id: lab-01
+    statement: Every dataset must have a title.
+    subject: dataset
+    modality: must
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 1"}
+
+  - id: lab-02
+    statement: Every dataset must name the organisation responsible for making it available.
+    subject: dataset
+    modality: must
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 2"}
+
+  - id: lab-03
+    statement: Each distribution must state the licence under which the file may be reused.
+    subject: distribution
+    modality: must
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 3"}
+
+  - id: lab-04
+    statement: Each distribution should state the format of its file.
+    subject: distribution
+    modality: should
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 4"}
+
+  - id: lab-05
+    statement: Each distribution must give the size of the file in bytes.
+    subject: distribution
+    modality: must
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 5"}
+
+  - id: lab-06
+    statement: A dataset should state the testing standard that the measurements followed.
+    subject: dataset
+    modality: should
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 6"}
+
+  - id: lab-07
+    statement: A dataset should list the people who contributed to carrying out the tests.
+    subject: dataset
+    modality: should
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 7"}
+
+  - id: lab-08
+    statement: A dataset may link to the publication in which its results were reported.
+    subject: dataset
+    modality: may
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 8"}
+
+  - id: lab-09
+    statement: A dataset must identify the kind of material of the tested specimens.
+    subject: dataset
+    modality: must
+    source_reference: {document: lab-engineers-interview (synthetic), locator: "answer 2"}
+
+  - id: lab-10
+    statement: A dataset should name the testing machine that produced the measurements.
+    subject: dataset
+    modality: should
+    source_reference: {document: lab-engineers-interview (synthetic), locator: "answer 3"}
+
+  - id: lab-11
+    statement: A dataset must state the number of specimens that were tested.
+    subject: dataset
+    modality: must
+    source_reference: {document: lab-engineers-interview (synthetic), locator: "answer 4"}
+
+  - id: lab-12
+    statement: A dataset must state its measurement uncertainty and the calibration date of the testing machine.
+    subject: dataset
+    modality: must
+    source_reference: {document: lab-engineers-interview (synthetic), locator: "answer 5"}
+
+  - id: lab-13
+    statement: The catalogue must state the organisation that operates it.
+    subject: catalogue
+    modality: must
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 9"}
+
+  - id: lab-14
+    statement: A data service should state the address of its endpoint.
+    subject: data service
+    modality: should
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 10"}
+
+  - id: lab-15
+    statement: The portal must answer a search query within two seconds.
+    subject: portal
+    modality: must
+    source_reference: {document: lab-it-department-note (synthetic), locator: "item 1"}
+
+  # Counterfactual variant of lab-02 (leakage control L4): the wording is weakened,
+  # so the right answer changes. Kept inactive; activate it INSTEAD of lab-02.
+  - id: lab-02-cf
+    statement: Every dataset should name the organisation responsible for making it available.
+    subject: dataset
+    modality: should
+    source_reference: {document: lab-data-office-note (synthetic), locator: "item 2"}
+    counterfactual_of: lab-02
+    expected_change: Naming the responsible organisation stays recommended; no tightening is needed.
+    active: false

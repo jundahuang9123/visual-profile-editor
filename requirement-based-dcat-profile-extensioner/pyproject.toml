@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "requirement-based-dcat-profile-extensioner"
+version = "0.1.0"
+description = "LLM-driven, traceable, reuse-first extension of DCAT / DCAT-AP application profiles from requirement atoms"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "rdflib>=7.0",
+    "pyshacl>=0.26",
+    "pyyaml>=6",
+    "httpx>=0.27",
+    "anthropic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+profile-extensioner = "profile_extensioner.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+
+[tool.setuptools.package-data]
+profile_extensioner = ["py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["tests"]

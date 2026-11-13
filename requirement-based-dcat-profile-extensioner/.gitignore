@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+node_modules/
+frontend/dist/
+*.log
+# local workspaces (blackboard databases, built indexes)
+.workspace/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
