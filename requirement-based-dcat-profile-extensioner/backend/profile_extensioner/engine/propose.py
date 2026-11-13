@@ -216,6 +216,12 @@ def change_from_output(
     if facets.obligation == "mandatory" and not facets.min_count:
         facets.min_count = 1
         notes.append("min_count set to 1 because the obligation is mandatory")
+    elif facets.obligation in ("recommended", "optional") and facets.min_count:
+        # DCAT-AP writes "recommended" as minCount 1 at Warning level; here the obligation carries that,
+        # and the compiler emits the advisory minCount shape. A binding minimum would make it mandatory.
+        notes.append(f"min_count {facets.min_count} dropped: the obligation '{facets.obligation}' already says how strongly "
+                     "a value is expected (recommended is compiled as an advisory minCount 1)")
+        facets.min_count = None
 
     base_facets = base_element.facets if base_element is not None else None
     if kind == "refine_property" and base_facets is not None:

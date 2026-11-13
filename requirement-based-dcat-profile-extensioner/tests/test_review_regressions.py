@@ -114,3 +114,18 @@ def test_only_recommended_is_advisory_in_shacl(pipe):
     advisory = [s for s in shapes if (s, SH.severity, SH.Warning) in graph]
     assert binding and (binding[0], SH.severity, SH.Violation) in graph and (binding[0], SH.minCount, None) not in graph
     assert advisory and (advisory[0], SH.minCount, None) in graph
+
+
+def test_recommended_with_min_one_is_normalised_not_rejected(pipe):
+    from profile_extensioner.engine.propose import change_from_output
+    from profile_extensioner.engine.schemas import CoverageOut, FacetReasonOut, ProposedChangeOut
+    from profile_extensioner.contracts import Provenance
+    atom = pipe.store.get_atom("p1", "lab-04")
+    out = ProposedChangeOut(kind="refine_property", target_class="dcat:Distribution", path="dcterms:format", label=None,
+                            definition=None, usage_note=None, obligation="recommended", min_count=1, max_count=None,
+                            range=None, range_kind="unspecified", node_kind=None, controlled_vocabulary=[], super_term=None,
+                            covers=[CoverageOut(atom_id="lab-04", reason="r", evidence_quote="format", coverage="full")],
+                            facet_reasons=[FacetReasonOut(facet="obligation", reason="r")], reason_no_reuse=None,
+                            rejected_candidates=[], rationale="r", confidence=0.9)
+    change = change_from_output(out, atom, DCAT + "Distribution", pipe.kb, pipe.project, Provenance())
+    assert change.facets.min_count is None and any("dropped" in note for note in change.engine_notes)
